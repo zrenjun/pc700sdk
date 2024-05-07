@@ -14,4 +14,137 @@
     <string name="collecting_please_click_to_view_when_finished">正在采集，请完成后点击</string>
     <string name="fall">脱落</string>
     <string name="lead_normal">导联正常</string>
+    <!--    检查页面-->
+
+    <string name="intobloodfattext">进入血脂测量</string>
+    <string name="uaname">尿酸</string>
+    <string name="limosis">空腹</string>
+    <string name="meals2hours">餐后2小时</string>
+    <string name="intourineanalyze">进入尿液分析</string>
+    <string name="urinalysis">尿液分析</string>
+    <string name="tempname">体温</string>
+    <string name="yicheng">怡成</string>
+    <string name="lepu">乐普</string>
+    <string name="baijie">百捷</string>
+    <string name="aoaile">爱奥乐</string>
+    <string name="const_pizh">灌注指数</string>
+    <string name="erwen">耳温</string>
+    <string name="ewen">额温</string>
+    <string name="wuwen">物温</string>
+    <string name="const_nibp">血压</string>
+    <string name="const_nibp_text_unit">mmHg</string>
+    <string name="const_nibp_text_unit_kpa">kPa</string>
+    <string name="const_temp_unit_text">℃</string>
+    <string name="const_mmol_unit_text">mmol/L</string>
+    <string name="const_mgdl_unit_text">mg/dL</string>
+    <string name="const_ok">确定</string>
+    <string name="const_cancel">取消</string>
+    <string name="spo2name">血氧</string>
+    <string name="gluname">血糖</string>
+    <string name="spo2probefalloff">血氧探头脱落</string>
+    <string name="spo2unit">SpO2(%)</string>
+    <string name="testpattern">测试模式</string>
+
+    <string name="const_temp_text">体温</string>
+    <!-- 尿液界面 -->
+    <string name="bluetooth_discon">蓝牙断开</string>
+    <string name="bluetooth_status">蓝牙状态：</string>
+    <string name="bluetooth_open">蓝牙正在打开</string>
+    <string name="bluetooth_open_fail">蓝牙打开失败</string>
+    <string name="bluetooth_discoverying">正在扫描</string>
+    <string name="bluetooth_connecting">连接中</string>
+    <string name="bluetooth_connected">连接成功</string>
+    <string name="bluetooth_connect_fail">连接失败</string>
+    <string name="bluetooth_discoveryed">扫描结束</string>
+    <string name="bluetooth_discovery_time_out">扫描超时</string>
+    <string name="ble_bluetooth_discovery_error_0">设备不支持蓝牙搜索</string>
+    <string name="ble_bluetooth_discovery_error_1">蓝牙未开启</string>
+    <string name="ble_bluetooth_discovery_error_2">SDK未初始化</string>
+    <string name="find_device_and_connect">找到设备，开始连接</string>
+    <string name="data_exception">数据异常</string>
+    <string name="savesuccess">保存成功"</string>
+    <string name="uploaddatas">上传数据信息"</string>
+
+    <string name="uploaddata">上传</string>
+    <string name="test_urine">测量</string>
+    <string name="clear_screen">清屏</string>
+    <string name="unbond_device">解绑设备</string>
+    <string name="input_urine_sn">请输入尿液分析仪背面条形码下的4位序列号</string>
+    <string name="input_sn_err">输入SN错误</string>
+    <string name="bond_dev_sn">绑定设备序列号：</string>
+    <string name="no_data">没有记录</string>
+    <string name="del_data_success">数据删除成功</string>
+    <string name="synch_time_success">同步时间成功</string>
+
+
+    <!-- 血脂 -->
+    <string name="bf_step_text_1">步骤一：\n准备棉签、酒精擦片、采血针、试纸条、取血器、Code卡、血脂检测仪</string>
+    <string name="bf_step_text_2">步骤二：\n①安装电池\n②安装Code卡\n③插入试纸条\n④长按“开机”按钮\n⑤设置日期、用户名</string>
+    <string name="bf_step_text_3">步骤三：\n①使用酒精擦片擦拭手指\n②擦去残留酒精\n③使用采血针从手指侧面采血\n④血量过少时可适当挤压手指</string>
+    <string name="bf_step_text_4">步骤四：\n①使用取血器收集血液\n②将血样匀速一次性滴入试纸条\n③等待检测完成</string>
+    <string name="bf_step_text_5">步骤五：\n血脂仪显示结果后，点击“蓝牙连接”按钮，可获取数据。\n注意：未出结果，蓝牙连接会失败。</string>
+
+
+    <string name="single_lead_ecg_function">单导心电功能</string>
+    <string name="ldl_function">低密度脂蛋白</string>
+    <string name="open">开</string>
+    <string name="close">关</string>
+    <string name="lipid_meter_time">血脂仪时间</string>
+    <string name="ytj_time">与一体机时间:</string>
+    <string name="inconformity">不一致，时间不一致将导致一体机当天报告查不到该血脂记录，点击‘是’以一体机时间存储，‘否’以血脂仪时间存储。</string>
+    <string name="time_exception">时间异常提示</string>
+    <string name="total_cholesterol_notnull">总胆固醇不能为空</string>
+    <string name="triglycerides_cannot_be_empty">甘油三酯不能为空</string>
+    <string name="hdl_cant_empty">高密度脂蛋白不能为空</string>
+    <string name="ldl_cant_empty">低密度脂蛋白不能为空</string>
+    <string name="Totaltank_high_density_cannot_be_empty">总胆/高密不能为空</string>
+
+
+    <!-- 定义常量字符 -->
+    <string name="const_pi_unit_text">PI(%)</string>
+    <string name="const_dia_text">舒张压</string>
+    <string name="const_map_text">脉率</string>
+    <string name="const_sys_text">收缩压</string>
+    <string name="cuff_pressure">袖带压</string>
+    <string name="const_sys_textandunit">SYS(mmHg)</string>
+    <string name="const_dia_textandunit">DIA(mmHg)</string>
+    <string name="const_spo2_text">血氧</string>
+    <string name="const_pr_text">PR</string>
+    <string name="const_pr_textandunit">PR(bpm)</string>
+
+    <string name="glu_device">血糖设备</string>
+    <string name="glu_yicheng">Yicheng</string>//界面不能显示其他厂家名称
+    <string name="glu_baijie">百捷</string>
+    <string name="glu_aiaole">爱奥乐</string>
+    <string name="nibp_stop_measure">停止测量</string>
+    <string name="nibp_unit">血压单位</string>
+    <string name="nibp_unit_kpa">kPa</string>
+    <string name="nibp_unit_mmhg">mmHg</string>
+    <string name="glu_ua_chol_unit">血糖,尿酸,总胆固醇单位</string>
+    <string name="measure_over">测量完成</string>
+    <string name="mmHg_speech">毫米汞柱</string>
+    <string name="kpa_speech">千帕</string>
+    <string name="bpm_speech">每分钟脉搏数</string>
+    <string name="probe_off">探头脱落</string>
+    <string name="spo2_probe_off">血氧探头脱落</string>
+    <string name="hr_noral_nibp">心率正常</string>
+    <string name="hr_not_noral_nibp">心率不齐</string>
+    <string name="pulserate">脉率</string>
+    <string name="best">最佳</string>
+    <string name="Inthehigh">临高</string>
+    <string name="light">轻高</string>
+    <string name="crowning">中高</string>
+    <string name="Heavy_high">重高</string>
+    <string name="normal">正常</string>
+    <string name="Blood_pressure_level">血压等级:</string>
+    <string name="body_temperature">体温(℃)：</string>
+    <string name="spo2name2">血氧(%)：</string>
+    <string name="pulserate2">脉率(bpm)：</string>
+    <string name="too_low">过低</string>
+    <string name="too_high">过高</string>
+    <string name="the_measurement_result_is_wrong_please_try_again">测量结果有误，请重新操作</string>
+    <string name="glu_mmol">血糖(mmol/L)：</string>
+    <string name="glu_dl">血糖(mg/dl)：</string>
+    <string name="totalcholesterol">总胆固醇</string>
+    <string name="const_blood_ketones_text">血酮</string>
 </resources>

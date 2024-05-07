@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:gravity="bottom"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/tv_gludevice"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/dp_60"
+        android:layout_gravity="center_vertical"
+        android:layout_marginLeft="32dp"
+        android:gravity="center"
+        android:text="@string/glu_device"
+        android:textSize="@dimen/sp_20"
+
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <RadioGroup
+        android:id="@+id/rg_baijieaoaile"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/dp_60"
+        android:layout_gravity="center_vertical"
+        android:layout_marginLeft="@dimen/dp_20"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="@+id/tv_gludevice"
+        app:layout_constraintLeft_toRightOf="@+id/tv_gludevice"
+        app:layout_constraintTop_toTopOf="@+id/tv_gludevice"
+
+
+        >
+
+        <RadioButton
+            android:id="@+id/rb_yicheng"
+            android:layout_width="@dimen/dp_120"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:text="@string/glu_yicheng"
+            android:textSize="18sp"
+            android:visibility="gone" />
+
+        <RadioButton
+            android:id="@+id/rb_baijie"
+            android:layout_width="@dimen/dp_120"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:text="@string/glu_baijie"
+            android:textSize="18sp" />
+
+        <RadioButton
+            android:id="@+id/rb_aiaole"
+            android:layout_width="@dimen/dp_120"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:text="@string/glu_aiaole"
+            android:textSize="18sp" />
+
+        <RadioButton
+            android:id="@+id/rb_lepu"
+            android:layout_width="@dimen/dp_120"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:text="@string/glu_lepu"
+            android:textSize="18sp" />
+
+    </RadioGroup>
+
+
+    <View
+        android:id="@+id/view_1"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="20dp"
+        android:background="@color/line"
+        app:layout_constraintTop_toBottomOf="@+id/rg_baijieaoaile" />
+
+    <TextView
+        android:id="@+id/tv_glu_ua_chol_unit"
+        android:layout_width="wrap_content"
+
+        android:layout_height="@dimen/dp_60"
+        android:layout_gravity="center_vertical"
+        android:layout_marginLeft="32dp"
+        android:gravity="center"
+        android:text="@string/glu_ua_chol_unit"
+        android:textSize="@dimen/sp_20"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/view_1" />
+
+    <RadioGroup
+        android:id="@+id/rg_glu"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:layout_marginLeft="5dp"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="@+id/tv_glu_ua_chol_unit"
+        app:layout_constraintLeft_toRightOf="@+id/tv_glu_ua_chol_unit"
+        app:layout_constraintTop_toTopOf="@+id/tv_glu_ua_chol_unit">
+
+        <RadioButton
+            android:id="@+id/rb_glu_unit_mmol"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/const_mmol_unit_text"
+            android:textSize="18sp" />
+
+        <RadioButton
+            android:id="@+id/rb_glu_unit_mgdl"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:text="@string/const_mgdl_unit_text"
+            android:textSize="18sp" />
+    </RadioGroup>
+
+
+    <View
+        android:id="@+id/view_2"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="20dp"
+        android:background="@color/line"
+        app:layout_constraintTop_toBottomOf="@+id/rg_glu" />
+
+    <!-- NIBP 单位-->
+    <TextView
+        android:id="@+id/tv_nibpunit"
+        android:layout_width="wrap_content"
+
+        android:layout_height="@dimen/dp_60"
+        android:layout_gravity="center_vertical"
+        android:layout_marginLeft="32dp"
+        android:gravity="center"
+        android:text="@string/nibp_unit"
+        android:textSize="@dimen/sp_20"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/view_2" />
+
+    <RadioGroup
+        android:id="@+id/rg_nipbunit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:layout_marginLeft="5dp"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="@+id/tv_nibpunit"
+        app:layout_constraintLeft_toRightOf="@+id/tv_nibpunit"
+        app:layout_constraintTop_toTopOf="@+id/tv_nibpunit">
+
+        <RadioButton
+            android:id="@+id/rb_nibp_unit_mmhg"
+            android:layout_width="@dimen/dp_100"
+            android:layout_height="wrap_content"
+            android:text="@string/nibp_unit_mmhg"
+            android:textSize="18sp" />
+
+        <RadioButton
+            android:id="@+id/rb_nibp_unit_kpa"
+            android:layout_width="@dimen/dp_100"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:text="@string/nibp_unit_kpa"
+            android:textSize="18sp" />
+    </RadioGroup>
+
+
+    <View
+        android:id="@+id/view_3"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/line"
+        app:layout_constraintTop_toBottomOf="@+id/tv_nibpunit" />
+
+    <!-- 体温单位-->
+    <TextView
+        android:id="@+id/tv_temp"
+        android:layout_width="wrap_content"
+
+        android:layout_height="@dimen/dp_60"
+        android:layout_gravity="center"
+        android:layout_marginLeft="32dp"
+        android:gravity="center"
+        android:text="温度模式"
+        android:textSize="@dimen/sp_20"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/view_3" />
+
+    <RadioGroup
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:layout_marginLeft="5dp"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="@+id/tv_temp"
+        app:layout_constraintLeft_toRightOf="@+id/tv_temp"
+        app:layout_constraintTop_toTopOf="@+id/tv_temp">
+
+        <RadioButton
+            android:id="@+id/rb_temp_ear"
+            android:layout_width="@dimen/dp_100"
+            android:layout_height="wrap_content"
+            android:text="耳温"
+            android:textSize="18sp" />
+
+        <RadioButton
+            android:id="@+id/rb_temp_forehead_adult"
+            android:layout_width="@dimen/dp_100"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:text="额温"
+            android:textSize="18sp" />
+        <!-- 成人额温 -->
+
+        <RadioButton
+            android:id="@+id/rb_temp_forehead_child"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:text="儿童额温"
+            android:textSize="18sp"
+            android:visibility="gone" />
+
+        <RadioButton
+            android:id="@+id/rb_temp_object"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:text="物温"
+            android:textSize="18sp"
+            android:visibility="gone" />
+    </RadioGroup>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tv_temp">
+
+        <Button
+            android:id="@+id/btn_close"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="32dp"
+            android:background="@drawable/ripple_btn_bg"
+            android:text="保存"
+            android:textColor="#fff"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,999 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.65" />
+    <!--血压-->
+    <LinearLayout
+        android:id="@+id/ll_nibp"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/dp_400"
+        android:layout_margin="@dimen/dp_10"
+        android:background="@drawable/nibp_background"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="@id/guideline"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/dp_30"
+        android:layout_marginTop="@dimen/dp_20"
+        android:src="@drawable/multi_nibp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="ContentDescription" />
+
+
+    <TextView
+        android:id="@+id/tv_nibpname"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:layout_marginStart="@dimen/dp_20"
+        android:text="@string/const_nibp"
+        android:textColor="@color/color666666"
+        android:textSize="@dimen/sp_20"
+        app:layout_constraintBottom_toBottomOf="@+id/imageView"
+        app:layout_constraintStart_toEndOf="@+id/imageView"
+        app:layout_constraintTop_toTopOf="@+id/imageView" />
+
+
+    <TextView
+        android:id="@+id/realplay_pc300_tv_nibp_unit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:text="@string/const_nibp_text_unit"
+        android:textColor="@color/color666666"
+        android:textSize="@dimen/sp_18"
+        app:layout_constraintBottom_toBottomOf="@+id/tv_nibpname"
+        app:layout_constraintStart_toEndOf="@+id/tv_nibpname"
+        app:layout_constraintTop_toTopOf="@+id/tv_nibpname" />
+
+    <ImageView
+        android:id="@+id/iv_nibp_mode"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/dp_20"
+        android:src="@drawable/multi_adult"
+        app:layout_constraintBottom_toBottomOf="@+id/realplay_pc300_tv_nibp_unit"
+        app:layout_constraintStart_toEndOf="@+id/realplay_pc300_tv_nibp_unit"
+        app:layout_constraintTop_toTopOf="@+id/realplay_pc300_tv_nibp_unit"
+        tools:ignore="ContentDescription" />
+
+    <LinearLayout
+        android:id="@+id/ll_sys"
+        android:layout_width="@dimen/dp_300"
+        android:layout_height="@dimen/dp_80"
+        android:layout_marginStart="@dimen/dp_30"
+        android:layout_marginTop="@dimen/dp_20"
+        android:background="@drawable/normal_background"
+        android:orientation="horizontal"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/imageView" />
+
+    <TextView
+        android:id="@+id/tv_sys"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/dp_60"
+        android:gravity="center"
+        android:text="@string/const_sys_text"
+        android:textColor="@color/color666666"
+        android:textSize="@dimen/sp_20"
+        app:layout_constraintBottom_toBottomOf="@+id/ll_sys"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/ll_sys" />
+
+    <TextView
+        android:id="@+id/realplay_pc300_tv_sys"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/dp_160"
+        android:gravity="center_vertical"
+        android:text="- -"
+        android:textColor="@color/data_spo2"
+        android:textSize="@dimen/sp_28"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="@+id/ll_sys"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/ll_sys"
+        tools:ignore="HardcodedText" />
+
+
+    <LinearLayout
+        android:id="@+id/ll_dia"
+        android:layout_width="@dimen/dp_300"
+        android:layout_height="@dimen/dp_80"
+        android:layout_marginStart="@dimen/dp_30"
+        android:layout_marginTop="@dimen/dp_10"
+        android:background="@drawable/normal_background"
+        android:orientation="horizontal"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/ll_sys" />
+
+    <TextView
+        android:id="@+id/tv_dia"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/dp_60"
+        android:gravity="center"
+        android:text="@string/const_dia_text"
+        android:textColor="@color/color666666"
+        android:textSize="@dimen/sp_20"
+        app:layout_constraintBottom_toBottomOf="@+id/ll_dia"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/ll_dia" />
+
+    <TextView
+        android:id="@+id/realplay_pc300_tv_dia"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/dp_160"
+        android:gravity="center_vertical"
+        android:text="- -"
+        android:textColor="@color/data_spo2"
+        android:textSize="@dimen/sp_28"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="@+id/ll_dia"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/ll_dia"
+        tools:ignore="HardcodedText" />
+
+    <LinearLayout
+        android:id="@+id/ll_map"
+        android:layout_width="@dimen/dp_300"
+        android:layout_height="@dimen/dp_80"
+        android:layout_marginStart="@dimen/dp_30"
+        android:layout_marginTop="@dimen/dp_10"
+        android:background="@drawable/normal_background"
+        android:orientation="horizontal"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/ll_dia" />
+
+
+    <TextView
+        android:id="@+id/tv_map"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/dp_60"
+        android:gravity="center"
+        android:text="@string/const_map_text"
+        android:textColor="@color/color666666"
+        android:textSize="@dimen/sp_20"
+        app:layout_constraintBottom_toBottomOf="@+id/ll_map"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/ll_map" />
+
+    <TextView
+        android:id="@+id/realplay_pc300_tv_map"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/dp_160"
+        android:gravity="center_vertical"
+        android:text="- -"
+        android:textColor="@color/data_spo2"
+        android:textSize="@dimen/sp_28"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="@+id/ll_map"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/ll_map"
+        tools:ignore="HardcodedText" />
+
+
+    <com.lepu.pc700.InstrumentView
+        android:id="@+id/ins_View"
+        android:layout_width="@dimen/dp_300"
+        android:layout_height="@dimen/dp_300"
+        android:layout_gravity="center"
+        android:layout_marginLeft="@dimen/dp_60"
+        android:layout_marginTop="@dimen/dp_10"
+        app:layout_constraintStart_toEndOf="@+id/ll_sys"
+        app:layout_constraintTop_toTopOf="@+id/imageView"
+        app:layout_goneMarginTop="@dimen/dp_20" />
+
+    <Button
+        android:id="@+id/btn_nibp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/start_measure_nibp"
+        app:layout_constraintEnd_toEndOf="@+id/ins_View"
+        app:layout_constraintStart_toStartOf="@+id/ins_View"
+        app:layout_constraintTop_toBottomOf="@+id/ins_View" />
+
+    <!--血氧-->
+
+
+    <LinearLayout
+        android:id="@+id/ll_mapds"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/dp_160"
+        android:layout_marginStart="@dimen/dp_2"
+        android:layout_marginEnd="@dimen/dp_10"
+        android:background="@drawable/nibp_background"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/guideline"
+        app:layout_constraintTop_toTopOf="@+id/ll_nibp" />
+
+    <ImageView
+        android:id="@+id/iv_spo2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginStart="@dimen/dp_10"
+        android:layout_marginTop="@dimen/dp_20"
+        android:src="@drawable/multi_spo2"
+        app:layout_constraintStart_toStartOf="@+id/ll_mapds"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="ContentDescription" />
+
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/dp_10"
+        android:text="@string/spo2name"
+        android:textColor="@color/color666666"
+        android:textSize="@dimen/sp_20"
+        app:layout_constraintStart_toEndOf="@+id/iv_spo2"
+        app:layout_constraintTop_toTopOf="@+id/iv_spo2" />
+
+    <TextView
+        android:id="@+id/tv_spo2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginStart="@dimen/dp_10"
+        android:text="@string/spo2unit"
+        android:textColor="@color/color666666"
+        android:textSize="@dimen/sp_18"
+        app:layout_constraintBottom_toBottomOf="@+id/iv_spo2"
+        app:layout_constraintStart_toEndOf="@+id/iv_spo2" />
+
+    <TextView
+        android:id="@+id/realplay_pc300_tv_spo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/dp_30"
+        android:gravity="center"
+        android:minWidth="@dimen/dp_80"
+        android:text="- -"
+        android:textColor="@color/data_spo2"
+        android:textSize="@dimen/sp_28"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="@+id/iv_spo2"
+        app:layout_constraintStart_toEndOf="@+id/tv_spo2"
+        app:layout_constraintTop_toTopOf="@+id/iv_spo2"
+        tools:ignore="HardcodedText" />
+
+    <TextView
+        android:id="@+id/tv_leadOffStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/dp_20"
+
+        android:textColor="@color/color666666"
+        android:textSize="@dimen/sp_16"
+        app:layout_constraintBottom_toBottomOf="@+id/iv_spo2"
+        app:layout_constraintStart_toEndOf="@+id/realplay_pc300_tv_spo"
+        app:layout_constraintTop_toTopOf="@+id/iv_spo2" />
+
+    <ProgressBar
+        android:id="@+id/pb_spo2"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/dp_24"
+        android:layout_marginStart="@dimen/dp_10"
+        android:layout_marginTop="@dimen/dp_6"
+        android:layout_marginEnd="@dimen/dp_10"
+        android:max="100"
+        android:visibility="invisible"
+        app:layout_constraintEnd_toEndOf="@+id/ll_mapds"
+        app:layout_constraintStart_toStartOf="@+id/ll_mapds"
+        app:layout_constraintTop_toBottomOf="@+id/iv_spo2" />
+
+    <com.lepu.pc700.SpoView
+        android:id="@+id/spoView"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/dp_50"
+        android:layout_gravity="bottom"
+        android:layout_marginStart="@dimen/dp_4"
+        android:layout_marginTop="@dimen/dp_6"
+        app:layout_constraintEnd_toStartOf="@id/draw_spo2_rect"
+        app:layout_constraintStart_toStartOf="@+id/pb_spo2"
+        app:layout_constraintTop_toBottomOf="@+id/pb_spo2" />
+
+    <com.lepu.pc700.DrawPC300SPO2Rect
+        android:id="@+id/draw_spo2_rect"
+        android:layout_width="@dimen/dp_36"
+        android:layout_height="@dimen/dp_50"
+        android:layout_gravity="bottom"
+        android:layout_marginStart="@dimen/dp_4"
+        android:layout_marginEnd="@dimen/dp_20"
+        app:layout_constraintEnd_toEndOf="@+id/ll_mapds"
+        app:layout_constraintTop_toTopOf="@+id/spoView" />
+
+
+    <LinearLayout
+        android:id="@+id/ll_pr"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/dp_80"
+        android:layout_marginTop="@dimen/dp_6"
+        android:background="@drawable/normal_background"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="@+id/ll_mapds"
+        app:layout_constraintStart_toStartOf="@+id/ll_mapds"
+        app:layout_constraintTop_toBottomOf="@+id/ll_mapds" />
+
+    <ImageView
+        android:id="@+id/iv_pr"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginStart="@dimen/dp_10"
+        android:src="@drawable/multi_pr"
+        app:layout_constraintBottom_toBottomOf="@+id/ll_pr"
+        app:layout_constraintStart_toStartOf="@+id/ll_pr"
+        app:layout_constraintTop_toTopOf="@+id/ll_pr"
+        tools:ignore="ContentDescription" />
+
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/dp_10"
+        android:text="@string/pulserate"
+        android:textColor="@color/color666666"
+        android:textSize="@dimen/sp_20"
+        app:layout_constraintStart_toEndOf="@+id/iv_pr"
+        app:layout_constraintTop_toTopOf="@+id/iv_pr" />
+
+    <TextView
+
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginLeft="@dimen/dp_10"
+        android:text="@string/const_pr_textandunit"
+        android:textColor="@color/color666666"
+        android:textSize="@dimen/sp_18"
+        app:layout_constraintBottom_toBottomOf="@+id/iv_pr"
+        app:layout_constraintStart_toEndOf="@+id/iv_pr" />
+
+    <TextView
+        android:id="@+id/realplay_pc300_tv_pr"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:minWidth="@dimen/dp_90"
+        android:text="- -"
+        android:textColor="@color/data_spo2"
+        android:textSize="@dimen/sp_28"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="@+id/iv_pr"
+        app:layout_constraintStart_toStartOf="@+id/realplay_pc300_tv_spo"
+        app:layout_constraintTop_toTopOf="@+id/iv_pr"
+        tools:ignore="HardcodedText" />
+
+    <ImageView
+        android:id="@+id/iv_heart_pulse"
+        android:layout_width="@dimen/dp_30"
+        android:layout_height="@dimen/dp_30"
+        android:layout_marginStart="@dimen/dp_30"
+        android:layout_marginTop="@dimen/dp_10"
+        android:src="@drawable/multi_heart_ok"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toBottomOf="@+id/iv_pr"
+        app:layout_constraintStart_toEndOf="@+id/realplay_pc300_tv_pr"
+        app:layout_constraintTop_toTopOf="@+id/iv_pr"
+        tools:ignore="ContentDescription" />
+
+    <LinearLayout
+        android:id="@+id/ll_pi"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/dp_80"
+        android:layout_marginTop="@dimen/dp_6"
+        android:background="@drawable/normal_background"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="@+id/ll_pr"
+        app:layout_constraintStart_toStartOf="@+id/ll_pr"
+        app:layout_constraintTop_toBottomOf="@+id/ll_pr" />
+
+    <ImageView
+        android:id="@+id/iv_pi"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginStart="@dimen/dp_10"
+        android:src="@drawable/multi_pi"
+        app:layout_constraintBottom_toBottomOf="@+id/ll_pi"
+        app:layout_constraintStart_toStartOf="@+id/ll_pi"
+        app:layout_constraintTop_toTopOf="@+id/ll_pi"
+        tools:ignore="ContentDescription" />
+
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/dp_10"
+        android:text="@string/const_pizh"
+        android:textColor="@color/color666666"
+        android:textSize="@dimen/sp_20"
+        app:layout_constraintStart_toEndOf="@+id/iv_pi"
+        app:layout_constraintTop_toTopOf="@+id/iv_pi" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginLeft="@dimen/dp_10"
+        android:text="@string/const_pi_unit_text"
+        android:textColor="@color/color666666"
+        android:textSize="@dimen/sp_18"
+        app:layout_constraintBottom_toBottomOf="@+id/iv_pi"
+        app:layout_constraintStart_toEndOf="@+id/iv_pi" />
+
+    <TextView
+        android:id="@+id/realplay_pc300_tv_pi"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:minWidth="@dimen/dp_90"
+        android:text="- -"
+        android:textColor="@color/data_spo2"
+        android:textSize="@dimen/sp_28"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="@+id/iv_pi"
+        app:layout_constraintStart_toStartOf="@+id/realplay_pc300_tv_spo"
+        app:layout_constraintTop_toTopOf="@+id/iv_pi"
+        tools:ignore="HardcodedText" />
+
+
+    <LinearLayout
+        android:id="@+id/ll_bloodFat"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/dp_80"
+        android:layout_marginTop="@dimen/dp_6"
+        android:background="@drawable/normal_background"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="@+id/ll_pi"
+        app:layout_constraintStart_toStartOf="@+id/ll_pi"
+        app:layout_constraintTop_toBottomOf="@+id/ll_pi" />
+
+    <ImageView
+        android:id="@+id/iv_bloodfat"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginStart="@dimen/dp_10"
+        android:src="@drawable/multi_chol"
+        app:layout_constraintBottom_toBottomOf="@+id/ll_bloodFat"
+        app:layout_constraintStart_toStartOf="@+id/ll_bloodFat"
+        app:layout_constraintTop_toTopOf="@+id/ll_bloodFat"
+        tools:ignore="ContentDescription" />
+
+
+    <TextView
+        android:id="@+id/tv_bloodfatname"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/dp_10"
+        android:text="@string/intobloodfattext"
+        android:textColor="@color/color666666"
+        android:textSize="@dimen/sp_20"
+
+        app:layout_constraintStart_toEndOf="@+id/iv_bloodfat"
+        app:layout_constraintTop_toTopOf="@+id/iv_bloodfat" />
+
+    <TextView
+        android:id="@+id/realplay_pc300_tv_chol_unit"
+
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginLeft="@dimen/dp_10"
+        android:text="@string/const_mmol_unit_text"
+
+        android:textColor="@color/color666666"
+        android:textSize="@dimen/sp_18"
+        app:layout_constraintBottom_toBottomOf="@+id/iv_bloodfat"
+        app:layout_constraintStart_toEndOf="@+id/iv_bloodfat" />
+
+
+    <TextView
+        android:id="@+id/tv_zong"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginLeft="@dimen/dp_10"
+        android:text="@string/totalcholesterol"
+        android:textColor="@color/color666666"
+        android:textSize="15sp"
+        app:layout_constraintBottom_toBottomOf="@+id/iv_bloodfat"
+        app:layout_constraintStart_toEndOf="@+id/tv_bloodfatname"
+        app:layout_constraintTop_toTopOf="@+id/iv_bloodfat" />
+
+
+    <TextView
+        android:id="@+id/realplay_pc300_tv_chol"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/dp_6"
+        android:gravity="center"
+        android:minWidth="@dimen/dp_90"
+        android:text="- -"
+        android:textColor="@color/data_spo2"
+        android:textSize="@dimen/sp_28"
+        android:textStyle="bold"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toBottomOf="@+id/iv_bloodfat"
+        app:layout_constraintStart_toEndOf="@+id/tv_zong"
+        app:layout_constraintTop_toTopOf="@+id/iv_bloodfat"
+        tools:ignore="HardcodedText" />
+
+    <ImageView
+        android:id="@+id/iv_bloodfatedit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:src="@drawable/multi_checkedit"
+        android:visibility="invisible"
+        app:layout_constraintStart_toEndOf="@+id/realplay_pc300_tv_chol"
+        app:layout_constraintTop_toTopOf="@+id/iv_bloodfat"
+        tools:ignore="ContentDescription" />
+
+    <LinearLayout
+        android:id="@+id/ll_glu"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/dp_80"
+        android:layout_marginTop="@dimen/dp_6"
+        android:background="@drawable/bg_color_checkglu"
+        android:orientation="horizontal"
+        app:layout_constraintLeft_toLeftOf="@+id/ll_nibp"
+        app:layout_constraintRight_toRightOf="@+id/viewright"
+        app:layout_constraintTop_toBottomOf="@+id/ll_nibp" />
+
+    <ImageView
+        android:id="@+id/iv_glu"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginStart="@dimen/dp_10"
+        android:src="@drawable/multi_glu"
+        app:layout_constraintBottom_toBottomOf="@+id/ll_glu"
+        app:layout_constraintStart_toStartOf="@+id/ll_nibp"
+        app:layout_constraintTop_toTopOf="@+id/ll_glu"
+        tools:ignore="ContentDescription" />
+
+
+    <TextView
+        android:id="@+id/tv_gluname"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/dp_16"
+        android:text="@string/gluname"
+        android:textColor="@color/color666666"
+        android:textSize="@dimen/sp_20"
+        app:layout_constraintStart_toEndOf="@+id/iv_glu"
+        app:layout_constraintTop_toTopOf="@+id/iv_glu" />
+
+    <RadioGroup
+        android:id="@+id/rg_meal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/dp_6"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="@+id/ll_glu"
+        app:layout_constraintStart_toEndOf="@+id/realplay_pc300_tv_glu_unit"
+        app:layout_constraintTop_toTopOf="@+id/ll_glu">
+
+        <RadioButton
+            android:id="@+id/rb_before_meal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="@string/limosis"
+            android:textColor="@color/color666666" />
+
+        <RadioButton
+            android:id="@+id/rb_after_meal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/meals2hours"
+            android:textColor="@color/color666666" />
+    </RadioGroup>
+
+    <TextView
+        android:id="@+id/realplay_pc300_tv_glu_unit"
+        android:layout_width="@dimen/dp_70"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginLeft="@dimen/dp_10"
+        android:text="@string/const_mmol_unit_text"
+        android:textColor="@color/color666666"
+        android:textSize="@dimen/sp_18"
+        app:layout_constraintBottom_toBottomOf="@+id/iv_glu"
+        app:layout_constraintStart_toEndOf="@+id/iv_glu" />
+
+    <TextView
+        android:id="@+id/realplay_pc300_tv_glu"
+        android:layout_width="90dp"
+        android:layout_height="55dp"
+        android:layout_marginLeft="@dimen/dp_6"
+        android:gravity="center"
+        android:inputType="numberDecimal"
+        android:minWidth="@dimen/dp_80"
+
+        android:text="- -"
+        android:textColor="@color/data_spo2"
+        android:textSize="@dimen/sp_28"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="@+id/iv_glu"
+        app:layout_constraintStart_toEndOf="@+id/rg_meal"
+        app:layout_constraintTop_toTopOf="@+id/iv_glu"
+        tools:ignore="HardcodedText" />
+
+
+    <ImageView
+        android:id="@+id/iv_baijie"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:src="@drawable/multi_checkedit"
+        app:layout_constraintEnd_toEndOf="@+id/tv_baijie"
+        app:layout_constraintStart_toStartOf="@+id/tv_baijie"
+        app:layout_constraintTop_toTopOf="@+id/realplay_pc300_tv_glu"
+        tools:ignore="ContentDescription" />
+
+
+    <TextView
+        android:id="@+id/tv_baijie"
+        android:layout_width="@dimen/dp_64"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginLeft="@dimen/dp_6"
+        android:gravity="center"
+        android:text="@string/aoaile"
+        android:textColor="@color/color666666"
+        android:textSize="@dimen/sp_18"
+        app:layout_constraintBottom_toBottomOf="@+id/realplay_pc300_tv_glu"
+        app:layout_constraintStart_toEndOf="@+id/realplay_pc300_tv_glu" />
+
+    <TextView
+        android:id="@+id/viewright"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginLeft="@dimen/dp_10"
+        app:layout_constraintBottom_toBottomOf="@+id/tv_baijie"
+        app:layout_constraintStart_toEndOf="@+id/tv_baijie" />
+
+    <LinearLayout
+        android:id="@+id/ll_temp"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/dp_80"
+        android:layout_marginStart="@dimen/dp_10"
+        android:layout_marginTop="@dimen/dp_6"
+        android:layout_marginEnd="@dimen/dp_10"
+        android:background="@drawable/bg_color_checkglu"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="@id/guideline"
+        app:layout_constraintStart_toEndOf="@+id/ll_glu"
+        app:layout_constraintTop_toBottomOf="@+id/ll_nibp" />
+
+    <ImageView
+        android:id="@+id/iv_temp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginStart="@dimen/dp_10"
+        android:src="@drawable/multi_temp"
+        app:layout_constraintBottom_toBottomOf="@+id/ll_temp"
+        app:layout_constraintStart_toStartOf="@+id/ll_temp"
+        app:layout_constraintTop_toTopOf="@+id/ll_temp"
+        tools:ignore="ContentDescription" />
+
+
+    <TextView
+        android:id="@+id/tv_tempname"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/dp_20"
+        android:text="@string/tempname"
+        android:textColor="@color/color666666"
+        android:textSize="@dimen/sp_20"
+        app:layout_constraintStart_toEndOf="@+id/iv_temp"
+        app:layout_constraintTop_toTopOf="@+id/iv_temp" />
+
+    <TextView
+        android:id="@+id/tv_tempunit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginLeft="@dimen/dp_20"
+        android:text="@string/const_temp_unit_text"
+        android:textColor="@color/color666666"
+        android:textSize="@dimen/sp_18"
+        app:layout_constraintBottom_toBottomOf="@+id/iv_temp"
+        app:layout_constraintStart_toEndOf="@+id/iv_temp" />
+
+    <TextView
+        android:id="@+id/realplay_pc300_tv_temp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/dp_10"
+        android:clickable="true"
+        android:gravity="center"
+        android:inputType="numberDecimal"
+        android:minWidth="@dimen/dp_80"
+        android:text="- -"
+        android:textColor="@color/data_spo2"
+        android:textSize="@dimen/sp_28"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="@+id/ll_temp"
+        app:layout_constraintStart_toEndOf="@+id/tv_tempname"
+        app:layout_constraintTop_toTopOf="@+id/ll_temp"
+        tools:ignore="HardcodedText" />
+
+
+    <ImageView
+        android:id="@+id/iv_tempeedit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:src="@drawable/multi_checkedit"
+        app:layout_constraintEnd_toEndOf="@+id/tv_tempMode"
+        app:layout_constraintStart_toStartOf="@+id/tv_tempMode"
+        app:layout_constraintTop_toTopOf="@+id/tv_tempname"
+        tools:ignore="ContentDescription" />
+
+
+    <TextView
+        android:id="@+id/tv_tempMode"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginLeft="@dimen/dp_10"
+        android:text="@string/ewen"
+        android:textColor="@color/color666666"
+        android:textSize="@dimen/sp_18"
+        app:layout_constraintBottom_toBottomOf="@+id/tv_tempunit"
+        app:layout_constraintStart_toEndOf="@+id/realplay_pc300_tv_temp" />
+
+
+    <LinearLayout
+        android:id="@+id/ll_ua"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/dp_80"
+        android:layout_marginTop="@dimen/dp_6"
+        android:background="@drawable/normal_background"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="@+id/ll_bloodFat"
+        app:layout_constraintStart_toStartOf="@+id/ll_bloodFat"
+        app:layout_constraintTop_toBottomOf="@+id/ll_bloodFat" />
+
+    <ImageView
+        android:id="@+id/iv_ua"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginStart="@dimen/dp_10"
+        android:src="@drawable/multi_ua"
+        app:layout_constraintBottom_toBottomOf="@+id/ll_ua"
+        app:layout_constraintStart_toStartOf="@+id/ll_ua"
+        app:layout_constraintTop_toTopOf="@+id/ll_ua"
+        tools:ignore="ContentDescription" />
+
+
+    <TextView
+        android:id="@+id/tv_uaname"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/dp_10"
+        android:text="@string/uaname"
+        android:textColor="@color/color666666"
+        android:textSize="@dimen/sp_20"
+        app:layout_constraintStart_toEndOf="@+id/iv_ua"
+        app:layout_constraintTop_toTopOf="@+id/iv_ua" />
+
+    <TextView
+        android:id="@+id/realplay_pc300_tv_ua_unit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginLeft="@dimen/dp_10"
+        android:text="@string/const_mmol_unit_text"
+        android:textColor="@color/color666666"
+        android:textSize="@dimen/sp_18"
+        app:layout_constraintBottom_toBottomOf="@+id/iv_ua"
+        app:layout_constraintStart_toEndOf="@+id/iv_ua" />
+
+    <TextView
+        android:id="@+id/realplay_pc300_tv_ua"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/dp_10"
+        android:clickable="true"
+        android:gravity="center"
+        android:inputType="numberDecimal"
+        android:minWidth="@dimen/dp_100"
+        android:text="- -"
+        android:textColor="@color/data_spo2"
+        android:textSize="@dimen/sp_28"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="@+id/ll_ua"
+        app:layout_constraintStart_toEndOf="@+id/realplay_pc300_tv_ua_unit"
+        app:layout_constraintTop_toTopOf="@+id/ll_ua"
+        tools:ignore="HardcodedText" />
+
+
+    <ImageView
+        android:id="@+id/iv_uaedit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:src="@drawable/multi_checkedit"
+        app:layout_constraintStart_toEndOf="@+id/realplay_pc300_tv_ua"
+        app:layout_constraintTop_toTopOf="@+id/iv_ua"
+        tools:ignore="ContentDescription" />
+
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/cl_urine"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/dp_80"
+        android:layout_marginLeft="@dimen/dp_10"
+        android:layout_marginTop="@dimen/dp_6"
+        android:background="@drawable/normal_background"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="@+id/ll_glu"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/ll_ua">
+
+
+        <ImageView
+            android:id="@+id/iv_urine"
+            android:layout_width="@dimen/dp_60"
+            android:layout_height="@dimen/dp_60"
+            android:layout_gravity="center"
+            android:layout_marginStart="@dimen/dp_10"
+            android:src="@drawable/urine_skip"
+            app:layout_constraintBottom_toBottomOf="@+id/cl_urine"
+            app:layout_constraintStart_toStartOf="@+id/cl_urine"
+            app:layout_constraintTop_toTopOf="@+id/cl_urine"
+            tools:ignore="ContentDescription" />
+
+
+        <TextView
+            android:id="@+id/tv_urinename"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/dp_20"
+            android:text="@string/intourineanalyze"
+            android:textColor="@color/color666666"
+            android:textSize="@dimen/sp_20"
+            app:layout_constraintBottom_toBottomOf="@+id/cl_urine"
+            app:layout_constraintStart_toEndOf="@+id/iv_urine"
+            app:layout_constraintTop_toTopOf="@+id/cl_urine" />
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/cl_blood_ketones"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/dp_80"
+        android:layout_marginStart="@dimen/dp_10"
+        android:layout_marginTop="@dimen/dp_6"
+        android:layout_marginEnd="@dimen/dp_10"
+        android:background="@drawable/bg_color_checkglu"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="@id/guideline"
+        app:layout_constraintStart_toEndOf="@+id/cl_urine"
+        app:layout_constraintTop_toBottomOf="@+id/ll_temp">
+
+        <ImageView
+            android:id="@+id/iv_blood_ketones"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginStart="@dimen/dp_10"
+            android:src="@drawable/multi_ua"
+            app:layout_constraintBottom_toBottomOf="@+id/cl_blood_ketones"
+            app:layout_constraintStart_toStartOf="@+id/cl_blood_ketones"
+            app:layout_constraintTop_toTopOf="@+id/cl_blood_ketones"
+            tools:ignore="ContentDescription" />
+
+        <TextView
+            android:id="@+id/tv_ketones"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/dp_20"
+            android:text="@string/const_blood_ketones_text"
+            android:textColor="@color/color666666"
+            android:textSize="@dimen/sp_20"
+            app:layout_constraintStart_toEndOf="@+id/iv_blood_ketones"
+            app:layout_constraintTop_toTopOf="@+id/iv_blood_ketones" />
+
+        <TextView
+            android:id="@+id/realplay_pc300_tv_blood_ketones_unit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginLeft="@dimen/dp_20"
+            android:text="@string/const_mmol_unit_text"
+
+            android:textColor="@color/color666666"
+            android:textSize="@dimen/sp_18"
+            app:layout_constraintBottom_toBottomOf="@+id/iv_blood_ketones"
+            app:layout_constraintStart_toEndOf="@+id/iv_blood_ketones" />
+
+        <TextView
+            android:id="@+id/realplay_pc300_tv_blood_ketones"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/dp_10"
+            android:clickable="true"
+            android:gravity="center"
+            android:inputType="numberDecimal"
+            android:minWidth="@dimen/dp_80"
+            android:text="- -"
+            android:textColor="@color/data_spo2"
+            android:textSize="@dimen/sp_28"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="@+id/cl_blood_ketones"
+            app:layout_constraintStart_toEndOf="@+id/realplay_pc300_tv_blood_ketones_unit"
+            app:layout_constraintTop_toTopOf="@+id/cl_blood_ketones"
+            tools:ignore="HardcodedText" />
+
+
+        <ImageView
+            android:id="@+id/iv_blood_ketones_edit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:src="@drawable/multi_checkedit"
+            app:layout_constraintLeft_toRightOf="@+id/realplay_pc300_tv_blood_ketones"
+            app:layout_constraintTop_toTopOf="@+id/realplay_pc300_tv_blood_ketones" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+    <TextView
+        android:id="@+id/tv_result"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/dp_20"
+        android:layout_marginTop="@dimen/dp_10"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textSize="@dimen/sp_20"
+
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/cl_bf" />
+
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/dp_36"
+        android:layout_marginBottom="@dimen/dp_36"
+        android:src="@drawable/ic_baseline_settings_24"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:ignore="ContentDescription" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
