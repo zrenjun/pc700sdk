@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/viewGroup"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <TextView
+        android:id="@+id/tv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="@dimen/sp_16"
+        android:layout_marginStart="@dimen/dp_20"
+        android:text="@string/gain"
+        app:layout_constraintBottom_toBottomOf="@id/spinnerGain"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/spinnerGain" />
+
+    <Spinner
+        android:id="@+id/spinnerGain"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/dp_36"
+        android:layout_gravity="center"
+        android:layout_marginStart="@dimen/dp_16"
+        android:layout_marginTop="@dimen/dp_10"
+        android:entries="@array/ecgGain"
+        app:layout_constraintStart_toEndOf="@id/tv"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/tv1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/dp_16"
+        android:text="@string/speed"
+        android:textSize="@dimen/sp_16"
+        app:layout_constraintBottom_toBottomOf="@id/spinnerGain"
+        app:layout_constraintStart_toEndOf="@id/spinnerGain"
+        app:layout_constraintTop_toTopOf="@id/spinnerGain" />
+
+    <Spinner
+        android:id="@+id/spinnerSpeed"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/dp_36"
+        android:layout_marginStart="@dimen/dp_16"
+        android:entries="@array/ecgSpeed"
+        app:layout_constraintStart_toEndOf="@id/tv1"
+        app:layout_constraintTop_toTopOf="@id/spinnerGain" />
+
+    <TextView
+        android:id="@+id/tv_hr"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/dp_16"
+        android:text="@string/heart"
+        android:textSize="@dimen/sp_16"
+        app:layout_constraintBottom_toBottomOf="@id/spinnerSpeed"
+        app:layout_constraintStart_toEndOf="@id/spinnerSpeed"
+        app:layout_constraintTop_toTopOf="@id/spinnerSpeed" />
+
+    <com.lepu.pc700.ECG1SurfaceView
+        android:id="@+id/ecg1_surfaceview"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="@dimen/dp_50"
+        android:layout_marginTop="@dimen/dp_10"
+        android:layout_marginEnd="@dimen/dp_50"
+        android:layout_marginBottom="@dimen/dp_20"
+        app:layout_constraintBottom_toTopOf="@id/tv_start"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/spinnerGain" />
+
+
+
+    <TextView
+        android:id="@+id/tv_off"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/dp_10"
+        android:gravity="center"
+        android:text="@string/lead_off"
+        android:visibility="gone"
+        android:textSize="@dimen/sp_28"
+        android:textColor="@android:color/holo_red_light"
+        android:layout_marginStart="@dimen/sp_20"
+        app:layout_constraintBottom_toBottomOf="@id/tv_start"
+        app:layout_constraintTop_toTopOf="@id/tv_start"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/tv_start"
+        android:layout_width="240dp"
+        android:layout_height="@dimen/dp_60"
+        android:layout_marginBottom="@dimen/dp_10"
+        android:background="@drawable/btn_bg_selector"
+        android:gravity="center"
+        android:text="@string/start_measuring"
+        android:textColor="@color/white"
+        android:textSize="20sp"
+        android:paddingStart="@dimen/dp_40"
+        android:paddingEnd="@dimen/dp_40"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:drawableStartCompat="@drawable/ic_baseline_play_arrow_24" />
+
+
+
+    <TextView
+        android:id="@+id/tv_countdown"
+        android:layout_width="@dimen/dp_60"
+        android:layout_height="@dimen/dp_60"
+        android:layout_marginBottom="@dimen/dp_10"
+        android:background="@drawable/bg_grey_32dp"
+        android:gravity="center"
+        android:textColor="@color/white"
+        android:textSize="20sp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

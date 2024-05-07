@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string-array name="urine_type1">
+        <item></item>
+        <item>-</item>
+        <item>+</item>
+    </string-array>
+
+    <string-array name="urine_type2">
+        <item></item>
+        <item>1+</item>
+        <item>2+</item>
+        <item>3+</item>
+    </string-array>
+
+    <string-array name="urine_type3">
+        <item></item>
+        <item>+-</item>
+        <item>1+</item>
+        <item>2+</item>
+        <item>3+</item>
+    </string-array>
+
+    <string-array name="urine_type4">
+        <item></item>
+        <item>+-</item>
+        <item>1+</item>
+        <item>2+</item>
+        <item>3+</item>
+        <item>4+</item>
+    </string-array>
+
+    <string-array name="urine_ph">
+        <item></item>
+        <item>5</item>
+        <item>6</item>
+        <item>6.5</item>
+        <item>7</item>
+        <item>7.5</item>
+        <item>8</item>
+        <item>8.5</item>
+    </string-array>
+
+    <string-array name="urine_sg">
+        <item></item>
+        <item>1.000</item>
+        <item>1.005</item>
+        <item>1.010</item>
+        <item>1.015</item>
+        <item>1.020</item>
+        <item>1.025</item>
+        <item>1.030</item>
+    </string-array>
+
+
+    <string-array name="nibp_errors">
+        <item>Self-test fail</item>
+        <item>Cuff error</item>
+        <item>Air leakage</item>
+        <item>Pressure error</item>
+        <item>Signal weak</item>
+        <item>Over scope</item>
+        <item>overexercise</item>
+        <item>Overpressure protection</item>
+        <item>Signal saturation</item>
+        <item>Test air leakage</item>
+        <item>Pneumatic system error</item>
+        <item>Measure timeout</item>
+        <item>Persist</item>
+        <item>Low battery, measurement terminated</item>
+        <item>Cuff type error</item>
+    </string-array>
+
+    <string-array name="nibp_result">
+        <item>O</item>
+        <item>N</item>
+        <item>H</item>
+        <item>G1</item>
+        <item>G2</item>
+        <item>G3</item>
+    </string-array>
+
+    <string-array name="ecg_result">
+        <item>No irregularity found.</item>
+        <item>Suspected a little fast beat.</item>
+        <item>Suspected fast beat.</item>
+        <item>Suspected short run of fast beat.</item>
+        <item>Suspected a little slow beat.</item>
+        <item>Suspected slow beat.</item>
+        <item>Suspected occasional short beat interval.</item>
+        <item>Suspected irregular beat interval.</item>
+        <item>Suspected fast beat with short beat interval.</item>
+        <item>Suspected slow beat with short beat interval.</item>
+        <item>Suspected slow beat with irregular beat interval.</item>
+        <item>Waveform baseline wander.Measure again.</item>
+        <item>Suspected fast beat with baseline wander.</item>
+        <item>Suspected slow beat with baseline wander.</item>
+        <item>Suspected occasional short beat interval with baseline wander.</item>
+        <item>Suspected irregular beat interval with baseline wander.</item>
+        <item>Poor signal, Measure again.</item>
+        <item>The results of the analysis error</item>
+    </string-array>
+
+    <!-- 2017-05-09 -->
+    <string-array name="spo2_rank">
+        <item>normal</item>
+        <item>low,please pay attention to rest</item>
+        <item>too low,please consulting doctor</item>
+    </string-array>
+
+    <string-array name="pr_rank">
+        <item>normal</item>
+        <item>low,please pay attention to rest</item>
+        <item>too low,please consulting doctor</item>
+        <item>hight,please pay attention to rest</item>
+        <item>too hight,please consulting doctor</item>
+    </string-array>
+
+    <string-array name="ecgGain">
+        <item>2.5 mm/mV</item>
+        <item>5 mm/mV</item>
+        <item>10 mm/mV</item>
+        <item>20 mm/mV</item>
+        <item>40 mm/mV</item>
+    </string-array>
+
+    <string-array name="ecgSpeed">
+        <item>6.25 mm/s</item>
+        <item>12.5 mm/s</item>
+        <item>25 mm/s</item>
+        <item>50 mm/s</item>
+    </string-array>
+
+    <string-array name="ecgShow">
+        <item>6*2</item>
+        <item>6*1</item>
+        <item>单导联I</item>
+        <item>单导联II</item>
+    </string-array>
+
+    <string-array name="ecgTime">
+        <item>15s</item>
+        <item>30s</item>
+        <item>60s</item>
+        <item>180s</item>
+
+    </string-array>
+
+    <string-array name="temp_rank">
+        <item>温度低于测量范围，请重新测量</item>
+        <item>体温偏低</item>
+        <item>体温正常</item>
+        <item>体温偏高</item>
+        <item>温度高于测量范围，请重新测量</item>
+    </string-array>
+
+    <string-array name="glu_rank">
+        <item>血糖正常</item>
+        <item>血糖稍高，请咨询医生</item>
+        <item>血糖偏高，请咨询医生</item>
+        <item>血糖低于测量范围，请重新测量</item>
+        <item>血糖高于测量范围，请重新测量</item>
+        <item>血糖偏低，请咨询医生</item>
+    </string-array>
+
+    <string-array name="chol_rank">
+        <item>总胆固醇正常</item>
+        <item>总胆固醇偏高，请咨询医生</item>
+        <item>总胆固醇低于测量范围，请重新测量</item>
+        <item>总胆固醇高于测量范围，请重新测量</item>
+    </string-array>
+
+    <string-array name="ua_rank">
+        <item>尿酸正常</item>
+        <item>尿酸偏低，请咨询医生</item>
+        <item>尿酸偏高，请咨询医生</item>
+        <item>尿酸低于测量范围，请重新测量</item>
+        <item>尿酸高于测量范围，请重新测量</item>
+    </string-array>
+
+
+
+    <string-array name="bk_rank">
+        <item>血酮正常</item>
+        <item>血酮偏高，请咨询医生</item>
+        <item>血酮低于测量范围，请重新测量</item>
+        <item>血酮高于测量范围，请重新测量</item>
+
+    </string-array>
+</resources>

@@ -19,22 +19,11 @@ class MainFragment : Fragment(R.layout.fragment_main) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        binding.tv1.singleClick {
-
-        }
-        binding.tv2.singleClick {
-
-        }
-        binding.tv3.singleClick {
-
-        }
-        binding.tv4.singleClick {
-            findNavController().navigate(R.id.idCardInputFragment)
-        }
-        binding.tv5.singleClick {
-            findNavController().navigate(R.id.settingFragment)
-        }
+        binding.tv1.singleClick {}
+        binding.tv2.singleClick {}
+        binding.tv3.singleClick { findNavController().navigate(R.id.eCGSingleFragment) }
+        binding.tv4.singleClick { findNavController().navigate(R.id.idCardInputFragment) }
+        binding.tv5.singleClick { findNavController().navigate(R.id.settingFragment) }
     }
 }
 
