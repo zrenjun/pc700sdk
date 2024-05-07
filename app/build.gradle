@@ -24,10 +24,10 @@ android {
 
     signingConfigs {
         app {
-            keyAlias 'key0'
-            keyPassword 'aaaa2222'
-            storeFile file('vthkey.jks')
-            storePassword 'aaaa2222'
+            keyAlias 'platform'
+            keyPassword 'android'
+            storeFile file('pc_700.keystore')
+            storePassword 'android'
             v1SigningEnabled true
             v2SigningEnabled true
         }
@@ -55,6 +55,12 @@ android {
     }
     kotlinOptions {
         jvmTarget = '1.8'
+    }
+
+    configurations.all {
+        resolutionStrategy {
+            force("androidx.core:core-ktx:1.9.0")
+        }
     }
 }
 
