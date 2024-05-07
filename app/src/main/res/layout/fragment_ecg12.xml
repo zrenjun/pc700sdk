@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/viewGroup"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/tv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/dp_20"
+        android:text="@string/gain"
+        android:textSize="@dimen/sp_16"
+        app:layout_constraintBottom_toBottomOf="@id/spinnerGain"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/spinnerGain" />
+
+    <Spinner
+        android:id="@+id/spinnerGain"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/dp_36"
+        android:layout_gravity="center"
+        android:layout_marginStart="@dimen/dp_16"
+        android:entries="@array/ecgGain"
+        app:layout_constraintStart_toEndOf="@id/tv"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/tv1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/dp_16"
+        android:text="@string/speed"
+        android:textSize="@dimen/sp_16"
+        app:layout_constraintBottom_toBottomOf="@id/spinnerGain"
+        app:layout_constraintStart_toEndOf="@id/spinnerGain"
+        app:layout_constraintTop_toTopOf="@id/spinnerGain" />
+
+    <Spinner
+        android:id="@+id/spinnerSpeed"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/dp_36"
+        android:layout_marginStart="@dimen/dp_16"
+        android:entries="@array/ecgSpeed"
+        app:layout_constraintStart_toEndOf="@id/tv1"
+        app:layout_constraintTop_toTopOf="@id/spinnerGain" />
+
+    <TextView
+        android:id="@+id/tv2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/dp_16"
+        android:text="@string/display_mode"
+        android:textSize="@dimen/sp_16"
+        app:layout_constraintBottom_toBottomOf="@id/spinnerSpeed"
+        app:layout_constraintStart_toEndOf="@id/spinnerSpeed"
+        app:layout_constraintTop_toTopOf="@id/spinnerSpeed" />
+
+    <Spinner
+        android:id="@+id/spinnerShow"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/dp_36"
+        android:layout_marginStart="@dimen/dp_16"
+        android:entries="@array/ecgShow"
+        app:layout_constraintStart_toEndOf="@id/tv2"
+        app:layout_constraintTop_toTopOf="@id/spinnerGain" />
+
+    <TextView
+        android:id="@+id/tv_hr"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:gravity="center"
+        android:text="--"
+        android:textColor="@color/purple_200"
+        android:textSize="@dimen/sp_28"
+        app:layout_constraintBottom_toBottomOf="@+id/textView6"
+        app:layout_constraintEnd_toStartOf="@+id/textView6"
+        app:layout_constraintTop_toTopOf="@+id/textView6" />
+
+    <TextView
+        android:id="@+id/textView6"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="32dp"
+        android:text="BPM"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toBottomOf="@+id/tv_lead_fall"
+        app:layout_constraintEnd_toStartOf="@+id/tv_lead_fall"
+        app:layout_constraintTop_toTopOf="@+id/tv_lead_fall" />
+
+    <TextView
+        android:id="@+id/tv_lead_fall"
+        android:layout_width="320dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:textColor="#FF8C00"
+        android:textSize="@dimen/sp_18"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="X导联脱落" />
+
+    <FrameLayout
+        android:id="@+id/fl_container"
+        android:layout_width="match_parent"
+        android:layout_height="650dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:background="@android:color/black"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tv_lead_fall">
+
+        <com.Carewell.view.ecg12.DrawEcgRealView
+            android:id="@+id/drawEcgRealView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/tv3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/dp_20"
+        android:text="@string/acquisition_time"
+        android:textSize="@dimen/sp_16"
+        app:layout_constraintBottom_toBottomOf="@id/spinnerTime"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/spinnerTime" />
+
+    <Spinner
+        android:id="@+id/spinnerTime"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/dp_36"
+        android:layout_gravity="center"
+        android:layout_marginStart="@dimen/dp_16"
+        android:entries="@array/ecgTime"
+        app:layout_constraintBottom_toBottomOf="@id/btn_start_measure"
+        app:layout_constraintStart_toEndOf="@id/tv3"
+        app:layout_constraintTop_toTopOf="@id/btn_start_measure" />
+
+    <TextView
+        android:id="@+id/btn_start_measure"
+        android:layout_width="240dp"
+        android:layout_height="60dp"
+        android:layout_marginEnd="8dp"
+        android:background="@drawable/btn_bg_selector"
+        android:gravity="center"
+        android:text="@string/start_measure"
+        android:textColor="@color/white"
+        android:textSize="@dimen/sp_24"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+
+    <TextView
+        android:id="@+id/btn_settings"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/dp_20"
+        android:gravity="center"
+        android:text="@string/filter_setting"
+        android:textSize="@dimen/sp_16"
+        app:layout_constraintBottom_toBottomOf="@id/btn_start_measure"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/btn_start_measure" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

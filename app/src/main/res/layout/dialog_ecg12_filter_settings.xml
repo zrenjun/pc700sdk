@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_with_title_rectangle_top_radius_8"
+    android:padding="10dp">
+
+
+    <TextView
+        android:id="@+id/tv_title"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/dp_60"
+        android:gravity="center"
+        android:text="@string/filter_setting"
+        android:textColor="@color/white"
+        android:textSize="@dimen/sp_24"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="高通滤波（Hz）"
+        android:textSize="@dimen/sp_20"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tv_title" />
+
+    <RadioGroup
+        android:id="@+id/rg_hpf"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView3">
+
+        <RadioButton
+            android:id="@+id/rb_hpf_001"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="0.01"
+            android:textSize="@dimen/sp_20" />
+
+        <RadioButton
+            android:id="@+id/rb_hpf_005"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:layout_weight="1"
+            android:text="0.05"
+            android:textSize="@dimen/sp_20" />
+
+        <RadioButton
+            android:id="@+id/rb_hpf_032"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:layout_weight="1"
+            android:text="0.32"
+            android:textSize="@dimen/sp_20" />
+
+        <RadioButton
+            android:id="@+id/rb_hpf_067"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:layout_weight="1"
+            android:text="0.67"
+            android:textSize="@dimen/sp_20" />
+
+        <RadioButton
+            android:id="@+id/rb_hpf_off"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:layout_weight="1"
+            android:text="关"
+            android:textSize="@dimen/sp_20" />
+    </RadioGroup>
+
+    <TextView
+        android:id="@+id/textView4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:text="低通滤波（Hz）"
+        android:textSize="@dimen/sp_20"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/rg_hpf" />
+
+    <RadioGroup
+        android:id="@+id/rg_lpf"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView4">
+
+        <RadioButton
+            android:id="@+id/rb_lpf_25"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="25"
+            android:textSize="@dimen/sp_20" />
+
+        <RadioButton
+            android:id="@+id/rb_lpf_35"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:layout_weight="1"
+            android:text="35"
+            android:textSize="@dimen/sp_20" />
+
+        <RadioButton
+            android:id="@+id/rb_lpf_45"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:layout_weight="1"
+            android:text="45"
+            android:textSize="@dimen/sp_20" />
+
+        <RadioButton
+            android:id="@+id/rb_lpf_75"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:layout_weight="1"
+            android:text="75"
+            android:textSize="@dimen/sp_20" />
+
+        <RadioButton
+            android:id="@+id/rb_lpf_100"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:layout_weight="1"
+            android:text="100"
+            android:textSize="@dimen/sp_20" />
+
+        <RadioButton
+            android:id="@+id/rb_lpf_150"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:layout_weight="1"
+            android:text="150"
+            android:textSize="@dimen/sp_20" />
+
+        <RadioButton
+            android:id="@+id/rb_lpf_300"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:layout_weight="1"
+            android:text="300"
+            android:textSize="@dimen/sp_20" />
+
+        <RadioButton
+            android:id="@+id/rb_lpf_off"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:layout_weight="1"
+            android:text="关"
+            android:textSize="@dimen/sp_20" />
+    </RadioGroup>
+
+    <TextView
+        android:id="@+id/textView5"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:text="工频滤波（Hz）"
+        android:textSize="@dimen/sp_20"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/rg_lpf" />
+
+    <RadioGroup
+        android:id="@+id/rg_pff"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView5">
+
+        <RadioButton
+            android:id="@+id/rb_pff_50"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="50"
+            android:textSize="@dimen/sp_20" />
+
+        <RadioButton
+            android:id="@+id/rb_pff_60"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:layout_weight="1"
+            android:text="60"
+            android:textSize="@dimen/sp_20" />
+
+        <RadioButton
+            android:id="@+id/rb_pff_off"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:layout_weight="1"
+            android:text="关"
+            android:textSize="@dimen/sp_20" />
+    </RadioGroup>
+
+    <TextView
+        android:id="@+id/textView7"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:text="起搏抑制开关"
+        android:textSize="@dimen/sp_20"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/rg_pff" />
+
+    <RadioGroup
+        android:id="@+id/rg_pacemaker"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView7">
+
+        <RadioButton
+            android:id="@+id/rb_pm_on"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="开"
+            android:textSize="@dimen/sp_20" />
+
+        <RadioButton
+            android:id="@+id/rb_pm_off"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:layout_weight="1"
+            android:text="关"
+            android:textSize="@dimen/sp_20" />
+    </RadioGroup>
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btn_cancel"
+        android:layout_width="@dimen/dp_120"
+        android:layout_height="@dimen/dp_40"
+        android:layout_marginEnd="@dimen/dp_16"
+        android:layout_marginBottom="@dimen/dp_20"
+        android:background="@drawable/bg_color_accent_4dp"
+        android:gravity="center"
+        android:text="取消"
+        android:textColor="@color/teal_200"
+        android:textSize="@dimen/sp_18"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/btn_sure"/>
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btn_sure"
+        android:layout_width="@dimen/dp_120"
+        android:layout_height="@dimen/dp_40"
+        android:layout_marginEnd="@dimen/dp_20"
+        android:layout_marginBottom="@dimen/dp_20"
+        android:background="@drawable/rect_btn_bg_blue_n"
+        android:drawableTint="@color/teal_200"
+        android:gravity="center"
+        android:text="确定"
+        android:textColor="@color/white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:textSize="@dimen/sp_18" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

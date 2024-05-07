@@ -2,7 +2,7 @@
     <style name="Theme.pc700" parent="Theme.MaterialComponents.DayNight.NoActionBar.Bridge">
         <item name="colorPrimary">@color/purple_500</item>
         <item name="colorPrimaryDark">@color/purple_700</item>
-        <item name="colorAccent">@color/white</item>
+        <item name="colorAccent">@color/teal_200</item>
         <!-- 文字为英文时，自动变成了大写。false就可以了 -->
         <item name="android:textAllCaps">false</item>
         <item name="android:windowFullscreen">true</item>
