@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:maxWidth="@dimen/dp_600"
+    android:orientation="vertical"
+    android:padding="@dimen/dp_20">
+
+    <TextView
+        android:id="@+id/tv_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:text="固件升级"
+        android:textColor="@color/teal_200"
+        android:textSize="@dimen/sp_24"
+        android:textStyle="bold"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/tv_top"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/dp_20"
+        android:text="服务器固件"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textStyle="bold"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tv_title" />
+
+
+    <TextView
+        android:id="@+id/tv_1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="@dimen/dp_10"
+        android:text="主固件版本："
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tv_top" />
+
+    <TextView
+        android:id="@+id/tv_net_mcu_mainVer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="--"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        app:layout_constraintBottom_toBottomOf="@+id/tv_1"
+        app:layout_constraintLeft_toRightOf="@+id/tv_1"
+        app:layout_constraintTop_toBottomOf="@+id/tv_top"
+        app:layout_constraintTop_toTopOf="@+id/tv_1" />
+
+
+    <TextView
+        android:id="@+id/tv_3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginStart="20dp"
+        android:text="子固件版本："
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        app:layout_constraintBottom_toBottomOf="@+id/tv_1"
+        app:layout_constraintLeft_toRightOf="@+id/tv_net_mcu_mainVer"
+        app:layout_constraintTop_toBottomOf="@+id/tv_top"
+        app:layout_constraintTop_toTopOf="@+id/tv_1" />
+
+
+    <TextView
+        android:id="@+id/tv_net_mcu_subVer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="--"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        app:layout_constraintBottom_toBottomOf="@+id/tv_1"
+        app:layout_constraintLeft_toRightOf="@+id/tv_3"
+        app:layout_constraintTop_toBottomOf="@+id/tv_top"
+        app:layout_constraintTop_toTopOf="@+id/tv_1" />
+
+
+    <ProgressBar
+        android:id="@+id/pb_download"
+
+        style="@android:style/Widget.ProgressBar.Horizontal"
+        android:layout_width="450dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/sp_20"
+        android:max="100"
+        android:progressDrawable="@drawable/progressbar_style"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tv_1" />
+
+    <TextView
+        android:id="@+id/tv_download_pro"
+        android:layout_width="60dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:text="0%"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textColor="#4682B4"
+        app:layout_constraintBottom_toBottomOf="@+id/pb_download"
+        app:layout_constraintLeft_toRightOf="@+id/pb_download"
+        app:layout_constraintTop_toTopOf="@+id/pb_download" />
+
+
+    <Button
+        android:id="@+id/btn_upgrade_tips"
+        android:layout_width="128dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="10dp"
+        android:background="@drawable/ripple_btn_bg"
+        android:text="升级提示"
+        android:textColor="#fff"
+        app:layout_constraintBottom_toBottomOf="@+id/btn_download_mainVer"
+        app:layout_constraintRight_toLeftOf="@+id/btn_download_mainVer"
+        app:layout_constraintTop_toTopOf="@+id/btn_download_mainVer" />
+
+    <Button
+        android:id="@+id/btn_download_mainVer"
+        android:layout_width="128dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/sp_20"
+        android:background="@drawable/ripple_btn_bg"
+        android:text="下载主固件"
+        android:textColor="#fff"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/pb_download" />
+
+    <Button
+        android:id="@+id/btn_download_subVer"
+        android:layout_width="128dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:background="@drawable/ripple_btn_bg"
+        android:text="下载子固件"
+        android:textColor="#fff"
+        app:layout_constraintBottom_toBottomOf="@+id/btn_download_mainVer"
+        app:layout_constraintLeft_toRightOf="@+id/btn_download_mainVer"
+        app:layout_constraintTop_toTopOf="@+id/btn_download_mainVer" />
+
+
+    <View
+        android:id="@+id/view1"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="@dimen/dp_20"
+        android:background="@color/black"
+        app:layout_constraintTop_toBottomOf="@+id/btn_download_mainVer" />
+
+    <TextView
+        android:id="@+id/local"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/dp_20"
+        android:text="本机系统固件"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textStyle="bold"
+        app:layout_constraintLeft_toLeftOf="@+id/view1"
+
+
+        app:layout_constraintTop_toBottomOf="@+id/view1" />
+
+
+    <TextView
+        android:id="@+id/tv_4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="@dimen/dp_10"
+        android:text="主固件版本"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/local" />
+
+    <TextView
+        android:id="@+id/tv_mcu_mainVer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="--"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        app:layout_constraintBottom_toBottomOf="@+id/tv_4"
+        app:layout_constraintLeft_toRightOf="@+id/tv_4"
+        app:layout_constraintTop_toTopOf="@+id/tv_4" />
+
+
+    <TextView
+        android:id="@+id/tv_5"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginLeft="20dp"
+        android:text="子固件版本"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        app:layout_constraintBottom_toBottomOf="@+id/tv_4"
+        app:layout_constraintLeft_toRightOf="@+id/tv_mcu_mainVer"
+        app:layout_constraintTop_toTopOf="@+id/tv_4"
+        tools:ignore="RtlHardcoded" />
+
+
+    <TextView
+        android:id="@+id/tv_mcu_subVer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="--"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        app:layout_constraintBottom_toBottomOf="@+id/tv_4"
+        app:layout_constraintLeft_toRightOf="@+id/tv_5"
+        app:layout_constraintTop_toTopOf="@+id/tv_4" />
+
+    <ProgressBar
+        android:id="@+id/pb_upgrade"
+        style="@android:style/Widget.ProgressBar.Horizontal"
+        android:layout_width="450dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="@dimen/dp_10"
+        android:max="100"
+        android:progressDrawable="@drawable/progressbar_style"
+        app:layout_constraintLeft_toLeftOf="parent"
+
+        app:layout_constraintTop_toBottomOf="@+id/tv_4" />
+
+    <TextView
+        android:id="@+id/tv_upgrade_pro"
+        android:layout_width="60dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:text="0%"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textColor="#4682B4"
+        app:layout_constraintBottom_toBottomOf="@+id/pb_upgrade"
+        app:layout_constraintLeft_toRightOf="@+id/pb_upgrade"
+        app:layout_constraintTop_toTopOf="@+id/pb_upgrade" />
+
+    <Button
+        android:id="@+id/btn_upgrade_cancel"
+        android:layout_width="128dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="10dp"
+        android:background="@drawable/ripple_btn_bg"
+        android:text="取消"
+        android:textColor="#fff"
+        app:layout_constraintRight_toLeftOf="@+id/btn_upgrade_main"
+        app:layout_constraintTop_toTopOf="@+id/btn_upgrade_main" />
+
+    <Button
+
+        android:id="@+id/btn_upgrade_main"
+        android:layout_width="128dp"
+        android:layout_height="match_parent"
+
+        android:layout_marginTop="@dimen/dp_20"
+        android:background="@drawable/ripple_btn_bg"
+        android:text="主固件升级"
+        android:textColor="#fff"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/pb_upgrade" />
+
+    <Button
+        android:id="@+id/btn_upgrade_sub"
+        android:layout_width="128dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:background="@drawable/ripple_btn_bg"
+        android:text="子固件升级"
+        android:textColor="#fff"
+        app:layout_constraintLeft_toRightOf="@+id/btn_upgrade_main"
+        app:layout_constraintTop_toTopOf="@+id/btn_upgrade_main" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/dp_30"
+        app:layout_constraintTop_toBottomOf="@+id/btn_upgrade_sub" />
+</androidx.constraintlayout.widget.ConstraintLayout>

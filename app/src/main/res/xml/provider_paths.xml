@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!--Context.getFilesDir()位于/data/data/安装目录-->
+    <files-path
+        name="internalPath"
+        path="file" />
+    <!--Context.getCacheDir()-->
+    <cache-path
+        name="cachePath"
+        path="file" />
+    <!--Environment.getExternalStorageDirectory()-->
+    <external-path
+        name="externalPath"
+        path="file" />
+    <!--Context.getExternalFilesDir(null)-->
+    <external-files-path
+        name="externalPath"
+        path="file" />
+
+    <external-cache-path
+        name="externalCachePath"
+        path="file" />
+    <!--增加根目录配置，特别注意：此处的path要为空字符串-->
+    <root-path
+        name="rootPath"
+        path="" />
+
+    <external-path name="external_files" path="."/>
+
+
+
+</paths>
+

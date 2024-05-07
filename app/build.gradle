@@ -1,0 +1,68 @@
+plugins {
+    id 'com.android.application'
+    id 'kotlin-android'
+}
+//Targeting S+ (version 31 and above) requires that one of FLAG_IMMUTABLE or FLAG_MUTABLE be specified when creating a PendingIntent.
+//    Strongly consider using FLAG_IMMUTABLE, only use FLAG_MUTABLE if some functionality depends on the PendingIntent being mutable, e.g. if it needs to be used with inline replies or bubbles.
+android {
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.lepu.pc700"
+        minSdk 21
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+        ndk {
+            abiFilters "arm64-v8a"
+        }
+        vectorDrawables.useSupportLibrary = true
+    }
+    buildFeatures {
+        viewBinding = true
+    }
+
+    signingConfigs {
+        app {
+            keyAlias 'key0'
+            keyPassword 'aaaa2222'
+            storeFile file('vthkey.jks')
+            storePassword 'aaaa2222'
+            v1SigningEnabled true
+            v2SigningEnabled true
+        }
+    }
+
+    // 打包自动签名
+    buildTypes {
+        debug{
+            signingConfig signingConfigs.app
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            buildConfigField "boolean", 'IS_DEBUG', 'true'
+        }
+        release {
+            signingConfig signingConfigs.app
+            minifyEnabled false
+
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            buildConfigField "boolean", 'IS_DEBUG', 'false'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    def nav_version = "2.3.5"//不能升级
+    implementation "androidx.navigation:navigation-fragment-ktx:$nav_version"
+    implementation "androidx.navigation:navigation-ui-ktx:$nav_version"
+    implementation project(path: ':700sdk')
+}

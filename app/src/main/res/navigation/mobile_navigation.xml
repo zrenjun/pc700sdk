@@ -1,0 +1,52 @@
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_global"
+    app:startDestination="@id/mainFragment">
+
+    <keep_state_fragment
+        android:id="@+id/mainFragment"
+        android:name="com.lepu.pc700.MainFragment"
+        tools:layout="@layout/fragment_main" />
+
+    <keep_state_fragment
+        android:id="@+id/settingFragment"
+        android:name="com.lepu.pc700.SettingFragment"
+        tools:layout="@layout/fragment_setting" />
+
+    <keep_state_fragment
+        android:id="@+id/ecg12Fragment"
+        android:name="com.lepu.pc700.Ecg12Fragment"
+        tools:layout="@layout/fragment_ecg12" />
+
+    <keep_state_fragment
+        android:id="@+id/routineExaminationFragment"
+        android:name="com.lepu.pc700.RoutineExaminationFragment"
+        tools:layout="@layout/fragment_routineexamination" />
+
+    <keep_state_fragment
+        android:id="@+id/eCGSingleFragment"
+        android:name="com.lepu.pc700.ECGSingleFragment"
+        tools:layout="@layout/fragment_ecg_single" />
+
+    <keep_state_fragment
+        android:id="@+id/urineFragment"
+        android:name="com.lepu.pc700.UrineFragment"
+        tools:layout="@layout/fragment_urine" />
+
+    <keep_state_fragment
+        android:id="@+id/bloodFragment"
+        android:name="com.lepu.pc700.BloodFragment"
+        tools:layout="@layout/fragment_blood" />
+
+    <keep_state_fragment
+        android:id="@+id/idCardInputFragment"
+        android:name="com.lepu.pc700.IdCardInputFragment"
+        tools:layout="@layout/fragment_idcardinput" />
+
+    <keep_state_fragment
+        android:id="@+id/bodyFatFragment"
+        android:name="com.lepu.pc700.BodyFatFragment"
+        tools:layout="@layout/fragment_bodyfat" />
+
+</navigation>
