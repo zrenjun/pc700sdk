@@ -17,7 +17,7 @@ class MainFragment : Fragment(R.layout.fragment_main) {
 
     private val binding by viewBinding(FragmentMainBinding::bind)
 
-        override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         binding.tv1.singleClick {
@@ -30,7 +30,7 @@ class MainFragment : Fragment(R.layout.fragment_main) {
 
         }
         binding.tv4.singleClick {
-
+            findNavController().navigate(R.id.idCardInputFragment)
         }
         binding.tv5.singleClick {
             findNavController().navigate(R.id.settingFragment)

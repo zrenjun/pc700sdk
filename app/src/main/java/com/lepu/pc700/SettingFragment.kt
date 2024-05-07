@@ -21,6 +21,7 @@ class SettingFragment : Fragment(R.layout.fragment_setting) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        (activity as MainActivity).setMainTitle("设置")
         binding.tv1.singleClick {
             requireContext().sendBroadcast(Intent("android.intent.action.${if (flag) "enablehostmode" else "disablehostmode"}"))
             flag = !flag

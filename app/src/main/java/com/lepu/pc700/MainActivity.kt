@@ -3,6 +3,7 @@ package com.lepu.pc700
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isVisible
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
 import com.Carewell.ecg700.LogUtil
@@ -38,7 +39,6 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         with(binding) {
             //返回键
             tvLeft.singleClick {
-                LogUtil.e("tvLeft  singleClick")
                 val back = navController.popBackStack()
                 if (!back) {
                     navController.popBackStack(R.id.mainFragment, true)
@@ -46,19 +46,20 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
                 }
                 if (title.isNotEmpty()) {
                     title.removeLast()
-                    LogUtil.e("title removeLast")
                 } else {
                     LogUtil.e("title is empty")
                 }
                 if (title.isNotEmpty()) {
                     tvMiddle.text = title.last()
+                } else {
+                    tvMiddle.text = "Demo"
+                    tvLeft.isVisible = false
                 }
             }
         }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
-//        super.onSaveInstanceState(outState)
         LogUtil.e("onSaveInstanceState")
     }
 
@@ -71,9 +72,14 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
 
     override fun onPause() {
         super.onPause()
-        LogUtil.e("onResume")
+        LogUtil.e("onPause")
         App.serial.mAPI?.sleep()
     }
 
 
+    fun setMainTitle(string: String) {
+        binding.tvMiddle.text = string
+        title.add(string)
+        binding.tvLeft.isVisible = true
+    }
 }
