@@ -304,7 +304,7 @@
         app:layout_constraintStart_toStartOf="@+id/ll_mapds"
         app:layout_constraintTop_toBottomOf="@+id/iv_spo2" />
 
-    <com.lepu.pc700.SpoView
+    <com.Carewell.view.other.SpoView
         android:id="@+id/spoView"
         android:layout_width="0dp"
         android:layout_height="@dimen/dp_50"

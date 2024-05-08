@@ -152,4 +152,5 @@
     <string name="bluetooth4">蓝牙4.0</string>
     <string name="reading_urine_machine_data">正在读取尿机数据，请稍等!</string>
     <string name="reconnectinggetdata">蓝牙断开，重连可获取数据</string>
+    <string name="setbloodfatuntil">设置血脂单位</string>
 </resources>

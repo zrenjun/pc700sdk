@@ -1,0 +1,388 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true">
+
+    <TextView
+        android:id="@+id/textView19"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="20dp"
+        android:text="时间:"
+        android:textSize="25sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/tv_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:text="--"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="@+id/textView19"
+        app:layout_constraintStart_toEndOf="@+id/textView19"
+        app:layout_constraintTop_toTopOf="@+id/textView19" />
+
+    <TextView
+        android:id="@+id/textView22"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:text="总胆固醇(CHOL):"
+        android:textSize="25sp"
+        app:layout_constraintStart_toStartOf="@+id/textView19"
+        app:layout_constraintTop_toBottomOf="@+id/textView19" />
+
+    <EditText
+        android:id="@+id/et_CHOL"
+        android:layout_width="150dp"
+        android:layout_height="40dp"
+        android:background="@drawable/textview_style_stroke"
+        android:enabled="false"
+        android:gravity="center"
+        android:inputType="numberDecimal"
+        android:textSize="25sp"
+        android:maxLength="5"
+        app:layout_constraintBottom_toBottomOf="@+id/textView22"
+        app:layout_constraintStart_toStartOf="@+id/et_TRIG"
+        app:layout_constraintTop_toTopOf="@+id/textView22" />
+
+    <EditText
+        android:id="@+id/et_TRIG"
+        android:layout_width="150dp"
+        android:layout_height="40dp"
+        android:background="@drawable/textview_style_stroke"
+        android:enabled="false"
+        android:gravity="center"
+        android:inputType="numberDecimal"
+        android:textSize="25sp"
+        android:maxLength="5"
+        app:layout_constraintBottom_toBottomOf="@+id/textView34"
+        app:layout_constraintStart_toStartOf="@+id/et_LDL"
+        app:layout_constraintTop_toTopOf="@+id/textView34" />
+
+    <TextView
+        android:id="@+id/textView30"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="高密度脂蛋白(HDL):"
+        android:textSize="25sp"
+        app:layout_constraintStart_toStartOf="@+id/textView22"
+        app:layout_constraintTop_toBottomOf="@+id/textView34" />
+
+    <TextView
+        android:id="@+id/textView34"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="甘油三酯(TRIG):"
+        android:textSize="25sp"
+        app:layout_constraintStart_toStartOf="@+id/textView22"
+        app:layout_constraintTop_toBottomOf="@+id/textView22" />
+
+    <EditText
+        android:id="@+id/et_HDL"
+        android:layout_width="150dp"
+        android:layout_height="40dp"
+        android:background="@drawable/textview_style_stroke"
+        android:enabled="false"
+        android:gravity="center"
+        android:inputType="numberDecimal"
+        android:textSize="25sp"
+        android:maxLength="5"
+        app:layout_constraintBottom_toBottomOf="@+id/textView30"
+        app:layout_constraintStart_toStartOf="@+id/et_rate"
+        app:layout_constraintTop_toTopOf="@+id/textView30" />
+
+    <TextView
+        android:id="@+id/textView36"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="低密度脂蛋白(LDL):"
+        android:textSize="25sp"
+        app:layout_constraintStart_toStartOf="@+id/textView34"
+        app:layout_constraintTop_toBottomOf="@+id/textView30" />
+
+    <EditText
+        android:id="@+id/et_LDL"
+        android:layout_width="150dp"
+        android:layout_height="40dp"
+        android:background="@drawable/textview_style_stroke"
+        android:enabled="false"
+        android:gravity="center"
+        android:inputType="numberDecimal"
+        android:textSize="25sp"
+        android:maxLength="5"
+        app:layout_constraintBottom_toBottomOf="@+id/textView36"
+        app:layout_constraintStart_toStartOf="@+id/et_rate"
+        app:layout_constraintTop_toTopOf="@+id/textView36"
+        app:layout_constraintVertical_bias="0.0" />
+
+    <TextView
+        android:id="@+id/textView38"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="蓝牙连接状态:"
+        android:textSize="25sp"
+        app:layout_constraintStart_toStartOf="@+id/textView30"
+        app:layout_constraintTop_toBottomOf="@+id/textView21" />
+
+    <TextView
+        android:id="@+id/tv_blueStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:text="--"
+        android:textColor="@color/teal_200"
+        android:textSize="25sp"
+        app:layout_constraintBottom_toBottomOf="@+id/textView38"
+        app:layout_constraintStart_toEndOf="@+id/textView38"
+        app:layout_constraintTop_toTopOf="@+id/textView38" />
+
+    <Button
+        android:id="@+id/btn_blueScan"
+        android:layout_width="200dp"
+        android:layout_height="60dp"
+        android:layout_marginTop="40dp"
+        android:background="@drawable/btn_bg_selector"
+        android:text="蓝牙连接"
+        android:textColor="@android:color/white"
+        android:textSize="25sp"
+        app:layout_constraintStart_toStartOf="@+id/textView38"
+        app:layout_constraintTop_toBottomOf="@+id/textView38" />
+
+    <Button
+        android:id="@+id/btn_clear"
+        android:layout_width="200dp"
+        android:layout_height="60dp"
+        android:layout_marginStart="32dp"
+        android:background="@drawable/btn_bg_selector"
+        android:text="清屏"
+        android:textColor="@android:color/white"
+        android:textSize="25sp"
+        app:layout_constraintBottom_toBottomOf="@+id/btn_blueScan"
+        app:layout_constraintStart_toEndOf="@+id/btn_blueScan"
+        app:layout_constraintTop_toTopOf="@+id/btn_blueScan" />
+
+    <TextView
+        android:id="@+id/textView40"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="单位:"
+        android:textSize="25sp"
+        app:layout_constraintBottom_toBottomOf="@+id/textView19"
+        app:layout_constraintStart_toStartOf="@+id/et_CHOL"
+        app:layout_constraintTop_toTopOf="@+id/textView19" />
+
+    <TextView
+        android:id="@+id/tv_bloodfatUnit"
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:gravity="center"
+        android:text="mmol/L"
+        android:textSize="25sp"
+        app:layout_constraintBottom_toBottomOf="@+id/textView40"
+        app:layout_constraintStart_toEndOf="@+id/textView40"
+        app:layout_constraintTop_toTopOf="@+id/textView40" />
+
+    <Button
+        android:id="@+id/btn_video"
+        android:layout_width="200dp"
+        android:layout_height="60dp"
+        android:layout_marginTop="24dp"
+        android:background="@drawable/btn_bg_selector"
+        android:text="操作视频"
+        android:textColor="@android:color/white"
+        android:textSize="25sp"
+        app:layout_constraintEnd_toEndOf="@+id/btn_clear"
+        app:layout_constraintStart_toStartOf="@+id/btn_clear"
+        app:layout_constraintTop_toBottomOf="@+id/btn_clear" />
+
+    <TextView
+        android:id="@+id/textView21"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="总胆/高密(CHOL/HDL)"
+        android:textSize="25sp"
+        app:layout_constraintStart_toStartOf="@+id/textView30"
+        app:layout_constraintTop_toBottomOf="@+id/textView36" />
+
+    <EditText
+        android:id="@+id/et_rate"
+        android:layout_width="150dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="8dp"
+        android:background="@drawable/textview_style_stroke"
+        android:enabled="false"
+        android:gravity="center"
+        android:inputType="numberDecimal"
+        android:textSize="25sp"
+        android:maxLength="5"
+        app:layout_constraintBottom_toBottomOf="@+id/textView21"
+        app:layout_constraintStart_toEndOf="@+id/textView21"
+        app:layout_constraintTop_toTopOf="@+id/textView21" />
+
+    <TextView
+        android:id="@+id/tv_cholScope"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:text="--"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toBottomOf="@+id/et_CHOL"
+        app:layout_constraintStart_toEndOf="@+id/et_CHOL"
+        app:layout_constraintTop_toTopOf="@+id/et_CHOL" />
+
+    <TextView
+        android:id="@+id/tv_trigScope"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:text="--"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toBottomOf="@+id/et_TRIG"
+        app:layout_constraintStart_toEndOf="@+id/et_TRIG"
+        app:layout_constraintTop_toTopOf="@+id/et_TRIG" />
+
+    <TextView
+        android:id="@+id/tv_hdlScope"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:text="--"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toBottomOf="@+id/et_HDL"
+        app:layout_constraintStart_toEndOf="@+id/et_HDL"
+        app:layout_constraintTop_toTopOf="@+id/et_HDL" />
+
+    <TextView
+        android:id="@+id/tv_ldlScope"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:text="--"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toBottomOf="@+id/et_LDL"
+        app:layout_constraintStart_toEndOf="@+id/et_LDL"
+        app:layout_constraintTop_toTopOf="@+id/et_LDL" />
+
+
+    <ScrollView
+        android:layout_width="530dp"
+        android:layout_height="match_parent"
+        android:layout_marginTop="@dimen/dp_30"
+        android:layout_marginLeft="@dimen/dp_30"
+        android:scrollbars="vertical"
+        android:fadeScrollbars="false"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toRightOf="@+id/tv_cholScope"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="800dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/textView26"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:maxLines="4"
+                android:text="@string/bf_step_text_1"
+                android:textSize="20sp" />
+
+            <TextView
+                android:id="@+id/textView27"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/bf_step_text_2"
+                android:textSize="20sp" />
+
+            <pl.droidsonroids.gif.GifImageView
+                android:id="@+id/gif2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/gif2" />
+
+
+            <TextView
+                android:id="@+id/textView28"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/bf_step_text_3"
+                android:textSize="20sp" />
+
+            <pl.droidsonroids.gif.GifImageView
+                android:id="@+id/gif3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/gif3" />
+
+            <TextView
+                android:id="@+id/textView29"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/bf_step_text_4"
+                android:textSize="20sp" />
+
+            <pl.droidsonroids.gif.GifImageView
+                android:id="@+id/gif4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/gif4" />
+
+            <TextView
+                android:id="@+id/textView31"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
+                android:text="@string/bf_step_text_5"
+                android:textSize="20sp" />
+
+        </LinearLayout>
+    </ScrollView>
+
+
+    <TextView
+        android:id="@+id/textView37"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:text="测量范围   正常值"
+        app:layout_constraintBottom_toTopOf="@+id/tv_cholScope"
+        app:layout_constraintEnd_toEndOf="@+id/tv_cholScope"
+        app:layout_constraintStart_toStartOf="@+id/tv_cholScope" />
+
+
+    <Button
+        android:id="@+id/btn_info"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
+        android:layout_marginStart="16dp"
+        android:background="@drawable/icon_bloodfat_info"
+        app:layout_constraintBottom_toBottomOf="@+id/btn_clear"
+        app:layout_constraintStart_toEndOf="@+id/btn_clear"
+        app:layout_constraintTop_toTopOf="@+id/btn_clear" />
+
+    <TextView
+        android:id="@+id/tv_chol_hdl"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:text="- -"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toBottomOf="@+id/et_rate"
+        app:layout_constraintStart_toEndOf="@+id/et_rate"
+        app:layout_constraintTop_toTopOf="@+id/et_rate" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

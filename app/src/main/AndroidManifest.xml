@@ -41,6 +41,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <!-- 注册蓝牙服务 -->
+        <service
+            android:name=".utils.BluetoothLeService"
+            android:enabled="true"
+            android:exported="true" />
     </application>
 
 </manifest>
