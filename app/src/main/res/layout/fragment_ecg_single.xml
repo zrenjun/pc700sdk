@@ -57,7 +57,7 @@
         app:layout_constraintStart_toEndOf="@id/spinnerSpeed"
         app:layout_constraintTop_toTopOf="@id/spinnerSpeed" />
 
-    <com.lepu.pc700.ECG1SurfaceView
+    <com.Carewell.view.other.ECG1SurfaceView
         android:id="@+id/ecg1_surfaceview"
         android:layout_width="0dp"
         android:layout_height="0dp"

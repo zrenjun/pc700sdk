@@ -113,9 +113,9 @@
     <string name="const_pr_textandunit">PR(bpm)</string>
 
     <string name="glu_device">血糖设备</string>
-    <string name="glu_yicheng">Yicheng</string>//界面不能显示其他厂家名称
     <string name="glu_baijie">百捷</string>
     <string name="glu_aiaole">爱奥乐</string>
+    <string name="glu_lepu">乐普诊断</string>
     <string name="nibp_stop_measure">停止测量</string>
     <string name="nibp_unit">血压单位</string>
     <string name="nibp_unit_kpa">kPa</string>
@@ -130,13 +130,7 @@
     <string name="hr_noral_nibp">心率正常</string>
     <string name="hr_not_noral_nibp">心率不齐</string>
     <string name="pulserate">脉率</string>
-    <string name="best">最佳</string>
-    <string name="Inthehigh">临高</string>
-    <string name="light">轻高</string>
-    <string name="crowning">中高</string>
-    <string name="Heavy_high">重高</string>
-    <string name="normal">正常</string>
-    <string name="Blood_pressure_level">血压等级:</string>
+
     <string name="body_temperature">体温(℃)：</string>
     <string name="spo2name2">血氧(%)：</string>
     <string name="pulserate2">脉率(bpm)：</string>
@@ -147,4 +141,9 @@
     <string name="glu_dl">血糖(mg/dl)：</string>
     <string name="totalcholesterol">总胆固醇</string>
     <string name="const_blood_ketones_text">血酮</string>
+    <string name="const_temp_unit_text_sp">摄氏度</string>
+    <string name="measure_result">测量结果:\n</string>
+    <string name="const_mmol_speech">毫摩尔每升</string>
+    <string name="const_mgdl_speech">毫克每分升</string>
+    <string name="const_tip">提示</string>
 </resources>

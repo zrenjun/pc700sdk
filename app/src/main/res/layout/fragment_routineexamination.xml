@@ -192,7 +192,7 @@
         tools:ignore="HardcodedText" />
 
 
-    <com.lepu.pc700.InstrumentView
+    <com.Carewell.view.other.InstrumentView
         android:id="@+id/ins_View"
         android:layout_width="@dimen/dp_300"
         android:layout_height="@dimen/dp_300"
@@ -315,7 +315,7 @@
         app:layout_constraintStart_toStartOf="@+id/pb_spo2"
         app:layout_constraintTop_toBottomOf="@+id/pb_spo2" />
 
-    <com.lepu.pc700.DrawPC300SPO2Rect
+    <com.Carewell.view.other.DrawPC300SPO2Rect
         android:id="@+id/draw_spo2_rect"
         android:layout_width="@dimen/dp_36"
         android:layout_height="@dimen/dp_50"
@@ -543,16 +543,6 @@
         app:layout_constraintTop_toTopOf="@+id/iv_bloodfat"
         tools:ignore="HardcodedText" />
 
-    <ImageView
-        android:id="@+id/iv_bloodfatedit"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:src="@drawable/multi_checkedit"
-        android:visibility="invisible"
-        app:layout_constraintStart_toEndOf="@+id/realplay_pc300_tv_chol"
-        app:layout_constraintTop_toTopOf="@+id/iv_bloodfat"
-        tools:ignore="ContentDescription" />
 
     <LinearLayout
         android:id="@+id/ll_glu"
@@ -646,17 +636,6 @@
         tools:ignore="HardcodedText" />
 
 
-    <ImageView
-        android:id="@+id/iv_baijie"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:src="@drawable/multi_checkedit"
-        app:layout_constraintEnd_toEndOf="@+id/tv_baijie"
-        app:layout_constraintStart_toStartOf="@+id/tv_baijie"
-        app:layout_constraintTop_toTopOf="@+id/realplay_pc300_tv_glu"
-        tools:ignore="ContentDescription" />
-
 
     <TextView
         android:id="@+id/tv_baijie"
@@ -748,16 +727,6 @@
         tools:ignore="HardcodedText" />
 
 
-    <ImageView
-        android:id="@+id/iv_tempeedit"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:src="@drawable/multi_checkedit"
-        app:layout_constraintEnd_toEndOf="@+id/tv_tempMode"
-        app:layout_constraintStart_toStartOf="@+id/tv_tempMode"
-        app:layout_constraintTop_toTopOf="@+id/tv_tempname"
-        tools:ignore="ContentDescription" />
 
 
     <TextView
@@ -839,15 +808,6 @@
         tools:ignore="HardcodedText" />
 
 
-    <ImageView
-        android:id="@+id/iv_uaedit"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:src="@drawable/multi_checkedit"
-        app:layout_constraintStart_toEndOf="@+id/realplay_pc300_tv_ua"
-        app:layout_constraintTop_toTopOf="@+id/iv_ua"
-        tools:ignore="ContentDescription" />
 
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -870,9 +830,9 @@
             android:layout_gravity="center"
             android:layout_marginStart="@dimen/dp_10"
             android:src="@drawable/urine_skip"
-            app:layout_constraintBottom_toBottomOf="@+id/cl_urine"
-            app:layout_constraintStart_toStartOf="@+id/cl_urine"
-            app:layout_constraintTop_toTopOf="@+id/cl_urine"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
             tools:ignore="ContentDescription" />
 
 
@@ -902,7 +862,7 @@
         android:orientation="horizontal"
         app:layout_constraintEnd_toEndOf="@id/guideline"
         app:layout_constraintStart_toEndOf="@+id/cl_urine"
-        app:layout_constraintTop_toBottomOf="@+id/ll_temp">
+        app:layout_constraintTop_toBottomOf="@+id/ll_ua">
 
         <ImageView
             android:id="@+id/iv_blood_ketones"
@@ -959,14 +919,6 @@
             tools:ignore="HardcodedText" />
 
 
-        <ImageView
-            android:id="@+id/iv_blood_ketones_edit"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:src="@drawable/multi_checkedit"
-            app:layout_constraintLeft_toRightOf="@+id/realplay_pc300_tv_blood_ketones"
-            app:layout_constraintTop_toTopOf="@+id/realplay_pc300_tv_blood_ketones" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -979,9 +931,8 @@
         android:layout_marginTop="@dimen/dp_10"
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:textSize="@dimen/sp_20"
-
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/cl_bf" />
+        app:layout_constraintTop_toBottomOf="@+id/cl_urine" />
 
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton

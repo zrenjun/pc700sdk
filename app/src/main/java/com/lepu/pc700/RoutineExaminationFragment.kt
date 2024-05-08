@@ -3,22 +3,30 @@ package com.lepu.pc700
 import android.annotation.SuppressLint
 import android.graphics.ColorMatrix
 import android.graphics.ColorMatrixColorFilter
+import android.os.Build
 import android.os.Bundle
 import android.text.TextUtils
 import android.view.View
 import android.view.WindowManager
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.Carewell.ecg700.*
 import com.lepu.pc700.databinding.FragmentRoutineexaminationBinding
 import com.lepu.pc700.utils.singleClick
 import com.lepu.pc700.utils.viewBinding
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.InternalCoroutinesApi
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
 import java.util.*
 
 /**
@@ -49,9 +57,16 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
     private var arrUARank: Array<String>? = null
     private var arrBKRank: Array<String>? = null
     private var speechMsg = ""
+    private var bpUnit = true//true为mmHg false为kpa
+    private var gluUnit = true//true为mmol/L false为mg/dl
+    private var gluType = 0// 0：空腹，1：餐后2小时
+    private var gluDeviceType = 0// 0:怡成，1:百捷 ,2:爱奥乐,3:乐普
+    private var tempMode = 1// 1 表示耳温模式；2 表示成人额温模式； 3 表示儿童额温模式；4 表示物温模式
 
+    @RequiresApi(Build.VERSION_CODES.M)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        (activity as MainActivity).setMainTitle("常规检测")
         //屏幕常亮  手动按灭屏幕后 不知道为什么，这个页面屏幕会熄灭
         requireActivity().window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         //初始化等级
@@ -64,7 +79,8 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
         arrCholRank = resources.getStringArray(R.array.chol_rank)
         arrUARank = resources.getStringArray(R.array.ua_rank)
         arrBKRank = resources.getStringArray(R.array.bk_rank)
-        App.serial.mAPI?.setPressureMode(getNibpDevice())
+        //0：KRK 血压模块 ,1：景新浩血压
+        App.serial.mAPI?.setPressureMode(0)
         with(binding) {
             setUnitSp()
             spoView.setScope(150, 0)
@@ -79,11 +95,13 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
                     App.serial.mAPI?.stopNIBPMeasure()
                 }
             }
+
+            rbAfterMeal.singleClick { gluType = 1 }
+
+            rbBeforeMeal.singleClick { gluType = 0 }
+
             clUrine.singleClick { findNavController().navigate(R.id.urineFragment) }
-
-            rbAfterMeal.singleClick { setGLUMeasureType(1) }
-
-            rbBeforeMeal.singleClick { setGLUMeasureType(0) }
+            llBloodFat.singleClick { findNavController().navigate(R.id.bloodFragment) }
 
             fab.singleClick {
                 val multiDialog = MultiBottomDialog()
@@ -94,6 +112,7 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
                             when (checkType) {
                                 MultiBottomDialog.CheckType.MMOL,
                                 MultiBottomDialog.CheckType.MGDL -> {
+                                    gluUnit = checkType== MultiBottomDialog.CheckType.MMOL
                                     setGLU()
                                     setUA()
                                     setCHOL()
@@ -101,18 +120,21 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
                                 }
 
                                 MultiBottomDialog.CheckType.MMHG,
-                                MultiBottomDialog.CheckType.KPA -> setNIBP()
+                                MultiBottomDialog.CheckType.KPA -> {
+                                    bpUnit = checkType== MultiBottomDialog.CheckType.MMHG
+                                    setNIBP()
+                                }
 
                                 MultiBottomDialog.CheckType.YICHENG -> {
+                                    gluDeviceType = 0
                                     binding.tvBaijie.text = resources.getString(R.string.yicheng)
                                     binding.clBloodKetones.visibility = View.GONE
                                 }
 
                                 MultiBottomDialog.CheckType.BAIJIE -> {
+                                    gluDeviceType = 1
                                     binding.realplayPc300TvChol.visibility = View.VISIBLE
-                                    binding.ivBloodfatedit.visibility = View.VISIBLE
                                     realplayPc300TvUa.visibility = View.VISIBLE
-                                    ivUaedit.visibility = View.VISIBLE
                                     setImageview(true, ivUa, tvUaname, realplayPc300TvUaUnit)
                                     binding.tvBaijie.text = resources.getString(R.string.baijie)
                                     setImageview(
@@ -125,23 +147,18 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
                                 }
 
                                 MultiBottomDialog.CheckType.AOAILE -> {
-
-
+                                    gluDeviceType = 2
                                     binding.realplayPc300TvChol.visibility = View.GONE
-                                    binding.ivBloodfatedit.visibility = View.GONE
-
                                     setImageview(false, ivUa, tvUaname, realplayPc300TvUaUnit)
                                     realplayPc300TvUa.visibility = View.INVISIBLE
-                                    ivUaedit.visibility = View.INVISIBLE
                                     binding.tvBaijie.text = resources.getString(R.string.aoaile)
                                     binding.clBloodKetones.visibility = View.GONE
                                 }
 
                                 MultiBottomDialog.CheckType.LEPU -> {
+                                    gluDeviceType = 3
                                     binding.realplayPc300TvChol.visibility = View.VISIBLE
-                                    binding.ivBloodfatedit.visibility = View.VISIBLE
                                     realplayPc300TvUa.visibility = View.VISIBLE
-                                    ivUaedit.visibility = View.VISIBLE
                                     setImageview(true, ivUa, tvUaname, realplayPc300TvUaUnit)
                                     binding.tvBaijie.text = resources.getString(R.string.lepu)
                                     setImageview(
@@ -152,13 +169,27 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
                                     )
                                     binding.clBloodKetones.visibility = View.VISIBLE
                                 }
-
-                                else -> setUnitSp()
+                                MultiBottomDialog.CheckType.ER_TEMP -> {
+                                    tempMode = 1
+                                    setTempUnit()
+                                }
+                                MultiBottomDialog.CheckType.E_TEMP -> {
+                                    tempMode = 2
+                                    setTempUnit()
+                                }
+                                MultiBottomDialog.CheckType.CHILD_TEMP -> {
+                                    tempMode = 3
+                                    setTempUnit()
+                                }
+                                MultiBottomDialog.CheckType.OGJECT_TEMP -> {
+                                    tempMode = 4
+                                    setTempUnit()
+                                }
+                                else -> {}
                             }
                         }
                     })
             }
-
             initData()
         }
     }
@@ -199,6 +230,7 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
                     cleanTextViewSPO2()
                 }
             }
+            saveSPOData(it.nSpO2, it.nPR, it.nPI)
         }
         //Spo2柱状缓存释放
         observeEvent<SPOGetWaveEvent> {
@@ -207,14 +239,14 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
                 binding.spoView.addQueueData(it.waves[i].data)
                 if (mPR > 0 && it.waves[i].flag == 1) {
                     binding.ivHeartPulse.visibility = View.VISIBLE
-                    lifecycleScope.launchWhenResumed {
+                    launchWhenResumed {
                         delay((((60 / mPR) * 1000) / 3).toLong())
                         binding.ivHeartPulse.visibility = View.INVISIBLE
                     }
                 }
             }
         }
-        //血压回调
+        //血压
         observeEvent<NIBPGetMeasureResultEvent> {
             nIBPGetMeasureResultEvent = it
             setNIBP()
@@ -229,12 +261,12 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
                 }
                 //                    设置血压测量状态值：最佳，正常...
                 binding.insView.setProgress(it.rank - 1, true)
-                val hrNormal = if (getNIBPUnit()) {
+                val hrNormal = if (bpUnit) {
                     getString(R.string.hr_noral_nibp)
                 } else {
                     getString(R.string.hr_not_noral_nibp)
                 }
-                val speechMsg = if (getNIBPUnit()) {
+                val speechMsg = if (bpUnit) {
                     getString(R.string.measure_result) + (getString(R.string.measure_over) + ", " + getString(
                         R.string.const_sys_text
                     ) + ": "
@@ -269,8 +301,8 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
 
         }
 
+        /** 血压测量错误  */
         observeEvent<NIBPGetMeasureErrorEvent> {
-            /** 血压测量错误  */
             binding.tvSys.text = resources.getString(R.string.const_sys_text)
             if (it.error > 0) {
                 val errMsg: String = resources.getStringArray(R.array.nibp_errors)[it.error - 1]
@@ -283,9 +315,8 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
             bNibpStart = false
             binding.btnNibp.setBackgroundResource(R.drawable.start_measure_nibp)
         }
+        /** 血压实时数据  */
         observeEvent<NIBPGetRealDataEvent> {
-            /** 血压实时数据  */
-
             binding.tvSys.text = resources.getString(R.string.cuff_pressure)
             binding.insView.setProgress(it.realData, false)
             binding.realplayPc300TvDia.text = "- -"
@@ -294,7 +325,7 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
                 binding.realplayPc300TvPr.text = "- -"
             }
             if (it.realData != 0) {
-                if (!getNIBPUnit()) {
+                if (!bpUnit) {
                     binding.realplayPc300TvSys.text = "" + (it.realData * 4 / 30).toFloat()
                 } else {
                     binding.realplayPc300TvSys.text = "" + it.realData
@@ -311,27 +342,17 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
             binding.btnNibp.setBackgroundResource(R.drawable.start_measure_nibp)
         }
 
-        //体温回调
+        //体温
         observeEvent<GetTMPResult> {
             binding.realplayPc300TvTemp.text = it.strC
             if (it.strC.toFloat() in 32.0f..43.0f) {
-
                 val tempRank = getTempRank(it.strC.toFloat())
-                when (it.type) {
-                    0 -> {
-                        speechMsg =
-                            (getString(R.string.measure_over) + ", " + getString(R.string.const_temp_text) + ": " + it.strC
+                speechMsg =  when (it.type) {
+                    0 -> (getString(R.string.measure_over) + ", " + getString(R.string.const_temp_text) + ": " + it.strC
                                     + getString(R.string.const_temp_unit_text_sp)
                                     + "," + arrTempRank!![tempRank])
-                    }
-
-                    1 -> {
-                        speechMsg = arrTempRank!![0]
-                    }
-
-                    2 -> {
-                        speechMsg = arrTempRank!![4]
-                    }
+                    1 -> arrTempRank!![0]
+                    else ->  arrTempRank!![4]
                 }
                 binding.tvResult.text = getString(R.string.measure_result) + speechMsg
             } else {
@@ -339,15 +360,14 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
                     getString(R.string.the_measurement_result_is_wrong_please_try_again)
             }
         }
-        //血糖回调
+        //血糖
         observeEvent<GetGLUResult> {
             val gluNormalType = it.type
             if (gluNormalType == 0) {
                 strGLU = it.data  //mmol/L
                 gluMgdl = it.unit  //mg/dl
-                val isMmol = getGLUUnit()
-                binding.realplayPc300TvGlu.text = if (isMmol) it.data else it.unit
-                val glurank = getGLURank(java.lang.Float.valueOf(it.data), getGLUMeasureType())
+                binding.realplayPc300TvGlu.text = if (gluUnit) it.data else it.unit
+                val glurank = getGLURank(java.lang.Float.valueOf(it.data), gluType)
                 speechMsg = "${getString(R.string.measure_over)}, ${arrGluRank!![glurank]}"
                 if (glurank == 3) { //血糖过低，超出测量范围
                     binding.realplayPc300TvGlu.text = "L"
@@ -356,9 +376,9 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
                 }
                 if (glurank != 3 && glurank != 4)
                     speechMsg =
-                        "${getString(R.string.measure_over)}, ${getString(R.string.gluname)}: ${if (isMmol) it.data else it.unit}${
+                        "${getString(R.string.measure_over)}, ${getString(R.string.gluname)}: ${if (gluUnit) it.data else it.unit}${
                             getString(
-                                if (isMmol) R.string.const_mmol_speech else R.string.const_mgdl_speech
+                                if (gluUnit) R.string.const_mmol_speech else R.string.const_mgdl_speech
                             )
                         }, ${arrGluRank!![glurank]}"
 
@@ -375,32 +395,26 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
         observeEvent<GetUAResult> {
             var valuef = it.data
             var unit = it.unit
-            if (getGluDeviceType() == 3) { //乐普诊断 umol/L
+            if (gluDeviceType == 3) { //乐普诊断 umol/L
                 valuef = it.data / 10 // 通用解析已经除了2次10
                 unit = 0
             }
-
             strUA = String.format(Locale.US, "%.2f", valuef / if (unit == 0) 1f else 16.81f)
             uaMgdl = String.format(Locale.US, "%.2f", valuef * if (unit == 0) 16.81f else 1f)
-            if (getGLUUnit()) {
+            if (gluUnit) {
                 binding.realplayPc300TvUa.text = strUA
             } else {
                 binding.realplayPc300TvUa.text = uaMgdl
             }
-
-            val uaRank =
-                getUARank(getSexAndAge(curPatient.identityno), java.lang.Float.valueOf(strUA!!))
+            val uaRank = getUARank(0, java.lang.Float.valueOf(strUA!!))
             speechMsg = getString(R.string.measure_over) + ", " + arrUARank!![uaRank]
             if (uaRank == 3) { //过低，超出测量范围
                 binding.realplayPc300TvUa.text = "L"
-                if (isCheckExceptionWaringTone()) {
-                    playMp3(Constant.MP3_WARNING, false, requireActivity())
-                }
             } else if (uaRank == 4) { //过高，超出测量范围
                 binding.realplayPc300TvUa.text = "H"
             }
             if (it.type == 0 && uaRank == 0 || uaRank == 1 || uaRank == 2) {//正常，或者偏高，偏低
-                speechMsg = if (getGLUUnit()) {
+                speechMsg = if (gluUnit) {
                     (getString(R.string.measure_over) + ", " + (getString(R.string.uaname) + ": " + strUA + getString(
                         R.string.const_mmol_speech
                     )) + ", " + arrUARank!![uaRank])
@@ -414,64 +428,48 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
         }
         //总胆固醇
         observeEvent<GetCHOLResult> {
-//                0:怡成，1:百捷 ,2:爱奥乐 3.乐普诊断
-            when (getGluDeviceType()) {
+            when (gluDeviceType) {
                 1, 2 -> {
                     //存储
-                    val bean = CHOL()
-                    if (it.unit == 0) { // mmol/L
-                        bean.mmol = it.data.toString()
-                        cholMgdl =
-                            String.format(
-                                Locale.US,
-                                "%.2f",
-                                it.data * 38.67f
-                            )
-                        bean.mgdl = cholMgdl.toString()
-                        strCHOL = bean.mmol
-
-                    } else if (it.unit == 1) { // mg/dL
-                        val cholMmol =
-                            String.format(
-                                Locale.US,
-                                "%.2f",
-                                it.data / 38.67f
-                            )
-                        bean.mmol = cholMmol
-                        strCHOL = bean.mmol
-                        cholMgdl = it.data.toString()
-                        bean.mgdl = cholMgdl
-                    } else {
-                        binding.tvResult.text =
-                            getString(R.string.the_measurement_result_is_wrong_please_try_again)
-                        return@observeEvent
+                    when (it.unit) {
+                        0 -> { // mmol/L
+                            strCHOL = it.data.toString()
+                            cholMgdl = String.format(Locale.US, "%.2f", it.data * 38.67f)
+                        }
+                        1 -> { // mg/dL
+                            strCHOL = String.format(Locale.US, "%.2f", it.data / 38.67f)
+                            cholMgdl = it.data.toString()
+                        }
+                        else -> {
+                            binding.tvResult.text =
+                                getString(R.string.the_measurement_result_is_wrong_please_try_again)
+                            return@observeEvent
+                        }
                     }
-                    if (getGLUUnit()) {
-                        binding.realplayPc300TvChol.text = bean.mmol
+                    if (gluUnit) {
+                        binding.realplayPc300TvChol.text = strCHOL
                     } else {
-                        binding.realplayPc300TvChol.text = bean.mgdl
+                        binding.realplayPc300TvChol.text = cholMgdl
                     }
-                    val cholrank = getCHOLRank(bean.mmol.toFloat())
+                    val cholrank = getCHOLRank(strCHOL!!.toFloat())
                     if (cholrank == 2) { //过低，超出测量范围
                         binding.realplayPc300TvChol.text = "L"
                     } else if (cholrank == 3) { //过高，超出测量范围
                         binding.realplayPc300TvChol.text = "H"
                     }
-                    if (cholrank == 0 || cholrank == 1) {
-                        speechMsg = if (getGLUUnit()) {
-                            (getString(R.string.measure_over) + ", " + getString(R.string.totalcholesterol) + ": " +
-                                    bean.mmol + getString(R.string.const_mmol_speech)
-                                    + ", " + arrCholRank!![cholrank])
-                        } else {
-                            (getString(R.string.measure_over) + ", " + getString(R.string.totalcholesterol) + ": " +
-
-                                    bean.mgdl + getString(R.string.const_mgdl_speech)
-                                    + ", " + arrCholRank!![cholrank])
-                        }
-                    } else if (cholrank == 2) {
-                        speechMsg = getString(R.string.measure_over) + ", " + arrCholRank!![2]
-                    } else if (cholrank == 3) {
-                        speechMsg = getString(R.string.measure_over) + ", " + arrCholRank!![3]
+                    speechMsg = when (cholrank) {
+                        0, 1 ->
+                             if (gluUnit) {
+                                (getString(R.string.measure_over) + ", " + getString(R.string.totalcholesterol) + ": " +
+                                        strCHOL + getString(R.string.const_mmol_speech)
+                                        + ", " + arrCholRank!![cholrank])
+                            } else {
+                                (getString(R.string.measure_over) + ", " + getString(R.string.totalcholesterol) + ": " +
+                                        cholMgdl + getString(R.string.const_mgdl_speech)
+                                        + ", " + arrCholRank!![cholrank])
+                            }
+                        2 -> getString(R.string.measure_over) + ", " + arrCholRank!![2]
+                        else -> getString(R.string.measure_over) + ", " + arrCholRank!![3]
                     }
                 }
                 //血酮
@@ -484,15 +482,12 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
                     } else {
                         bkMgdl = it.data.toString()
                         strBK = String.format(Locale.US, "%.2f", it.data / 10.04f)
-
-
                     }
-                    if (getGLUUnit()) {
+                    if (gluUnit) {
                         binding.realplayPc300TvBloodKetones.text = strBK
                     } else {
                         binding.realplayPc300TvBloodKetones.text = bkMgdl
                     }
-
 
                     if (!TextUtils.isEmpty(strBK)) {
                         val bkRank = getBKRank(java.lang.Float.valueOf(strBK!!))
@@ -544,9 +539,6 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
                 //血氧点测平均值
                 val avgSpo2 = spoSum / mSpo2List.size
                 val avgPr = prSum / mSpo2List.size
-                val iAvgPi = piSum / mSpo2List.size
-                val avgPi = iAvgPi / 10f
-                App.isRoutineExamination = true
                 val spo2Rank = getSpO2Rank(avgSpo2)
                 val prRank = getPRRank(avgPr)
                 isNewSpoData = false
@@ -571,7 +563,7 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
      * ------------   TextView 单位转换   ----------------------------------
      */
     private fun setNIBP() {
-        if (getNIBPUnit()) {
+        if (bpUnit) {
             binding.realplayPc300TvNibpUnit.text = getString(R.string.const_nibp_text_unit)
         } else {
             binding.realplayPc300TvNibpUnit.text = getString(R.string.const_nibp_text_unit_kpa)
@@ -584,7 +576,7 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
         val mapKpa = changeNibp2kpa(nIBPGetMeasureResultEvent!!.map)
 
         binding.tvSys.text = resources.getString(R.string.const_sys_text)
-        if (getNIBPUnit()) {
+        if (bpUnit) {
             if (nIBPGetMeasureResultEvent!!.sys == 0 || nIBPGetMeasureResultEvent!!.dia == 0 || nIBPGetMeasureResultEvent!!.map == 0) {
                 binding.realplayPc300TvSys.text = "- -"
                 binding.realplayPc300TvDia.text = "- -"
@@ -609,13 +601,13 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
     }
 
     private fun setGLU() {
-        if (getGLUUnit()) { //切换单位
+        if (gluUnit) { //切换单位
             binding.realplayPc300TvGluUnit.text = getString(R.string.const_mmol_unit_text)
         } else {
             binding.realplayPc300TvGluUnit.text = getString(R.string.const_mgdl_unit_text)
         }
         //切换数值
-        if (getGLUUnit()) {
+        if (gluUnit) {
             if (!TextUtils.isEmpty(strGLU) && strGLU != "0.0") {
                 if (!"LH".contains(binding.realplayPc300TvGlu.text)) {
                     binding.realplayPc300TvGlu.text = strGLU
@@ -631,13 +623,13 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
     }
 
     private fun setUA() {
-        if (getGLUUnit()) { //切换单位
+        if (gluUnit) { //切换单位
             binding.realplayPc300TvUaUnit.text = getString(R.string.const_mmol_unit_text)
         } else {
             binding.realplayPc300TvUaUnit.text = getString(R.string.const_mgdl_unit_text)
         }
         //切换数值
-        if (getGLUUnit()) {
+        if (gluUnit) {
             if (!TextUtils.isEmpty(strUA) && strUA != "0.0") {
                 if (!"LH".contains(binding.realplayPc300TvUa.text)) {
                     binding.realplayPc300TvUa.text = strUA
@@ -653,13 +645,13 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
     }
 
     private fun setCHOL() {
-        if (getGLUUnit()) { //切换单位
+        if (gluUnit) { //切换单位
             binding.realplayPc300TvCholUnit.text = getString(R.string.const_mmol_unit_text)
         } else {
             binding.realplayPc300TvCholUnit.text = getString(R.string.const_mgdl_unit_text)
         }
 
-        if (getGLUUnit()) {
+        if (gluUnit) {
             if (!TextUtils.isEmpty(strCHOL) && strCHOL != "0.0") {
                 if (!"LH".contains(binding.realplayPc300TvChol.text)) {
                     binding.realplayPc300TvChol.text = strCHOL
@@ -675,13 +667,13 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
     }
 
     private fun setBK() {
-        if (getGLUUnit()) { //切换单位
+        if (gluUnit) { //切换单位
             binding.realplayPc300TvBloodKetonesUnit.text = getString(R.string.const_mmol_unit_text)
         } else {
             binding.realplayPc300TvBloodKetonesUnit.text = getString(R.string.const_mgdl_unit_text)
         }
         //切换数值
-        if (getGLUUnit()) {
+        if (gluUnit) {
             if (!TextUtils.isEmpty(strBK) && strBK != "0.0") {
                 if (!"LH".contains(binding.realplayPc300TvBloodKetones.text)) {
                     binding.realplayPc300TvBloodKetones.text = strBK
@@ -696,13 +688,29 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
         }
     }
 
+    private fun setTempUnit(){
+        //温度模式
+        val tempMode = getString(
+            when (tempMode) {
+                1 -> R.string.erwen
+                2, 3 -> R.string.ewen
+                else -> R.string.wuwen
+            }
+        )
+        if (tempMode != binding.tvTempMode.text) {
+            binding.realplayPc300TvTemp.text = "- -"
+            binding.tvTempMode.text = tempMode
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.M)
     private fun setUnitSp() {
         with(binding) {
-            when (getGLUMeasureType()) {
+            when (gluType) {
                 0 -> rgMeal.check(R.id.rb_before_meal)
                 1 -> rgMeal.check(R.id.rb_after_meal)
             }
-            val bGLUUnitMmol = getGLUUnit()
+            val bGLUUnitMmol = gluUnit
             //mmol单位设置
             if (bGLUUnitMmol) {
                 realplayPc300TvGluUnit.text = getString(R.string.const_mmol_unit_text)
@@ -717,7 +725,7 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
                 realplayPc300TvBloodKetonesUnit.text = getString(R.string.const_mgdl_unit_text)
             }
             //百捷奥爱乐
-            val initGluMode = getGluDeviceType()
+            val initGluMode = gluDeviceType
             binding.tvBaijie.text = getString(
                 when (initGluMode) {
                     0 -> R.string.yicheng
@@ -730,25 +738,20 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
             when (initGluMode) {
                 1 -> {
                     binding.realplayPc300TvChol.visibility = View.VISIBLE
-                    binding.ivBloodfatedit.visibility = View.VISIBLE
                     realplayPc300TvUa.visibility = View.VISIBLE
-                    ivUaedit.visibility = View.VISIBLE
                     setImageview(true, ivUa, tvUaname, realplayPc300TvUaUnit)
                     binding.tvBaijie.text = resources.getString(R.string.baijie)
                     setImageview(true, ivBloodfat, tvBloodfatname, realplayPc300TvCholUnit)
-
                 }
 
                 2 -> {
                     binding.realplayPc300TvChol.visibility = View.GONE
-                    binding.ivBloodfatedit.visibility = View.GONE
                     binding.tvBaijie.text = resources.getString(R.string.aoaile)
                     setImageview(false, ivUa, tvUaname, realplayPc300TvUaUnit)
                     realplayPc300TvUa.visibility = View.INVISIBLE
-                    ivUaedit.visibility = View.INVISIBLE
                 }
             }
-            val bNIBPUnit = getNIBPUnit()
+            val bNIBPUnit = bpUnit
             //血压单位设置
             if (bNIBPUnit) {
                 realplayPc300TvNibpUnit.setText(R.string.const_nibp_text_unit)
@@ -756,10 +759,8 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
                 realplayPc300TvNibpUnit.setText(R.string.const_nibp_text_unit_kpa)
             }
             //温度模式
-
-
             val tempMode = getString(
-                when (getTempMode()) {
+                when (tempMode) {
                     1 -> R.string.erwen
                     2, 3 -> R.string.ewen
                     else -> R.string.wuwen
@@ -772,6 +773,7 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.M)
     private fun setImageview(
         isShow: Boolean,
         imageview: ImageView,
@@ -781,35 +783,21 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
         val matrix = ColorMatrix()
         if (isShow) {
             matrix.setSaturation(1f) //原色
-
             tvName.setTextColor(resources.getColor(R.color.color666666, null))
-            tvUnit.setTextColor(
-                resources.getColor(
-                    R.color.color666666,
-                    null
-                )
-            )
+            tvUnit.setTextColor(resources.getColor(R.color.color666666, null))
         } else {
             matrix.setSaturation(0f) //灰色
-
             tvName.setTextColor(resources.getColor(R.color.colorcacaca, null))
-            tvUnit.setTextColor(
-                resources.getColor(
-                    R.color.colorcacaca,
-                    null
-                )
-            )
+            tvUnit.setTextColor(resources.getColor(R.color.colorcacaca, null))
         }
         val filter = ColorMatrixColorFilter(matrix)
         imageview.colorFilter = filter
-
-
     }
 
     override fun onStop() {
         super.onStop()
-        binding.drawSpo2Rect.setStartOrStop(true)
-        binding.spoView.setStartOrStop(false)
+        binding.drawSpo2Rect.startOrStop = true
+        binding.spoView.startOrStop = false
     }
 
 
@@ -821,15 +809,12 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
             binding.spoView.cleanAndRestart()
         }
         if (binding.drawSpo2Rect.startOrStop) {
-            binding.drawSpo2Rect.setStartOrStop(false)
+            binding.drawSpo2Rect.startOrStop = false
             binding.drawSpo2Rect.invalidate()
         }
-
-        App.isRoutineExamination = false
-        lifecycleScope.launch {
+        launchWhenResumed {
             delay(2000)
-            LogUtil.json("===============onResume")
-            when (getGluDeviceType()) {
+            when (gluDeviceType) {
                 0 -> App.serial.mAPI?.setGluType(1)
                 1 -> App.serial.mAPI?.setGluType(2)
                 2 -> App.serial.mAPI?.setGluType(3)
@@ -849,8 +834,7 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
         return when {
             spo2 > 95 -> 0
             spo2 in 91..95 -> 1
-            spo2 <= 90 -> 2
-            else -> 0
+            else -> 2
         }
     }
 
@@ -865,13 +849,210 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
     private fun getPRRank(pr: Int): Int {
         return when {
             pr in 61..99 -> 0
+            pr in 51..60 -> 1
             pr <= 50 -> 2
-            pr <= 60 -> 1
-            pr >= 120 -> 4
-            pr >= 100 -> 3
-            else -> 0
+            pr in 100..119 -> 3
+            else -> 4
         }
     }
 }
 
 
+fun changeNibp2kpa(mmHg: Int): Float {
+    var fmmHg = mmHg * 0.133f
+    val b = BigDecimal(fmmHg.toDouble())
+    fmmHg = b.setScale(1, BigDecimal.ROUND_HALF_UP).toFloat()
+    return fmmHg
+}
+
+
+/**
+ * 获取体温结果
+ *
+ * @param temp 摄氏度
+ * @return 0:温度低于测量范围，请重新测量 <br></br>
+ * 1:体温偏低 <br></br>
+ * 2:体温正常 <br></br>
+ * 3:体温偏高 <br></br>
+ * 4:温度高于测量范围，请重新测量
+ */
+fun getTempRank(temp: Float): Int {
+    //System.out.println(aa+"<35.8:"+(aa<35.8)); // true, 所以数值要加"f"
+    if (temp < 32) {
+        return 0
+    } else if (temp >= 32 && temp < 35.8f) {
+        return 1
+    } else if (temp >= 35.8f && temp <= 37.4f) {
+        return 2
+    } else if (temp > 37.4f && temp <= 43) {
+        return 3
+    } else if (temp > 43) {
+        return 4
+    }
+    return 0
+}
+
+/**
+ * 获取血糖等级
+ *
+ * @param gluMmol 血糖值，单位 mmol
+ * @param type    0:空腹，1：餐后2小时
+ * @return 0:血糖正常<br></br>
+ * 1:血糖稍高，请咨询医生 <br></br>
+ * 2:血糖偏高，请咨询医生<br></br>
+ * 3:血糖低于测量范围，请重新测量 <br></br>
+ * 4:血糖高于测量范围，请重新测量 <br></br>
+ * 5:血糖偏低
+ */
+fun getGLURank(gluMmol: Float, type: Int): Int {
+    if (type == 0) { //空腹
+        if (gluMmol >= 3.9f && gluMmol <= 6.1f) {
+            return 0
+        } else if (gluMmol > 6.1f && gluMmol < 7) {
+            return 1
+        } else if (gluMmol >= 7 && gluMmol < 33.3f) {
+            return 2
+        } else if (gluMmol < 1.1f) {
+            return 3
+        } else if (gluMmol >= 33.3f) {
+            return 4
+        } else if (gluMmol >= 1.1f && gluMmol < 3.9f) {
+            return 5
+        }
+    } else if (type == 1) { //餐后2小时
+        if (gluMmol >= 3.9f && gluMmol <= 7.8f) {
+            return 0
+        } else if (gluMmol > 7.8f && gluMmol < 11.1) { //稍高
+            return 1
+        } else if (gluMmol >= 11.1 && gluMmol < 33.3f) { //偏高
+            return 2
+        } else if (gluMmol < 1.1f) { //低于测量范围
+            return 3
+        } else if (gluMmol >= 33.3f) { //高于测量范围
+            return 4
+        } else if (gluMmol >= 1.1f && gluMmol < 3.9f) { //偏低
+            return 5
+        }
+    }
+    return 0
+}
+
+/**
+ * @param cholMMOL 总胆固醇值，单位mmol
+ * @return 0:总胆固醇正常<br></br>
+ * 1:总胆固醇偏高，请咨询医生<br></br>
+ * 2:总胆固醇低于测量范围，请重新测量<br></br>
+ * 3:总胆固醇高于测量范围，请重新测量
+ */
+fun getCHOLRank(cholMMOL: Float): Int {
+    if (cholMMOL >= 2.59f && cholMMOL < 5.2f) {
+        return 0
+    } else if (cholMMOL > 10.35f) {
+        return 3
+    } else if (cholMMOL >= 5.2f) {
+        return 1
+    } else if (cholMMOL < 2.59f) {
+        return 2
+    }
+    return 0
+}
+
+/**
+ * @param bkMMOL 血酮，单位mmol
+ * @return 0:血酮正常<br></br>
+ * 1:血酮偏高，请咨询医生<br></br>
+ * 2:血酮低于测量范围，请重新测量<br></br>
+ * 3:血酮高于测量范围，请重新测量
+ */
+fun getBKRank(bkMMOL: Float): Int {
+    if (bkMMOL < 0.2f) {
+        return 2
+    } else if (bkMMOL > 1.0f) {
+        return 3
+    } else if (bkMMOL >= 0.3f) {
+        return 1
+    } else if (bkMMOL < 0.3f) {
+        return 0
+    }
+    return 0
+}
+
+
+/**
+ * 获取尿酸等级
+ *
+ * @param style  测量类型 0：成人男性，1：成人女性，2：儿童6-14岁
+ * @param uaMmol 尿酸值，单位 mmol
+ * @return 0:尿酸正常<br></br>
+ * 1:尿酸偏低，请咨询医生<br></br>
+ * 2:尿酸偏高，请咨询医生<br></br>
+ * 3:尿酸低于测量范围，请重新测量
+ * 4:尿酸高于测量范围，请重新测量
+ */
+fun getUARank(style: Int, uaMmol: Float): Int {
+    when (style) {
+        0 -> {
+            if (uaMmol in 0.2f..0.42f) {
+                return 0
+            } else if (uaMmol >= 0.18f && uaMmol < 0.2f) {
+                return 1
+            } else if (uaMmol > 0.42f && uaMmol <= 1.19f) {
+                return 2
+            } else if (uaMmol < 0.18f) {
+                return 3
+            } else if (uaMmol > 1.19f) {
+                return 4
+            }
+        }
+
+        1 -> {
+            if (uaMmol in 0.14f..0.36f) {
+                return 0
+            } else if (uaMmol < 0.14f) {
+                return 1
+            } else if (uaMmol > 0.36f && uaMmol <= 1.19f) {
+                return 2
+            } else if (uaMmol > 1.19f) {
+                return 4
+            }
+        }
+
+        2 -> {
+            if (uaMmol in 0.12f..0.33f) {
+                return 0
+            } else if (uaMmol < 0.12f) {
+                return 1
+            } else if (uaMmol > 0.33f && uaMmol <= 1.19f) {
+                return 2
+            } else if (uaMmol > 1.19f) {
+                return 4
+            }
+        }
+
+        else -> {}
+    }
+    return 0
+}
+
+@SuppressLint("RepeatOnLifecycleWrongUsage")
+inline fun LifecycleOwner.launchWhenResumed(
+    retryTime: Int = 1,
+    crossinline block: suspend CoroutineScope.() -> Unit
+) {
+    lifecycleScope.launch {
+        var retryCount = 0
+        repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            try {
+                block()
+                this@launch.cancel()
+            } finally {
+                if (retryTime != -1) {
+                    retryCount += 1
+                    if (retryCount >= retryTime) {
+                        this@launch.cancel()
+                    }
+                }
+            }
+        }
+    }
+}

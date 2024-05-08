@@ -1,4 +1,4 @@
-package com.lepu.pc700
+package com.Carewell.view.other
 
 import android.content.Context
 import android.graphics.Color
@@ -10,7 +10,7 @@ import android.widget.ProgressBar
 import androidx.annotation.FloatRange
 import androidx.annotation.MainThread
 import androidx.appcompat.content.res.AppCompatResources
-import com.lepu.pc700.utils.drawable
+import com.creative.sdkpack.R
 
 class LoadingForView(
     context: Context,
@@ -38,7 +38,7 @@ class LoadingForView(
             ViewGroup.LayoutParams.MATCH_PARENT
         )
         if (showBg) {
-            loading.background = context.drawable(R.drawable.dialog_white_bg)
+            loading.background = AppCompatResources.getDrawable(context, R.drawable.dialog_white_bg)
         }
     }
 

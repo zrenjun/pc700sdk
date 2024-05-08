@@ -28,19 +28,15 @@
         android:orientation="horizontal"
         app:layout_constraintBottom_toBottomOf="@+id/tv_gludevice"
         app:layout_constraintLeft_toRightOf="@+id/tv_gludevice"
-        app:layout_constraintTop_toTopOf="@+id/tv_gludevice"
-
-
-        >
+        app:layout_constraintTop_toTopOf="@+id/tv_gludevice">
 
         <RadioButton
             android:id="@+id/rb_yicheng"
             android:layout_width="@dimen/dp_120"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:text="@string/glu_yicheng"
-            android:textSize="18sp"
-            android:visibility="gone" />
+            android:text="@string/yicheng"
+            android:textSize="18sp"/>
 
         <RadioButton
             android:id="@+id/rb_baijie"

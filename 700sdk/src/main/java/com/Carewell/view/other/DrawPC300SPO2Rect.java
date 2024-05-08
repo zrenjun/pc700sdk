@@ -1,4 +1,4 @@
-package com.lepu.pc700;
+package com.Carewell.view.other;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -11,6 +11,7 @@ import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.WindowManager;
 import com.Carewell.ecg700.Wave;
+import com.creative.sdkpack.R;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -112,7 +113,7 @@ public class DrawPC300SPO2Rect extends View {
             super.run();
                 while (!stop) {
                     try {
-                        if (mSPORect.size() > 0) {
+                        if (!mSPORect.isEmpty()) {
                             Wave data = mSPORect.remove(0);
                             spo = data.getData();
                             postInvalidate();

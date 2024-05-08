@@ -11,12 +11,4 @@
     <color name="color666666">#666666</color>
     <color name="colorcacaca">#cacaca</color>
     <color name="colore1e1e1">#e1e1e1</color>
-    <color name="data_spo2">#b939bb</color>
-
-    <color name="color_main_histogram1">#17970A</color>
-    <color name="color_main_histogram2">#44D835</color>
-    <color name="color_main_histogram3">#B4D835</color>
-    <color name="color_main_histogram4">#D8CF35</color>
-    <color name="color_main_histogram5">#D88635</color>
-    <color name="color_main_histogram6">#D83535</color>
 </resources>

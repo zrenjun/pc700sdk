@@ -1,0 +1,9 @@
+<resources>
+    <string name="best">最佳</string>
+    <string name="Inthehigh">临高</string>
+    <string name="light">轻高</string>
+    <string name="crowning">中高</string>
+    <string name="Heavy_high">重高</string>
+    <string name="normal">正常</string>
+    <string name="Blood_pressure_level">血压等级:</string>
+</resources>

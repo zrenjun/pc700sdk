@@ -1,4 +1,4 @@
-package com.lepu.pc700;
+package com.Carewell.view.other;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -11,7 +11,7 @@ import android.util.AttributeSet;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
-import com.lepu.pc700.utils.Fifo;
+import com.Carewell.ecg700.Fifo;
 
 
 /**

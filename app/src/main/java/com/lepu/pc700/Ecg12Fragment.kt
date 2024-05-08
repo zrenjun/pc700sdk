@@ -10,6 +10,7 @@ import com.Carewell.ecg700.LogUtil
 import com.Carewell.ecg700.OnECG12DataListener
 import com.Carewell.ecg700.ParseEcg12Data
 import com.Carewell.view.ecg12.*
+import com.Carewell.view.other.LoadingForView
 import com.lepu.pc700.databinding.FragmentEcg12Binding
 import com.lepu.pc700.utils.delayOnLifecycle
 import com.lepu.pc700.utils.onItemSelectedListener

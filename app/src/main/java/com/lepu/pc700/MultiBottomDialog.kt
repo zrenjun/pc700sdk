@@ -83,8 +83,6 @@ class MultiBottomDialog : DialogFragment(R.layout.dialog_measure_bottom_setting)
         MGDL,
         MMHG,
         KPA,
-        KRKNIBP,
-        JXHNIBP,
         ER_TEMP,
         E_TEMP,
         CHILD_TEMP,
@@ -94,11 +92,10 @@ class MultiBottomDialog : DialogFragment(R.layout.dialog_measure_bottom_setting)
     private var mListener: IOKClickListener? = null
 
     interface IOKClickListener {
-        fun onClickCallback(checkType: CheckType?) //测量值回调
+        fun onClickCallback(checkType: CheckType?)
     }
 
     fun setOKClickListener(okClickListener: IOKClickListener?) {
         mListener = okClickListener
-
     }
 }

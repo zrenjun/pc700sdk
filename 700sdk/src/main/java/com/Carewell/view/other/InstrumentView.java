@@ -1,4 +1,4 @@
-package com.lepu.pc700;
+package com.Carewell.view.other;
 
 import static android.R.attr.baseline;
 import android.content.Context;
@@ -9,6 +9,8 @@ import android.graphics.Path;
 import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.view.View;
+
+import com.creative.sdkpack.R;
 
 /**
  **绘制血压扇形柱状图
