@@ -1,0 +1,288 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+
+    android:padding="20dp">
+
+    <TextView
+        android:id="@+id/tvTime"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/dp_48"
+        android:gravity="center"
+        android:text="时间--"
+        android:textColor="#1092B2"
+        android:textSize="@dimen/sp_20" />
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/sp_20">
+
+        <TextView
+            android:layout_width="160dp"
+            android:layout_height="wrap_content"
+            android:text="尿胆原 URO"
+            android:textSize="@dimen/sp_20" />
+
+        <TextView
+            android:id="@+id/tvUro"
+            android:layout_width="160dp"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="--"
+            android:textSize="@dimen/sp_20" />
+
+
+        <TextView
+            android:layout_width="160dp"
+            android:layout_height="wrap_content"
+            android:text="潜血 BLD"
+            android:textSize="@dimen/sp_20" />
+
+        <TextView
+            android:id="@+id/tvBld"
+            android:layout_width="160dp"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="--"
+            android:textSize="@dimen/sp_20" />
+
+
+        <TextView
+            android:layout_width="160dp"
+            android:layout_height="wrap_content"
+            android:text="胆红素 BIL"
+            android:textSize="@dimen/sp_20" />
+
+        <TextView
+            android:id="@+id/tvBil"
+            android:layout_width="160dp"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="--"
+            android:textSize="@dimen/sp_20" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/sp_20">
+
+        <TextView
+            android:layout_width="160dp"
+            android:layout_height="wrap_content"
+            android:text="酮体 KET"
+            android:textSize="@dimen/sp_20" />
+
+        <TextView
+            android:id="@+id/tvKet"
+            android:layout_width="160dp"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="--"
+            android:textSize="@dimen/sp_20" />
+
+
+        <TextView
+            android:layout_width="160dp"
+            android:layout_height="wrap_content"
+            android:text="白细胞 LEU"
+            android:textSize="@dimen/sp_20" />
+
+        <TextView
+            android:id="@+id/tvLeu"
+            android:layout_width="160dp"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="--"
+            android:textSize="@dimen/sp_20" />
+
+
+        <TextView
+            android:layout_width="160dp"
+            android:layout_height="wrap_content"
+            android:text="葡萄糖 GLU"
+            android:textSize="@dimen/sp_20" />
+
+        <TextView
+            android:id="@+id/tvGlu"
+            android:layout_width="160dp"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="--"
+            android:textSize="@dimen/sp_20" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/sp_20">
+
+        <TextView
+            android:layout_width="160dp"
+            android:layout_height="wrap_content"
+            android:text="蛋白质 PRO"
+            android:textSize="@dimen/sp_20" />
+
+        <TextView
+            android:id="@+id/tvPro"
+            android:layout_width="160dp"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="--"
+            android:textSize="@dimen/sp_20" />
+
+
+        <TextView
+            android:layout_width="160dp"
+            android:layout_height="wrap_content"
+            android:text="尿酸碱度 PH"
+            android:textSize="@dimen/sp_20" />
+
+        <TextView
+            android:id="@+id/tvPh"
+            android:layout_width="160dp"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="--"
+            android:textSize="@dimen/sp_20" />
+
+
+        <TextView
+            android:layout_width="160dp"
+            android:layout_height="wrap_content"
+            android:text="亚硝酸盐 NIT"
+            android:textSize="@dimen/sp_20" />
+
+        <TextView
+            android:id="@+id/tvNit"
+            android:layout_width="160dp"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="--"
+            android:textSize="@dimen/sp_20" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/sp_20">
+
+        <TextView
+            android:layout_width="160dp"
+            android:layout_height="wrap_content"
+            android:text="维生素C VC"
+            android:textSize="@dimen/sp_20" />
+
+        <TextView
+            android:id="@+id/tvVc"
+            android:layout_width="160dp"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="--"
+            android:textSize="@dimen/sp_20" />
+
+        <TextView
+            android:layout_width="160dp"
+            android:layout_height="wrap_content"
+            android:text="比重 SG"
+            android:textSize="@dimen/sp_20" />
+
+        <TextView
+            android:id="@+id/tvSg"
+            android:layout_width="160dp"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="--"
+            android:textSize="@dimen/sp_20" />
+
+    </LinearLayout>
+
+
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/bluetooth_status"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/tvBluetoothState"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="--"
+            android:textSize="18sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/bond_dev_sn"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/tvDevSN"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="--"
+            android:textSize="18sp" />
+    </LinearLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/iv_scan_bluetooth"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:src="@drawable/bluetooth" />
+    </RelativeLayout>
+
+
+    <!-- 按钮 -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="30dp">
+
+
+        <Button
+            android:id="@+id/btnClear"
+            android:layout_width="150dp"
+            android:layout_height="60dp"
+            android:layout_marginLeft="20dp"
+            android:background="@drawable/btn_bg_selector"
+            android:text="@string/clear_screen"
+            android:textColor="#fff"
+            android:textSize="18sp" />
+
+        <Button
+            android:id="@+id/btnUnbond"
+            android:layout_width="150dp"
+            android:layout_height="60dp"
+            android:layout_marginLeft="20dp"
+            android:background="@drawable/btn_bg_selector"
+            android:text="@string/unbond_device"
+            android:textColor="#fff"
+            android:textSize="18sp" />
+
+
+    </LinearLayout>
+
+</LinearLayout>

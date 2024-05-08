@@ -146,4 +146,10 @@
     <string name="const_mmol_speech">毫摩尔每升</string>
     <string name="const_mgdl_speech">毫克每分升</string>
     <string name="const_tip">提示</string>
+
+    <string name="bind_the_device_first">请先绑定设备</string>
+    <string name="the_device_is_unbound_successfully">设备解绑成功</string>
+    <string name="bluetooth4">蓝牙4.0</string>
+    <string name="reading_urine_machine_data">正在读取尿机数据，请稍等!</string>
+    <string name="reconnectinggetdata">蓝牙断开，重连可获取数据</string>
 </resources>
