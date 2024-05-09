@@ -17,7 +17,6 @@ import com.contec.bc.code.callback.BluetoothSearchCallback
 import com.contec.bc.code.callback.CommunicateCallback
 import com.contec.bc.code.connect.ContecSdk
 import com.lepu.pc700.databinding.FragmentUrineBinding
-import com.Carewell.bluetooth.MyBluetooth
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -74,7 +73,7 @@ class UrineFragment : Fragment(R.layout.fragment_urine) {
         sdk = ContecSdk()
         sdk?.init(ContecBluetoothType.TYPE_FF, false)
         //设置设备参数
-        sdk?.startBluetoothSearch(bluetoothSearchCallback, 9000)
+        sdk?.startBluetoothSearch(bluetoothSearchCallback, 10000)
     }
 
     private var bluetoothSearchCallback: BluetoothSearchCallback =
@@ -94,12 +93,9 @@ class UrineFragment : Fragment(R.layout.fragment_urine) {
             }
 
             override fun onContecDeviceFound(contectDevice: ContecDevice) {
-                if (contectDevice.name == null) {
-                    return
-                }
                 //示例程序中设备蓝牙名称为BC01打头的字符串
+                LogUtil.e("onContecDeviceFound: ${contectDevice.name}  ${contectDevice.type}")
                 if (checkName(contectDevice.name, devSN) && contectDevice.type == 2) {
-                    LogUtil.e("onContecDeviceFound: ${contectDevice.name}  ${contectDevice.type}")
                     //停止搜索
                     sdk?.stopBluetoothSearch()
                     //设备类型这标注了是单模的还是双模的，经典和双模的就是旧的(1、3)，单模的是新的(2)
@@ -120,33 +116,11 @@ class UrineFragment : Fragment(R.layout.fragment_urine) {
                 sdk?.stopBluetoothSearch()
                 sdk?.stopCommunicate()
                 sdk = null
-                initBluetooth()
                 launchWhenResumed {
                     binding.tvBluetoothState.text = getString(R.string.bluetooth_discovery_time_out)
                 }
             }
         }
-
-    private var myBluetooth: MyBluetooth? = null
-    private fun initBluetooth() {
-        if (myBluetooth == null){
-            myBluetooth = MyBluetooth(requireContext())
-        }
-        if (!TextUtils.isEmpty(devSN)) {
-            myBluetooth?.startDiscovery(devSN)
-        }
-        myBluetooth?.setHandlerListener(object : MyBluetooth.HandlerListener {
-            override fun onHandlerCallback(what: Int, arg1: Int) {
-//                val uIData = UIData()
-//                uIData.handlerWhat = what
-//                uIData.handlerObj = arg1
-//                viewModelScope.launch(Dispatchers.Main) {
-//                    uiDataMutableLiveData.value = uIData
-//                }
-            }
-        })
-    }
-
 
     private var jsonArray: JSONArray? = null
     private var isConnecting = false
@@ -172,20 +146,22 @@ class UrineFragment : Fragment(R.layout.fragment_urine) {
             //解析Json数据的示例程序
             try {
                 jsonArray = JSONObject(json).getJSONArray("Data")
-                for (i in 0 until jsonArray!!.length()) {
-                    val jsonObject = jsonArray!!.getJSONObject(i)
-                    setText(binding.tvBil, "" + jsonObject.optString("BIL"))
-                    setText(binding.tvUro, "" + jsonObject.optString("URO"))
-                    setText(binding.tvBld, "" + jsonObject.optString("BLD"))
-                    setText(binding.tvKet, "" + jsonObject.optString("KET"))
-                    setText(binding.tvLeu, "" + jsonObject.optString("LEU"))
-                    setText(binding.tvGlu, "" + jsonObject.optString("GLU"))
-                    setText(binding.tvPro, "" + jsonObject.optString("PRO"))
-                    setText(binding.tvPh, "" + jsonObject.optString("PH"))
-                    setText(binding.tvNit, "" + jsonObject.optString("NIT"))
-                    setText(binding.tvSg, "" + jsonObject.optString("SG"))
-                    setText(binding.tvVc, "" + jsonObject.optString("VC"))
-                    setText(binding.tvTime, "" + jsonObject.optString("Date"))
+                launchWhenResumed {
+                    for (i in 0 until jsonArray!!.length()) {
+                        val jsonObject = jsonArray!!.getJSONObject(i)
+                        setText(binding.tvBil, "" + jsonObject.optString("BIL"))
+                        setText(binding.tvUro, "" + jsonObject.optString("URO"))
+                        setText(binding.tvBld, "" + jsonObject.optString("BLD"))
+                        setText(binding.tvKet, "" + jsonObject.optString("KET"))
+                        setText(binding.tvLeu, "" + jsonObject.optString("LEU"))
+                        setText(binding.tvGlu, "" + jsonObject.optString("GLU"))
+                        setText(binding.tvPro, "" + jsonObject.optString("PRO"))
+                        setText(binding.tvPh, "" + jsonObject.optString("PH"))
+                        setText(binding.tvNit, "" + jsonObject.optString("NIT"))
+                        setText(binding.tvSg, "" + jsonObject.optString("SG"))
+                        setText(binding.tvVc, "" + jsonObject.optString("VC"))
+                        setText(binding.tvTime, "" + jsonObject.optString("Date"))
+                    }
                 }
             } catch (e: JSONException) {
                 e.printStackTrace()
@@ -204,20 +180,26 @@ class UrineFragment : Fragment(R.layout.fragment_urine) {
                 5 -> str = "开启设备监听失败"
                 6 -> str = "数据传输过程中断"
             }
-            binding.tvBluetoothState.text = "连接失败-$str"
+            launchWhenResumed {
+                binding.tvBluetoothState.text = "连接失败-$str"
+            }
             isConnecting = false
         }
 
         override fun onCommunicateProgress(status: Int) {
             when (status) {
                 1 -> { //设备连接成功
-                    binding.tvBluetoothState.text = getString(R.string.bluetooth_connected)
-                    toast(R.string.reading_urine_machine_data)
+                    launchWhenResumed {
+                        binding.tvBluetoothState.text = getString(R.string.bluetooth_connected)
+                        toast(R.string.reading_urine_machine_data)
+                    }
                 }
 
                 5 -> { //设备断开
+                    launchWhenResumed {
+                        binding.tvBluetoothState.text = getString(R.string.reconnectinggetdata)
+                    }
                     isConnecting = false
-                    binding.tvBluetoothState.text = getString(R.string.reconnectinggetdata)
                     sdk?.stopCommunicate()
                     sdk = null
                 }
