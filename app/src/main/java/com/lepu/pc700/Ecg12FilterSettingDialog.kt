@@ -7,8 +7,6 @@ import android.view.View
 import androidx.fragment.app.DialogFragment
 import com.Carewell.ecg700.ParseEcg12Data
 import com.lepu.pc700.databinding.DialogEcg12FilterSettingsBinding
-import com.lepu.pc700.utils.singleClick
-import com.lepu.pc700.utils.viewBinding
 
 
 class Ecg12FilterSettingDialog : DialogFragment(R.layout.dialog_ecg12_filter_settings) {

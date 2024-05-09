@@ -8,8 +8,6 @@ import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
 import com.Carewell.ecg700.LogUtil
 import com.lepu.pc700.databinding.ActivityMainBinding
-import com.lepu.pc700.utils.singleClick
-import com.lepu.pc700.utils.viewBinding
 
 
 /**

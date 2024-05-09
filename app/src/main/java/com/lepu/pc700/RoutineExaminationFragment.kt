@@ -19,8 +19,6 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.Carewell.ecg700.*
 import com.lepu.pc700.databinding.FragmentRoutineexaminationBinding
-import com.lepu.pc700.utils.singleClick
-import com.lepu.pc700.utils.viewBinding
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.cancel
@@ -79,8 +77,8 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
         arrCholRank = resources.getStringArray(R.array.chol_rank)
         arrUARank = resources.getStringArray(R.array.ua_rank)
         arrBKRank = resources.getStringArray(R.array.bk_rank)
-        //0：KRK 血压模块 ,1：景新浩血压
-        App.serial.mAPI?.setPressureMode(0)
+        //0：科瑞康血压模块 ,1：景新浩血压
+        App.serial.mAPI?.setPressureMode(0)  //咨询销售确认设备模块供应商
         with(binding) {
             setUnitSp()
             spoView.setScope(150, 0)

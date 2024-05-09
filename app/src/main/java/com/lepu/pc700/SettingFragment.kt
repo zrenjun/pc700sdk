@@ -5,9 +5,6 @@ import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.Fragment
 import com.lepu.pc700.databinding.FragmentSettingBinding
-import com.lepu.pc700.utils.singleClick
-import com.lepu.pc700.utils.toast
-import com.lepu.pc700.utils.viewBinding
 
 /**
  * 设置

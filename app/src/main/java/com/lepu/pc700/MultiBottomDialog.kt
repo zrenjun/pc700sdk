@@ -5,8 +5,6 @@ import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.DialogFragment
 import com.lepu.pc700.databinding.DialogMeasureBottomSettingBinding
-import com.lepu.pc700.utils.singleClick
-import com.lepu.pc700.utils.viewBinding
 
 
 class MultiBottomDialog : DialogFragment(R.layout.dialog_measure_bottom_setting) {

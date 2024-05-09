@@ -10,9 +10,6 @@ import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.lifecycleScope
 import com.Carewell.ecg700.*
 import com.lepu.pc700.databinding.DialogUpgradeBinding
-import com.lepu.pc700.utils.singleClick
-import com.lepu.pc700.utils.toast
-import com.lepu.pc700.utils.viewBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.delay

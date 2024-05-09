@@ -1,16 +1,23 @@
-package com.lepu.pc700.utils
+package com.lepu.pc700
 
 import android.app.Activity
+import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
+import android.widget.AdapterView
+import android.widget.Spinner
+import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.annotation.DrawableRes
 import androidx.annotation.IdRes
 import androidx.annotation.MainThread
 import androidx.annotation.RestrictTo
+import androidx.annotation.StringRes
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
@@ -18,8 +25,15 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.OnLifecycleEvent
+import androidx.lifecycle.coroutineScope
+import androidx.lifecycle.findViewTreeLifecycleOwner
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 
@@ -42,6 +56,42 @@ fun <T : View> T.singleClick(triggerDelay: Long = 400L, click: (view: T) -> Unit
     }
 }
 
+fun View.delayOnLifecycle(
+    durationInMillis: Long = 0L,
+    dispatcher: CoroutineDispatcher = Dispatchers.Main,
+    block: () -> Unit
+): Job? = findViewTreeLifecycleOwner()?.let { lifecycleOwner ->
+    lifecycleOwner.lifecycle.coroutineScope.launch(dispatcher) {
+        delay(durationInMillis)
+        block()
+    }
+}
+
+
+
+
+
+fun Spinner.onItemSelectedListener(body: (position: Int) -> Unit) {
+    onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+        override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+            body(position)
+        }
+
+        override fun onNothingSelected(parent: AdapterView<*>?) {
+        }
+    }
+}
+
+fun Context.drawable(@DrawableRes id: Int) = ContextCompat.getDrawable(this, id)
+
+
+fun Fragment.toast(text: CharSequence) {
+    Toast.makeText(requireContext(), text, Toast.LENGTH_SHORT).show()
+}
+
+fun Fragment.toast(@StringRes resId: Int) {
+    Toast.makeText(requireContext(), getString(resId), Toast.LENGTH_SHORT).show()
+}
 
 
 

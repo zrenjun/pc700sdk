@@ -1,4 +1,4 @@
-package com.lepu.pc700.utils
+package com.Carewell.bluetooth
 
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter

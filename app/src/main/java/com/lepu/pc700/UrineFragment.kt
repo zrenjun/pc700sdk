@@ -10,15 +10,14 @@ import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.*
 import androidx.fragment.app.Fragment
+import com.Carewell.ecg700.LogUtil
 import com.contec.bc.code.base.ContecDevice
 import com.contec.bc.code.bean.ContecBluetoothType
 import com.contec.bc.code.callback.BluetoothSearchCallback
 import com.contec.bc.code.callback.CommunicateCallback
 import com.contec.bc.code.connect.ContecSdk
 import com.lepu.pc700.databinding.FragmentUrineBinding
-import com.lepu.pc700.utils.singleClick
-import com.lepu.pc700.utils.toast
-import com.lepu.pc700.utils.viewBinding
+import com.Carewell.bluetooth.MyBluetooth
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -89,7 +88,9 @@ class UrineFragment : Fragment(R.layout.fragment_urine) {
                     1 -> str = "手机蓝牙未开启"
                     2 -> str = "SDK 未初始化"
                 }
-                binding.tvBluetoothState.text = "搜索错误:$str"
+                launchWhenResumed {
+                    binding.tvBluetoothState.text = "搜索错误:$str"
+                }
             }
 
             override fun onContecDeviceFound(contectDevice: ContecDevice) {
@@ -98,8 +99,9 @@ class UrineFragment : Fragment(R.layout.fragment_urine) {
                 }
                 //示例程序中设备蓝牙名称为BC01打头的字符串
                 if (checkName(contectDevice.name, devSN) && contectDevice.type == 2) {
+                    LogUtil.e("onContecDeviceFound: ${contectDevice.name}  ${contectDevice.type}")
                     //停止搜索
-                    if (sdk != null) sdk?.stopBluetoothSearch()
+                    sdk?.stopBluetoothSearch()
                     //设备类型这标注了是单模的还是双模的，经典和双模的就是旧的(1、3)，单模的是新的(2)
                     if (!isConnecting) {
                         isConnecting = true
@@ -107,7 +109,9 @@ class UrineFragment : Fragment(R.layout.fragment_urine) {
                         sdk?.setObtainDataType(ContecSdk.ObtainDataType.SINGLE) //ALL, SINGLE
                         //启动连接获取数据
                         sdk?.startCommunicate(requireContext(), contectDevice, communicateCallback)
-                        binding.tvBluetoothState.text = getString(R.string.bluetooth_connecting)
+                        launchWhenResumed {
+                            binding.tvBluetoothState.text = getString(R.string.bluetooth_connecting)
+                        }
                     }
                 }
             }
@@ -116,9 +120,33 @@ class UrineFragment : Fragment(R.layout.fragment_urine) {
                 sdk?.stopBluetoothSearch()
                 sdk?.stopCommunicate()
                 sdk = null
-                binding.tvBluetoothState.text = getString(R.string.bluetooth_discovery_time_out)
+                initBluetooth()
+                launchWhenResumed {
+                    binding.tvBluetoothState.text = getString(R.string.bluetooth_discovery_time_out)
+                }
             }
         }
+
+    private var myBluetooth: MyBluetooth? = null
+    private fun initBluetooth() {
+        if (myBluetooth == null){
+            myBluetooth = MyBluetooth(requireContext())
+        }
+        if (!TextUtils.isEmpty(devSN)) {
+            myBluetooth?.startDiscovery(devSN)
+        }
+        myBluetooth?.setHandlerListener(object : MyBluetooth.HandlerListener {
+            override fun onHandlerCallback(what: Int, arg1: Int) {
+//                val uIData = UIData()
+//                uIData.handlerWhat = what
+//                uIData.handlerObj = arg1
+//                viewModelScope.launch(Dispatchers.Main) {
+//                    uiDataMutableLiveData.value = uIData
+//                }
+            }
+        })
+    }
+
 
     private var jsonArray: JSONArray? = null
     private var isConnecting = false
@@ -186,6 +214,7 @@ class UrineFragment : Fragment(R.layout.fragment_urine) {
                     binding.tvBluetoothState.text = getString(R.string.bluetooth_connected)
                     toast(R.string.reading_urine_machine_data)
                 }
+
                 5 -> { //设备断开
                     isConnecting = false
                     binding.tvBluetoothState.text = getString(R.string.reconnectinggetdata)

@@ -11,7 +11,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Build;
 import android.util.Log;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,24 +19,14 @@ import java.util.UUID;
 
 /**
  * 蓝牙2.0/3.0操作类
- * 
- * @author zougy
+ * @noinspection CallToPrintStackTrace
  */
 public class BluetoothOpertion {
 	private static final String TAG = "BluetoothOpertion";
-	
-	private BluetoothAdapter mAdapter;
-	private Context mContext;
-	
-	/**
-	 * 回调接口
-	 */
-	private IBluetoothCallBack mCallBack;
-
-	/**
-	 * 搜索到的设备列表
-	 */
-	private List<BluetoothDevice> mDeviceList = new ArrayList<BluetoothDevice>();
+	private final BluetoothAdapter mAdapter;
+	private final Context mContext;
+	private final IBluetoothCallBack mCallBack;
+	private final List<BluetoothDevice> mDeviceList = new ArrayList<BluetoothDevice>();
 
 	/**
 	 * 蓝牙状态————正常
@@ -74,15 +63,11 @@ public class BluetoothOpertion {
 			mContext = context;
 			mCallBack = callBack;
 			mAdapter = BluetoothAdapter.getDefaultAdapter();
-			if (mAdapter == null) {
-				mCallBack.onException(ExceptionCode.NOBLUETOOTHADAPTER);
-			}
 		}
 	}
 
 	/**
 	 * 获取蓝牙适配器
-	 * @return
 	 */
 	public BluetoothAdapter getBluetoothAdapter() {
 		return mAdapter;
@@ -90,8 +75,6 @@ public class BluetoothOpertion {
 
 	/**
 	 * 蓝牙是否打开
-	 *
-	 * @return TRUE 已经打开 FALSE 没有开打
 	 */
 	public boolean isOpen() {
 		if (mAdapter == null)
@@ -101,8 +84,6 @@ public class BluetoothOpertion {
 
 	/**
 	 * 打开蓝牙
-	 *
-	 * @return TRUE 打开成功 FALSE 打开失败
 	 */
 	public boolean open() {
 		if (mAdapter == null)
@@ -116,8 +97,6 @@ public class BluetoothOpertion {
 
 	/**
 	 * 关闭蓝牙
-	 *
-	 * @return TRUE 关闭成功 FALSE 关闭失败
 	 */
 	public boolean close() {
 		if (mAdapter == null)
@@ -140,11 +119,9 @@ public class BluetoothOpertion {
 	}
 
 	/**
-	 * 开始搜索设备<br>
-	 * <li>蓝牙设备开始搜索周围设备，如果搜索到设备则调用
-	 * {@link IBluetoothCallBack#OnFindDevice(BluetoothDevice)}<br>
-	 * <li>搜索完成后调用该方法 {@link IBluetoothCallBack#OnDiscoveryCompleted(List)}
-	 * <li>15秒后如果没有停止搜索则视为超时 {@link IBluetoothCallBack#OnException()}
+	 * 开始搜索设备 蓝牙设备开始搜索周围设备，如果搜索到设备则调用 OnFindDevice
+	 * 搜索完成后调用OnDiscoveryCompleted
+	 * 15秒后如果没有停止搜索则视为超时
 	 */
 	public void discovery() {
 		bluetoothStatus = BLUETOOTH_STATUS_NORMAL;
@@ -168,13 +145,13 @@ public class BluetoothOpertion {
 					@Override
 					public void run() {
 						super.run();
-						try {
-							sleep(1000);
-						} catch (InterruptedException e1) {
-							e1.printStackTrace();
-						}
+                        try {
+                            sleep(1000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
 
-						while (bTimeoutIng) {
+                        while (bTimeoutIng) {
 							if (!mAdapter.isDiscovering() || (mTimerOutCnt >= TIMEOUT)) {
 								bTimeoutIng = false;
 								break;
@@ -253,8 +230,6 @@ public class BluetoothOpertion {
 
 	/**
 	 * 获取搜索到的设备列表
-	 *
-	 * @return
 	 */
 	public List<BluetoothDevice> getDeviceList() {
 		return mDeviceList;
@@ -263,17 +238,15 @@ public class BluetoothOpertion {
 	/**
 	 * 蓝牙广播接收器
 	 */
-	private BroadcastReceiver bluetoothReceiver = new BroadcastReceiver() {
+	private final BroadcastReceiver bluetoothReceiver = new BroadcastReceiver() {
 
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			String action = intent.getAction();
-			//Log.e(TAG, "BluetoothOperation onReceive-->"+action);
-
-			if (action.equals(BluetoothDevice.ACTION_FOUND)) {
+            assert action != null;
+            if (action.equals(BluetoothDevice.ACTION_FOUND)) {
 				BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
 				mDeviceList.add(device);
-				//Log.i(TAG, "ACTION_FOUND-->"+device);
 				mCallBack.onFindDevice(device);
 
 			} else if (action.equals(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)) {
@@ -288,8 +261,6 @@ public class BluetoothOpertion {
 	/**
 	 * 搜索蓝牙线程
 	 *
-	 * @author zougy
-	 *
 	 */
 	private class DiscoveryRunnable implements Runnable {
 
@@ -301,26 +272,16 @@ public class BluetoothOpertion {
 			}
 			bluetoothStatus = BLUETOOTH_STATUS_DISCOVERING;
 			mAdapter.startDiscovery();
-			return;
 		}
-
 	}
 
 	/**
 	 * 连接一个蓝牙设备
-	 * <p>
-	 * 连接成功后调用 {@link IBluetoothCallBack#OnConnected(BluetoothSocket)}
-	 * <p>
-	 * 连接失败后调用{@link IBluetoothCallBack#OnConnectFail(String)}
-	 *
-	 * @param device
-	 *            需要连接的设备
 	 */
-	@SuppressLint("NewApi") //connectDevice
+	@SuppressLint("NewApi")
 	public void connect(BluetoothDevice device) {
 		if (bluetoothStatus != BLUETOOTH_STATUS_CONNECTING) {
 			if(mSocket!=null){
-				//Log.d(TAG, "connectDevice()->mSocket.isConnected():"+mSocket.isConnected());
 				if(mSocket.isConnected()){
 					try {
 						mSocket.close();
@@ -339,13 +300,6 @@ public class BluetoothOpertion {
 
 	/**
 	 * 连接设备
-	 * <p>
-	 * 连接成功后调用 {@link IBluetoothCallBack#OnConnected(BluetoothSocket)}
-	 * <p>
-	 * 连接失败后调用{@link IBluetoothCallBack#OnConnectFail(String)}
-	 * 
-	 * @param address
-	 *            设备地址
 	 */
 	public void connect(String address) {
 		if (!BluetoothAdapter.checkBluetoothAddress(address)) {
@@ -356,7 +310,7 @@ public class BluetoothOpertion {
 	}
 
 	//蓝牙串口服务
-	private static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");// ("a60f35f0-b93a-11de-8a39-08002009c666");
+	private static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 
 	private static BluetoothSocket mSocket;
 
@@ -365,45 +319,19 @@ public class BluetoothOpertion {
 	 */
 	private class ConnectThread extends Thread {
 
-		private BluetoothDevice mDevice;
-		private BluetoothSocket temp = null;
-		
-		public ConnectThread(BluetoothDevice device) {
-			mDevice = device;	
+        public ConnectThread(BluetoothDevice device) {
 
-			try {			 
-			 /* System.out.println("mDevice.getBondState():" + mDevice.getBondState());
-				if (device.getBondState() != BluetoothDevice.BOND_BONDED) {
-					ClsUtils.createBond(BluetoothDevice.class, mDevice);
-					ClsUtils.cancelPairingUserInput(BluetoothDevice.class, mDevice);
-				}  */
-				
-				
+            BluetoothSocket temp = null;
+            try {
 				if (Build.VERSION.SDK_INT >= 10) {
-					temp = mDevice.createInsecureRfcommSocketToServiceRecord(MY_UUID);
+					temp = device.createInsecureRfcommSocketToServiceRecord(MY_UUID);
 				} else {
-					temp = mDevice.createRfcommSocketToServiceRecord(MY_UUID);
+					temp = device.createRfcommSocketToServiceRecord(MY_UUID);
 				}
 			} catch (Exception e) {
 				Log.e(TAG, "ConnectThread exception->"+e.getMessage());
 				e.printStackTrace();
 			}
-			
-			// Method m = null;
-			// try {
-			// m = mDevice.getClass().getMethod("createRfcommSocket",
-			// new Class[] { int.class });
-			// } catch (NoSuchMethodException e) {
-			// e.printStackTrace();
-			// }
-			//
-			// try {
-			// temp = (BluetoothSocket) m.invoke(mDevice, Integer.valueOf(1));
-			// } catch (IllegalAccessException | IllegalArgumentException
-			// | InvocationTargetException e) {
-			// e.printStackTrace();
-			// }
-			
 			mSocket = temp;
 		}
 
@@ -416,8 +344,7 @@ public class BluetoothOpertion {
 					if(mAdapter.isDiscovering()){
 						mAdapter.cancelDiscovery();
 					}
-					//Log.d(TAG, "- mSocket.connect()-");
-					bluetoothStatus = BLUETOOTH_STATUS_CONNECTING;		
+					bluetoothStatus = BLUETOOTH_STATUS_CONNECTING;
 					mSocket.connect();
 					mCallBack.onConnected(mSocket);
 					bluetoothStatus = BLUETOOTH_STATUS_CONNECTED;
@@ -434,31 +361,6 @@ public class BluetoothOpertion {
 					}
 					bluetoothStatus = BLUETOOTH_STATUS_NORMAL;
 					mCallBack.onConnectFail(e.getMessage());
-					
-//					//错误：read failed, socket might closed or timeout, read ret: -1 
-//					//参考：http://blog.csdn.net/ccc905341846/article/details/52766961
-//					try {
-//						Log.d(TAG, "sock蓝牙端口异常， 2次反射重连");
-//						bluetoothStatus = BLUETOOTH_STATUS_CONNECTING;
-//						mSocket =(BluetoothSocket) mDevice.getClass().getMethod("createRfcommSocket", new Class[] {int.class}).invoke(mDevice,1);
-//						mSocket.connect();
-//						bluetoothStatus = BLUETOOTH_STATUS_CONNECTED;
-//					} catch (IOException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException e1) {
-//						
-//						e1.printStackTrace();
-//						Log.e(TAG, "sdk mSocket exception->"+e.getMessage());	
-//						if(mSocket!=null){
-//							try {
-//								mSocket.close();
-//								mSocket = null;
-//							} catch (IOException e2) {
-//								e2.printStackTrace();
-//							}
-//						}
-//						bluetoothStatus = BLUETOOTH_STATUS_NORMAL;
-//						mCallBack.onConnectFail(e.getMessage());
-//					}
-					
 				}
 			}
 		}
@@ -471,35 +373,15 @@ public class BluetoothOpertion {
 		bluetoothStatus = BLUETOOTH_STATUS_NORMAL;
 		if (socket != null) {
 			try {
-				// InputStream is = socket.getInputStream();
-				// OutputStream os = socket.getOutputStream();
-				// if (is != null) {
-				// is.reset();
-				// is.close();
-				// is = null;
-				// }
-				// if (os != null) {
-				// os.flush();
-				// os.close();
-				// os = null;
-				// }
 				socket.close();
 			} catch (Exception e) {
 				e.printStackTrace();
-			} finally {
-				socket = null;
 			}
-		}
+        }
 	}
 
 	/**
 	 * 获取蓝牙当前的状态
-	 * 
-	 * @return {@link BluetoothOpertion#BLUETOOTH_STATUS_NORMAL}
-	 *         {@link BluetoothOpertion#BLUETOOTH_STATUS_DISCOVERING}
-	 *         {@link BluetoothOpertion#BLUETOOTH_STATUS_DISCOVERYED}
-	 *         {@link BluetoothOpertion#BLUETOOTH_STATUS_CONNECTING}
-	 *         {@link BluetoothOpertion#BLUETOOTH_STATUS_CONNECTED}
 	 */
 	public int getBluetoothStatus() {
 		return bluetoothStatus;
@@ -507,7 +389,6 @@ public class BluetoothOpertion {
 	
 	/**
 	 * 本地做服务端，监听远程设备主动连接
-	 * @author fangrf
 	 */
 	private AcceptThread mAcceptThread;
 	public void listenConnectLoacalDevice(String listenDevName) {
@@ -522,7 +403,6 @@ public class BluetoothOpertion {
 
 	/**
 	 * 监听远程设备主动连接的线程
-	 * @author fangrf
 	 */
 	private class AcceptThread extends Thread {
 		private final BluetoothServerSocket mmServerSocket;  
@@ -539,7 +419,7 @@ public class BluetoothOpertion {
 	    }  
 	   
 	    public void run() {  
-	        BluetoothSocket socket = null;  	         
+	        BluetoothSocket socket;
 	        while (true) {  
 	            try {  
 	                socket = mmServerSocket.accept();  
@@ -559,7 +439,7 @@ public class BluetoothOpertion {
 	        	if(mmServerSocket!=null){
 	        		 mmServerSocket.close(); 
 	        	}           
-	        } catch (IOException e) { }  
+	        } catch (IOException ignored) { }
 	    }  
 	}
 	
@@ -580,10 +460,6 @@ public class BluetoothOpertion {
 		 */
 		public static final int DISCOVERYTIMEOUT = 1;
 
-		/**
-		 * 设备不支持蓝牙
-		 */
-		public static final int NOBLUETOOTHADAPTER = 2;
 	}
 
 }

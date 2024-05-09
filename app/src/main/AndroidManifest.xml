@@ -43,7 +43,7 @@
         </activity>
         <!-- 注册蓝牙服务 -->
         <service
-            android:name=".utils.BluetoothLeService"
+            android:name="com.Carewell.bluetooth.BluetoothLeService"
             android:enabled="true"
             android:exported="true" />
     </application>

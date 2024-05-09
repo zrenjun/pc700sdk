@@ -14,10 +14,6 @@ import com.Carewell.ecg700.LogUtil
 import com.Carewell.ecg700.ParseData
 import com.Carewell.ecg700.observeEvent
 import com.lepu.pc700.databinding.FragmentEcgSingleBinding
-import com.lepu.pc700.utils.delayOnLifecycle
-import com.lepu.pc700.utils.singleClick
-import com.lepu.pc700.utils.toast
-import com.lepu.pc700.utils.viewBinding
 import kotlinx.coroutines.*
 import java.util.*
 import kotlin.properties.Delegates

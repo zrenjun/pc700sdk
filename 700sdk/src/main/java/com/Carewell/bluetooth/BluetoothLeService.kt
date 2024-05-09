@@ -1,4 +1,4 @@
-package com.lepu.pc700.utils
+package com.Carewell.bluetooth
 
 import android.annotation.SuppressLint
 import android.app.Service
@@ -6,7 +6,6 @@ import android.bluetooth.*
 import android.content.Intent
 import android.os.Binder
 import android.os.IBinder
-import android.util.Log
 import com.Carewell.ecg700.LogUtil
 import java.util.*
 
@@ -111,7 +110,7 @@ class BluetoothLeService : Service() {
                 return false
             }
         }
-        mBluetoothAdapter = mBluetoothManager!!.adapter
+        mBluetoothAdapter = mBluetoothManager?.adapter
         if (mBluetoothAdapter == null) {
             LogUtil.d( "Unable to obtain a BluetoothAdapter.")
             return false
@@ -214,6 +213,5 @@ class BluetoothLeService : Service() {
         /** write uuid  */
         var UUID_CHARACTER_WRITE = UUID.fromString("0000ffe1-0000-1000-8000-00805f9b34fb")
 
-        private const val TRANSFER_PACKAGE_SIZE = 20
     }
 }

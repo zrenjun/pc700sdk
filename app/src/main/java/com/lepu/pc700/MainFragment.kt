@@ -5,8 +5,6 @@ import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.lepu.pc700.databinding.FragmentMainBinding
-import com.lepu.pc700.utils.singleClick
-import com.lepu.pc700.utils.viewBinding
 
 /**
  * 主页

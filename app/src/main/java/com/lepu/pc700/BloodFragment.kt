@@ -19,11 +19,8 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.lepu.pc700.databinding.FragmentBloodBinding
-import com.lepu.pc700.utils.BLEManager
-import com.lepu.pc700.utils.BluetoothLeService
-import com.lepu.pc700.utils.singleClick
-import com.lepu.pc700.utils.toast
-import com.lepu.pc700.utils.viewBinding
+import com.Carewell.bluetooth.BLEManager
+import com.Carewell.bluetooth.BluetoothLeService
 import net.litcare.lplibrary.bf.BFRecordHelper
 import net.litcare.lplibrary.bf.BFType
 
@@ -166,19 +163,11 @@ class BloodFragment : Fragment(R.layout.fragment_blood) {
 
     @SuppressLint("MissingPermission")
     private fun initBLE() {
-        if (!requireActivity().packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
-            toast("BLE is not supported")
-        }
         val bluetoothManager =
             requireActivity().getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         val mBluetoothAdapter = bluetoothManager.adapter
-        // 检查设备上是否支持蓝牙
-        if (mBluetoothAdapter == null) {
-            toast("error bluetooth not supported")
-        } else {
-            mBluetoothAdapter.enable()
-            mManager = BLEManager(requireContext(), mBluetoothAdapter)
-        }
+        mBluetoothAdapter.enable()
+        mManager = BLEManager(requireContext(), mBluetoothAdapter)
     }
 
     @SuppressLint("SetTextI18n")

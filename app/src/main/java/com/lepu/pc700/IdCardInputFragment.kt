@@ -6,8 +6,6 @@ import androidx.fragment.app.Fragment
 import com.Carewell.ecg700.GetSMAInfo
 import com.Carewell.ecg700.observeEvent
 import com.lepu.pc700.databinding.FragmentIdcardinputBinding
-import com.lepu.pc700.utils.singleClick
-import com.lepu.pc700.utils.viewBinding
 import kotlinx.coroutines.InternalCoroutinesApi
 
 /**
