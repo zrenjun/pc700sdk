@@ -74,4 +74,5 @@ dependencies {
 
     //gif
     implementation 'pl.droidsonroids.gif:android-gif-drawable:1.2.19'
+    implementation "androidx.bluetooth:bluetooth:1.0.0-alpha02"
 }

@@ -5,6 +5,7 @@
     android:protectionLevel="signatureOrSystem"
     android:sharedUserId="android.uid.system">
 
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="32"
         tools:ignore="ScopedStorage" />
     <uses-permission android:name="android.permission.INTERNET" />
@@ -38,11 +39,5 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <!-- 注册蓝牙服务 -->
-        <service
-            android:name="com.Carewell.bluetooth.BluetoothLeService"
-            android:enabled="true"
-            android:exported="true" />
     </application>
-
 </manifest>

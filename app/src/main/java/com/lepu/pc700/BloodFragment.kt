@@ -1,28 +1,28 @@
 package com.lepu.pc700
 
-import android.Manifest
 import android.annotation.SuppressLint
 import android.app.AlertDialog
-import android.bluetooth.BluetoothManager
-import android.content.BroadcastReceiver
-import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
-import android.location.LocationManager
 import android.net.Uri
 import android.os.Bundle
-import android.provider.Settings
 import android.text.Html
 import android.view.View
-import android.widget.Toast
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
+import androidx.bluetooth.BluetoothDevice
+import androidx.bluetooth.BluetoothLe
+import androidx.bluetooth.GattCharacteristic
+import androidx.bluetooth.GattClientScope
+import androidx.bluetooth.ScanFilter
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import com.Carewell.ecg700.LogUtil
 import com.lepu.pc700.databinding.FragmentBloodBinding
-import com.Carewell.bluetooth.BLEManager
-import com.Carewell.bluetooth.BluetoothLeService
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import net.litcare.lplibrary.bf.BFRecordHelper
 import net.litcare.lplibrary.bf.BFType
+import java.util.UUID
 
 
 /**
@@ -34,20 +34,19 @@ import net.litcare.lplibrary.bf.BFType
 class BloodFragment : Fragment(R.layout.fragment_blood) {
     private val binding by viewBinding(FragmentBloodBinding::bind)
     private var intUnit = 0 //0="mmol/L",1= "mg/dL"
-    private var mManager: BLEManager? = null
+
     @SuppressLint("MissingPermission")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         (activity as MainActivity).setMainTitle("血脂测量")
-
+        bluetoothLe = BluetoothLe(requireContext())
         with(binding) {
             tvCholHdl.text = "≥0  ,<3.5"
-            btnBlueScan.singleClick {
-                mManager?.scanLeDevice(true)
-            }
+            btnBlueScan.singleClick { startScanning() }
             btnClear.singleClick {
                 clearTextView()
-                mManager?.disconnect()
+                stopScanning()
+                disconnect()
             }
             btnVideo.singleClick {
                 val uri = Uri.parse("https://mp.weixin.qq.com/s/f0J6Q49hmowmkZ5mncc23A")
@@ -66,17 +65,19 @@ class BloodFragment : Fragment(R.layout.fragment_blood) {
             }
             btnInfo.singleClick {
                 val bloodMsg =
-                    Html.fromHtml("说明:<br><br>" +
-                            "总胆固醇（CHOL）：测量范围：2.59~12.93mmol/L<br>" +
-                            "甘油三酯（TRIG）：测量范围：0.51~7.34mmol/L<br>" +
-                            "高密度脂蛋白（HDL）：测量范围：0.39~2.59mmol/L<br>" +
-                            "低密度脂蛋白（LDL）：测量范围：1.29~4.91mmol/L<br><br>" +
-                            "绑定MAC地址：绑定血脂仪的MAC地址，将血脂仪与生理参数检测仪绑定连接。（MAC地址为自动绑定）<br><br>" +
-                            "解绑MAC地址：解绑血脂仪与生理参数检测仪的绑定连接。<br><br>" +
-                            "蓝牙连接：当血脂仪测量完并显示结果后，点击此按钮连接血脂仪与生理参数检测仪，可获取数据至生理参数检测仪，数据将显示在检测仪的屏幕上。<br><br>" +
-                            "清屏：清除显示在生理参数检测仪屏幕上的数据。<br><br>" +
-                            "操作视频：血脂分析仪简介、操作说明视频。<br><br>" +
-                            "手动输入：手动输入血脂仪测得的相应数据。<br>")
+                    Html.fromHtml(
+                        "说明:<br><br>" +
+                                "总胆固醇（CHOL）：测量范围：2.59~12.93mmol/L<br>" +
+                                "甘油三酯（TRIG）：测量范围：0.51~7.34mmol/L<br>" +
+                                "高密度脂蛋白（HDL）：测量范围：0.39~2.59mmol/L<br>" +
+                                "低密度脂蛋白（LDL）：测量范围：1.29~4.91mmol/L<br><br>" +
+                                "绑定MAC地址：绑定血脂仪的MAC地址，将血脂仪与生理参数检测仪绑定连接。（MAC地址为自动绑定）<br><br>" +
+                                "解绑MAC地址：解绑血脂仪与生理参数检测仪的绑定连接。<br><br>" +
+                                "蓝牙连接：当血脂仪测量完并显示结果后，点击此按钮连接血脂仪与生理参数检测仪，可获取数据至生理参数检测仪，数据将显示在检测仪的屏幕上。<br><br>" +
+                                "清屏：清除显示在生理参数检测仪屏幕上的数据。<br><br>" +
+                                "操作视频：血脂分析仪简介、操作说明视频。<br><br>" +
+                                "手动输入：手动输入血脂仪测得的相应数据。<br>"
+                    )
                 val alertDialog = AlertDialog.Builder(requireContext()).also {
                     it.setMessage(bloodMsg)
                         .setTitle("提示")
@@ -90,50 +91,14 @@ class BloodFragment : Fragment(R.layout.fragment_blood) {
             }
         }
         switchUnit(0)
-        initBLE()
-        android6_RequestLocation(requireContext())
-        requireActivity().registerReceiver(mGattUpdateReceiver, BLEManager.makeGattUpdateIntentFilter())
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        requireActivity().unregisterReceiver(mGattUpdateReceiver)
-        mManager?.scanLeDevice(false)
+        stopScanning()
+        disconnect()
     }
 
-    private val mGattUpdateReceiver: BroadcastReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            val action = intent.action
-            when {
-                BluetoothLeService.ACTION_GATT_CONNECTED == action -> {
-                    binding.tvBlueStatus.text = getString(R.string.bluetooth_connected)
-                }
-
-                BluetoothLeService.ACTION_GATT_DISCONNECTED == action -> {
-                    mManager?.closeService()
-                    binding.tvBlueStatus.text = getString(R.string.bluetooth_discon)
-                }
-
-                BluetoothLeService.ACTION_SPO2_DATA_AVAILABLE == action -> {
-                    intent.getStringExtra(BluetoothLeService.EXTRA_DATA)?.let {
-                        getBloodFatByJar(it)
-                    }
-                }
-
-                BluetoothLeService.ACTION_FIND_DEVICE == action -> {
-                    binding.tvBlueStatus.text = getString(R.string.find_device_and_connect)
-                }
-
-                BluetoothLeService.ACTION_SEARCH_TIME_OUT == action -> {
-                    binding.tvBlueStatus.text = getString(R.string.bluetooth_discovery_time_out)
-                }
-
-                BluetoothLeService.ACTION_START_SCAN == action -> {
-                    binding.tvBlueStatus.text = getString(R.string.bluetooth_discoverying)
-                }
-            }
-        }
-    }
 
     @SuppressLint("SetTextI18n")
     private fun switchUnit(index: Int) {
@@ -161,29 +126,21 @@ class BloodFragment : Fragment(R.layout.fragment_blood) {
         binding.tvBlueStatus.text = "- -"
     }
 
-    @SuppressLint("MissingPermission")
-    private fun initBLE() {
-        val bluetoothManager =
-            requireActivity().getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
-        val mBluetoothAdapter = bluetoothManager.adapter
-        mBluetoothAdapter.enable()
-        mManager = BLEManager(requireContext(), mBluetoothAdapter)
-    }
 
     @SuppressLint("SetTextI18n")
-    private fun getBloodFatByJar(data: String): String {
+    private fun getBloodFatByJar(data: String) {
+        LogUtil.e(data)
         if (data.length == 44) {
             try {
                 val day = data.substring(0, 14)
                 val unit = data.substring(40, 41) //0为mmol/L 1为mg/dL
-                val time = (day.substring(0, 4) + "-" + day.substring(4, 6) + "-" + day.substring(
+                val time = day.substring(0, 4) + "-" + day.substring(4, 6) + "-" + day.substring(
                     6,
                     8
-                ) + " "
-                        + day.substring(8, 10) + ":" + day.substring(10, 12) + ":" + day.substring(
+                ) + " " + day.substring(8, 10) + ":" + day.substring(10, 12) + ":" + day.substring(
                     12,
                     14
-                ))
+                )
                 val bfRecordHelper: BFRecordHelper = BFRecordHelper.parseFromBTResult(data)
                 binding.tvTime.text = time
                 val sChol = bfRecordHelper.getValueString(BFType.CHOL)
@@ -206,68 +163,100 @@ class BloodFragment : Fragment(R.layout.fragment_blood) {
             } catch (e: Exception) {
                 e.printStackTrace()
                 toast(e.message.toString())
-                toast(getString(R.string.data_exception))
             }
         }
-        return "error"
     }
 
-    /**
-     * android6.0 Bluetooth, need to open location for bluetooth scanning
-     * android6.0 蓝牙扫描需要打开位置信息
-     */
-    private fun android6_RequestLocation(context: Context) {
-        if (requireContext().packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)
-            && !isGpsEnable(context)
-        ) {
-            val builder = AlertDialog.Builder(context)
-            builder.setCancelable(false)
-            builder.setTitle("Prompt")
-                .setIcon(android.R.drawable.ic_menu_info_details)
-                .setMessage("Android6.0 need to open location for bluetooth scanning")
-                .setNegativeButton(
-                    "CANCEL"
-                ) { dialog, _ -> dialog.dismiss() }.setPositiveButton(
-                    "OK"
-                ) { _, _ ->
-                    val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
-                    context.startActivity(intent)
+
+    /** service-> uuid  */
+    private val UUID_SERVICE_DATA = UUID.fromString("0000ffe0-0000-1000-8000-00805f9b34fb")
+
+    /** write uuid  */
+    private var UUID_CHARACTER_WRITE = UUID.fromString("0000ffe1-0000-1000-8000-00805f9b34fb")
+    private var bluetoothLe: BluetoothLe? = null
+
+    private var scanJob: Job? = null
+
+    @SuppressLint("MissingPermission")
+    private fun startScanning() {
+        binding.tvBlueStatus.text = getString(R.string.bluetooth_discoverying)
+        scanJob = lifecycleScope.launch {
+            try {
+                bluetoothLe?.scan(listOf(ScanFilter(deviceName = "LPM311")))?.collect {
+                    binding.tvBlueStatus.text = getString(R.string.find_device_and_connect)
+                    connect(it.device)
                 }
-            builder.show()
-        }
-
-        //request permissions
-        val checkCallPhonePermission =
-            ContextCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            )
-        if (checkCallPhonePermission != PackageManager.PERMISSION_GRANTED) {
-            //判断是否需要 向用户解释，为什么要申请该权限
-            if (ActivityCompat.shouldShowRequestPermissionRationale(
-                    requireActivity(),
-                    Manifest.permission.ACCESS_COARSE_LOCATION
-                )
-            ) Toast.makeText(
-                context,
-                "need to open location info for discovery bluetooth device in android6.0 version，otherwise find not！",
-                Toast.LENGTH_LONG
-            ).show()
-            //请求权限
-            ActivityCompat.requestPermissions(
-                requireActivity(),
-                arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION),
-                0
-            )
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 
-    // whether or not location is open, 位置是否打开
-    private fun isGpsEnable(context: Context): Boolean {
-        val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        val gps = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
-        val network = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
-        return gps || network
+    private fun stopScanning() {
+        scanJob?.cancel()
+        scanJob = null
+    }
+
+    private var connectJob: Job? = null
+
+    //一旦设备连接，每个通信都会通过这个对象
+    private var gattClient: GattClientScope? = null
+    private var gattCharacteristic: GattCharacteristic? = null
+
+    @SuppressLint("MissingPermission")
+    private fun connect(device: BluetoothDevice) {
+        connectJob = lifecycleScope.launch {
+            try {
+                bluetoothLe?.connectGatt(device) {
+                    gattClient = this
+                    gattCharacteristic = getService(UUID_SERVICE_DATA)?.getCharacteristic(UUID_CHARACTER_WRITE)
+                    binding.tvBlueStatus.text = getString(R.string.bluetooth_connected)
+                    read()
+                    delay(300)
+                    write()
+                    awaitCancellation()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    private fun disconnect() {
+        connectJob?.cancel()
+        connectJob = null
+    }
+
+    private fun read() {
+        launchWhenResumed {
+            gattClient?.apply {
+                val stringBuilder = StringBuilder()
+                var recCnt = 0
+                gattCharacteristic?.let {
+                    subscribeToCharacteristic(it).collect { bytes ->
+                        LogUtil.d(String(bytes))
+                        stringBuilder.append(String(bytes))
+                        if (recCnt == 2) {
+                            getBloodFatByJar(stringBuilder.toString())
+                        }
+                        recCnt++
+                    }
+                }
+            }
+        }
+    }
+
+    private fun write() {
+        launchWhenResumed {
+            gattClient?.apply {
+                gattCharacteristic?.let {
+                    val result = writeCharacteristic(it, "connect".toByteArray()) //获取血脂命令
+                    if (result.isSuccess) {
+                        LogUtil.d("write success")
+                    }
+                }
+            }
+        }
     }
 }
 
