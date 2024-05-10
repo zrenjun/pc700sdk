@@ -234,7 +234,7 @@ class BloodFragment : Fragment(R.layout.fragment_blood) {
                 var recCnt = 0
                 gattCharacteristic?.let {
                     subscribeToCharacteristic(it).collect { bytes ->
-                        LogUtil.d(String(bytes))
+                        LogUtil.e(String(bytes))
                         stringBuilder.append(String(bytes))
                         if (recCnt == 2) {
                             getBloodFatByJar(stringBuilder.toString())
@@ -252,7 +252,7 @@ class BloodFragment : Fragment(R.layout.fragment_blood) {
                 gattCharacteristic?.let {
                     val result = writeCharacteristic(it, "connect".toByteArray()) //获取血脂命令
                     if (result.isSuccess) {
-                        LogUtil.d("write success")
+                        LogUtil.e("write success")
                     }
                 }
             }

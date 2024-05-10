@@ -2,7 +2,6 @@
 
 package com.Carewell.OmniEcg.jni
 
-import com.Carewell.ecg700.LogUtil
 
 
 /**
@@ -250,7 +249,6 @@ class WaveFilter {
     }
 
     init {
-        LogUtil.json("===========jniHeartRateDetect.initHeartRateDetect(SAMPLE_RATE)")
         jniHeartRateDetect.initHeartRateDetect(SAMPLE_RATE)
     }
 }

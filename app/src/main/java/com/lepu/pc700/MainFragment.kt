@@ -5,6 +5,7 @@ import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.lepu.pc700.databinding.FragmentMainBinding
+import io.getstream.log.android.file.StreamLogFileManager
 
 /**
  * 主页
@@ -22,6 +23,10 @@ class MainFragment : Fragment(R.layout.fragment_main) {
         binding.tv3.singleClick { findNavController().navigate(R.id.eCGSingleFragment) }
         binding.tv4.singleClick { findNavController().navigate(R.id.idCardInputFragment) }
         binding.tv5.singleClick { findNavController().navigate(R.id.settingFragment) }
+        binding.tv5.setOnLongClickListener {
+            StreamLogFileManager.share()
+            true
+        }
     }
 }
 
