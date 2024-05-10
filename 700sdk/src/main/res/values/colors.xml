@@ -7,4 +7,6 @@
     <color name="color_main_histogram4">#D8CF35</color>
     <color name="color_main_histogram5">#D88635</color>
     <color name="color_main_histogram6">#D83535</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="white">#FFFFFFFF</color>
 </resources>
