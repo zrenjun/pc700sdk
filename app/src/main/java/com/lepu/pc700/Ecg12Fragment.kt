@@ -2,13 +2,20 @@ package com.lepu.pc700
 
 import android.annotation.SuppressLint
 import android.os.Bundle
+import android.os.Environment
+import android.util.Log
 import android.view.View
 import android.view.WindowManager
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import com.Carewell.OmniEcg.jni.JniTraditionalAnalysis
+import com.Carewell.OmniEcg.jni.toJson
 import com.Carewell.ecg700.LogUtil
 import com.Carewell.ecg700.OnECG12DataListener
 import com.Carewell.ecg700.ParseEcg12Data
+import com.Carewell.ecg700.XmlUtil
+import com.Carewell.ecg700.entity.EcgSettingConfigEnum
+import com.Carewell.ecg700.entity.PatientInfoBean
 import com.Carewell.view.ecg12.*
 import com.Carewell.view.other.LoadingForView
 import com.lepu.pc700.databinding.FragmentEcg12Binding
@@ -19,6 +26,9 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
+import java.io.File
+import java.io.IOException
+import java.text.SimpleDateFormat
 import kotlin.properties.Delegates
 
 class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
@@ -142,18 +152,18 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
     }
 
 
-    @SuppressLint("SetTextI18n")
+    @SuppressLint("SetTextI18n", "SimpleDateFormat")
     private fun startRecordData() {
         countDownJob = countDownFlow(time, lifecycleScope, {
             binding.btnStartMeasure.text = "$it/${time}S"
         }, onFinish = {
-
             isStart = false
             binding.spinnerGain.isEnabled = true
             binding.spinnerSpeed.isEnabled = true
             binding.spinnerShow.isEnabled = true
             binding.spinnerTime.isEnabled = true
             subscript = 0
+            getLocalXML(saveDataList)
         }, onStart = {
 
         })
@@ -368,6 +378,63 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
         }
         MainEcgManager.getInstance().clearEcgData()
     }
+
+    @SuppressLint("SimpleDateFormat")
+    private fun getLocalXML(ecgDataArray: Array<ShortArray>) {
+        LogUtil.e("ecgDataArray.size = ${ecgDataArray.size}")
+        //病人信息设置
+        val patientInfoBean = PatientInfoBean()
+        patientInfoBean.archivesName = "moArchivesName"
+        patientInfoBean.firstName = "moFirstName"
+        patientInfoBean.lastName = "moLastName"
+        patientInfoBean.middleName = "moMiddleName"
+        patientInfoBean.idNumber = "102"
+        patientInfoBean.patientNumber = "111"
+        patientInfoBean.age = "20"
+        patientInfoBean.birthdate = "2003-09-08"
+        patientInfoBean.leadoffstate = 0
+        launchWhenResumed {
+//            withContext(Dispatchers.IO) {
+                //I/II/III/aVR/aVL/aVF/V1/V2/V3/V4/V5/V6
+                val data = ArrayList<ShortArray>()
+                var index = 0
+                for (i in 0..7) {
+                    index = i
+                    if (i > 1) {
+                        index = i + 4
+                    }
+                    data.add(ecgDataArray[index])
+                }
+                val dir = Environment.getExternalStorageDirectory().absolutePath
+                val filePath = "$dir/PC700/test"
+                XmlUtil.createDir(filePath)
+                val fileName =
+                    SimpleDateFormat("yyyyMMddHHmmss").format(System.currentTimeMillis())
+                //本地算法分析，分析出来数据
+                val xmlPath = "${filePath}/${fileName}.xml"
+                val resultBean = JniTraditionalAnalysis.traditionalAnalysis(
+                    xmlPath,
+                    EcgSettingConfigEnum.LeadType.LEAD_12,
+                    patientInfoBean,
+                    data.toTypedArray()
+                )
+                LogUtil.e(resultBean.toJson())
+                //2.生成心电分析xml上传  参数根据UI设置
+//                XmlUtil.makeHl7Xml(
+//                    requireContext(),
+//                    filePath,
+//                    fileName,
+//                    "test",
+//                    "610423198612206399",
+//                    saveDataList,
+//                    LeadType.LEAD_II,
+//                    "35",
+//                    "0.67",
+//                    "50.0f"
+//                )
+//            }
+        }
+    }
 }
 
 
@@ -379,7 +446,7 @@ fun countDownFlow(
     onFinish: (() -> Unit)? = null
 ): Job = flow {
     for (i in total downTo 0) {
-        if(i == 0) break
+        if (i == 0) break
         emit(i)
         delay(1000)
     }
@@ -388,3 +455,34 @@ fun countDownFlow(
     .onCompletion { if (it == null) onFinish?.invoke() }
     .onEach { onTick.invoke(it) }
     .launchIn(scope)
+
+
+/**
+ * 递归创建文件夹
+ */
+fun createDir(path: String): File? {
+    val file = File(path)
+    if (file.exists()) return file
+    val p = file.parentFile
+    if (!p.exists()) {
+        createDir(p.path)
+    }
+    return if (file.mkdir()) file else null
+}
+
+/**
+ * 递归创建文件夹
+ */
+@Throws(IOException::class)
+fun createFile(path: String, fileName: String): File? {
+    val filePath = createDir(path)
+    if (filePath != null) {
+        val file = File(filePath, fileName)
+        if (file.exists()) {
+            file.delete()
+        }
+        file.createNewFile()
+        return file
+    }
+    return null
+}

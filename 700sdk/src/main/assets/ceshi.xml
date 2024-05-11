@@ -1,0 +1,678 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?><!--根节点-->
+<AnnotatedECG xmlns="urn:hl7-org:v3" xmlns:voc="urn:hl7-org:v3/voc"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="urn:hl7-org:v3 ../schema/PORT_MT020001.xsd" type="Observation">
+    <!--根节点ID-->
+    <id root="d600351b5a584737ae7ba4c71e8db774" />
+    <!--不需要区分不同类型的aecg 固定93000-->
+    <code code="93000" codeSystem="2.16.840.1.113883.6.12" codeSystemName="CPT-4" />
+    <!--分析数据集中匹配心电发现时间的时间戳-->
+    <effectiveTime>
+        <center value="20240301094940" />
+    </effectiveTime>
+    <!--数据描述信息（时间点和研究机构事件）-->
+    <componentOf>
+        <timepointEvent>
+            <componentOf>
+                <!--主题指派-->
+                <subjectAssignment>
+                    <subject>
+                        <!--实验主题-->
+                        <trialSubject>
+                            <id extension="d600351b5a584737ae7ba4c71e8db774"
+                                root="d600351b5a584737ae7ba4c71e8db774" />
+                            <!--主题人员统计-->
+                            <subjectDemographicPerson>
+                                <name>赵子元</name>
+                                <!--行政管理人员代码-->
+                                <administrativeGenderCode code="M"
+                                    codeSystem="2.16.840.1.113883.5.1" />
+                                <!--生日-->
+                                <birthTime value="" />
+                                <!--民族-->
+                                <raceCode code="2034-7" codeSystem="2.16.840.1.113883.5.104"
+                                    codeSystemName="Race" />
+                                <age unit="U">0</age>
+                                <patientID>d600351b5a584737ae7ba4c71e8db774</patientID>
+                            </subjectDemographicPerson>
+                        </trialSubject>
+                    </subject>
+                    <componentOf>
+                        <clinicalTrial>
+                            <id root="d600351b5a584737ae7ba4c71e8db774" />
+                        </clinicalTrial>
+                    </componentOf>
+                </subjectAssignment>
+            </componentOf>
+        </timepointEvent>
+    </componentOf>
+    <component>
+        <!--数据序列组-->
+        <series>
+            <!--相关编码(心电波)-->
+            <code code="RHYTHM" codeSystem="2.16.840.1.113883.5.4" codeSystemName="ActCode"
+                codeSystemVersion="" displayName="Rhythm Waveforms" />
+            <!--采集时间段 time period of ECG collection -->
+            <effectiveTime>
+                <low inclusive="true" value="20240301094940" />
+                <high inclusive="true" value="20240301094940" />
+            </effectiveTime>
+            <!--心电设备制造商  -->
+            <author>
+                <!--心电设备厂商-->
+                <seriesAuthor>
+                    <!--心电图制造设备-->
+                    <manufacturedSeriesDevice>
+                        <!--制造商设备型号-->
+                        <manufacturerModelName>PC-700</manufacturerModelName>
+                        <!--软件版本-->
+                        <softwareName></softwareName>
+                        <serialNumber></serialNumber>
+                    </manufacturedSeriesDevice>
+                    <!--制造商组织-->
+                    <manufacturerOrganization>
+                        <name>SHENZHEN CREATIVE INDUSTRY CO., LTD.</name>
+                    </manufacturerOrganization>
+                </seriesAuthor>
+            </author>
+            <!--控制变量描述设备所使用的环境条件。  -->
+            <!--通常，这些将是滤波器设置、时间偏移、有效范围和类似设置。-->
+            <controlVariable>
+                <controlVariable>
+                    <!--低通滤波器 -->
+                    <code code="MDC_ECG_CTL_VBL_ATTR_FILTER_LOW_PASS"
+                        codeSystem="2.16.840.1.113883.6.24" codeSystemName="MDC"
+                        displayName="Low Pass Filter" />
+                    <component>
+                        <controlVariable>
+                            <!--截止频率 -->
+                            <code code="MDC_ECG_CTL_VBL_ATTR_FILTER_CUTOFF_FREQ"
+                                codeSystem="2.16.840.1.113883.6.24" codeSystemName="MDC"
+                                displayName="Cutoff Frequency" />
+                            <!--数值：25Hz -->
+                            <value unit="Hz" value="25" xsi:type="PQ" />
+                        </controlVariable>
+                    </component>
+                </controlVariable>
+            </controlVariable>
+            <controlVariable>
+                <controlVariable>
+                    <!--高通滤波器 -->
+                    <code code="MDC_ECG_CTL_VBL_ATTR_FILTER_HIGH_PASS"
+                        codeSystem="2.16.840.1.113883.6.24" codeSystemName="MDC"
+                        displayName="High Pass Filter" />
+                    <component>
+                        <controlVariable>
+                            <!--滤波类型 -->
+                            <code code="MDC_ECG_CTL_VBL_ATTR_FILTER_CUTOFF_FREQ"
+                                codeSystem="2.16.840.1.113883.6.24" codeSystemName="MDC"
+                                displayName="Cutoff Frequency" />
+                            <value unit="Hz" value="0.30" xsi:type="PQ" />
+                        </controlVariable>
+                    </component>
+                </controlVariable>
+            </controlVariable>
+            <controlVariable>
+                <controlVariable>
+                    <!--陷波滤波器 -->
+                    <code code="MDC_ECG_CTL_VBL_ATTR_FILTER_NOTCH"
+                        codeSystem="2.16.840.1.113883.6.24" codeSystemName="MDC"
+                        displayName="Notch Filter" />
+                    <component>
+                        <controlVariable>
+                            <code code="MDC_ECG_CTL_VBL_ATTR_FILTER_NOTCH_FREQ"
+                                codeSystem="2.16.840.1.113883.6.24" codeSystemName="MDC"
+                                displayName="Notch Frequency" />
+                            <value unit="Hz" value="60" xsi:type="PQ" />
+                        </controlVariable>
+                    </component>
+                </controlVariable>
+            </controlVariable>
+            <!--数据序列组件，包含12导线的数据，但是顺序并不是固定的-->
+            <component>
+                <!--每个序列集存储一个或多个同步记录的序列  -->
+                <!--这个例子中，包含一个12导同步记录的序列集  -->
+                <sequenceSet>
+                    <!--单个数据序列，第一个描述基本信息-->
+                    <component>
+                        <sequence>
+                            <!--时间编码格式：绝对时间-->
+                            <code code="TIME_ABSOLUTE" codeSystem="2.16.840.1.113883.5.4"
+                                codeSystemName="ActCode" displayName="Aboslute Time" />
+                            <!--此序列用于时间引用, 我们将使用GLIST_TS时间戳  -->
+                            <value xsi:type="GLIST_TS">
+                                <!--记录时间  -->
+                                <head value="20240301094940" />
+                                <!--时间步进 也就是每秒钟采样1000次=1s/0.001。-->
+                                <increment unit="s" value="0.001" />
+                            </value>
+                        </sequence>
+                    </component>
+                    <!--单个数据序列，描述电压数据-->
+                    <component>
+                        <sequence>
+                            <!--这是导线1序列，我们给出导线1的MDC编码。 -->
+                            <code code="MDC_ECG_LEAD_I" codeSystem="2.16.840.1.113883.6.24"
+                                codeSystemName="MDC" />
+                            <!--MDC 多描述图像编码-->
+                            <value xsi:type="SLIST_PQ">
+                                <!--使用SLIST_PQ, 我们需要提供原点和比例概念 -->
+                                <origin unit="uV" value="0" />
+                                <!--数据表示和实际电压的缩放比例  灵敏度选择：2.5、5、10、20、40mm/mv-->
+                                <scale unit="uV" value="1" />
+                                <!--携带SLIST_PQ的序列值在<digit>中拼出。 -->
+                                <digits>-70 -65 -59 -55 -53 -51 -50 -50 -50 -48 -45 -39 -31 -19 -2
+                                    17 43 73 107 143 181 218 253 286 314 339 358 373 383 387
+                                </digits>
+                            </value>
+                        </sequence>
+                    </component>
+                    <component>
+                        <sequence>
+                            <code code="MDC_ECG_LEAD_II" codeSystem="2.16.840.1.113883.6.24"
+                                codeSystemName="MDC" />
+                            <value xsi:type="SLIST_PQ">
+                                <origin unit="uV" value="0" />
+                                <scale unit="uV" value="1" />
+                                <digits>151 156 159 161 163 163 163 163 164 166 170 177 186 199 216
+                                    236 261 290 323 357 392 427 461 493 521 546 567 584 596
+                                </digits>
+                            </value>
+                        </sequence>
+                    </component>
+                    <component>
+                        <sequence>
+                            <code code="MDC_ECG_LEAD_III" codeSystem="2.16.840.1.113883.6.24"
+                                codeSystemName="MDC" />
+                            <value xsi:type="SLIST_PQ">
+                                <origin unit="uV" value="0" />
+                                <scale unit="uV" value="1" />
+                                <digits>221 221 218 216 216 214 213 213 214 214 215 216 217 218 218
+                                    219 218 217 216 214 211 209 208 207 207 207 209 211 213
+                                </digits>
+                            </value>
+                        </sequence>
+                    </component>
+                    <component>
+                        <sequence>
+                            <code code="MDC_ECG_LEAD_AVR" codeSystem="2.16.840.1.113883.6.24"
+                                codeSystemName="MDC" />
+                            <value xsi:type="SLIST_PQ">
+                                <origin unit="uV" value="0" />
+                                <scale unit="uV" value="1" />
+                                <digits>-40 -45 -50 -53 -55 -56 -56 -56 -57 -59 -62 -69 -77 -90 -107
+                                    -126 -152 -181 -215 -250 -286 -322 -357 -389 -417 -442
+                                </digits>
+                            </value>
+                        </sequence>
+                    </component>
+                    <component>
+                        <sequence>
+                            <code code="MDC_ECG_LEAD_AVL" codeSystem="2.16.840.1.113883.6.24"
+                                codeSystemName="MDC" />
+                            <value xsi:type="SLIST_PQ">
+                                <origin unit="uV" value="0" />
+                                <scale unit="uV" value="1" />
+                                <digits>-145 -143 -138 -135 -134 -132 -131 -131 -132 -131 -130 -127
+                                    -124 -118 -110 -101 -87 -72 -54 -35 -15 5 23 40 54 66
+                                </digits>
+                            </value>
+                        </sequence>
+                    </component>
+                    <component>
+                        <sequence>
+                            <code code="MDC_ECG_LEAD_AVF" codeSystem="2.16.840.1.113883.6.24"
+                                codeSystemName="MDC" />
+                            <value xsi:type="SLIST_PQ">
+                                <origin unit="uV" value="0" />
+                                <scale unit="uV" value="1" />
+                                <digits>186 188 188 188 189 188 188 188 189 190 192 196 201 208 217
+                                    228 240 254 270 286 302 318 335 350 364 377 388 398 405
+                                </digits>
+                            </value>
+                        </sequence>
+                    </component>
+                    <component>
+                        <sequence>
+                            <code code="MDC_ECG_LEAD_V1" codeSystem="2.16.840.1.113883.6.24"
+                                codeSystemName="MDC" />
+                            <value xsi:type="SLIST_PQ">
+                                <origin unit="uV" value="0" />
+                                <scale unit="uV" value="1" />
+                                <digits>-532 -535 -537 -540 -542 -543 -544 -543 -542 -540 -538 -535
+                                    -533 -531 -528 -526 -522 -518 -514 -510 -506 -501 -497 -491 -486
+                                    -480 -474 -468
+                                </digits>
+                            </value>
+                        </sequence>
+                    </component>
+                    <component>
+                        <sequence>
+                            <code code="MDC_ECG_LEAD_V2" codeSystem="2.16.840.1.113883.6.24"
+                                codeSystemName="MDC" />
+                            <value xsi:type="SLIST_PQ">
+                                <origin unit="uV" value="0" />
+                                <scale unit="uV" value="1" />
+                                <digits>-1307 -1300 -1295 -1292 -1292 -1295 -1299 -1306 -1314 -1324
+                                    -1336 -1348 -1359 -1370 -1379 -1384 -1386 -1383 -1377 -1368
+                                    -1359 -1349 -1340 3 7
+                                </digits>
+                            </value>
+                        </sequence>
+                    </component>
+                    <component>
+                        <sequence>
+                            <code code="MDC_ECG_LEAD_V3" codeSystem="2.16.840.1.113883.6.24"
+                                codeSystemName="MDC" />
+                            <value xsi:type="SLIST_PQ">
+                                <origin unit="uV" value="0" />
+                                <scale unit="uV" value="1" />
+                                <digits>-1922 -1925 -1929 -1934 -1940 -1946 -1953 -1959 -1966 -1973
+                                    -1981 -1990 -1999 -2009 -2018 -2027 -2033 -2038 -2042 -2044
+                                    -2046 -2047 -2049 74
+                                </digits>
+                            </value>
+                        </sequence>
+                    </component>
+                    <component>
+                        <sequence>
+                            <code code="MDC_ECG_LEAD_V4" codeSystem="2.16.840.1.113883.6.24"
+                                codeSystemName="MDC" />
+                            <value xsi:type="SLIST_PQ">
+                                <origin unit="uV" value="0" />
+                                <scale unit="uV" value="1" />
+                                <digits>-298 -294 -290 -286 -282 -278 -274 -269 -265 -260 -256 -251
+                                    -246 -240 -232 -224 -213 -200 -186 -171 -155 -140 -126 -113 -101
+                                    -90 -81 -74 -69
+                                </digits>
+                            </value>
+                        </sequence>
+                    </component>
+                    <component>
+                        <sequence>
+                            <code code="MDC_ECG_LEAD_V5" codeSystem="2.16.840.1.113883.6.24"
+                                codeSystemName="MDC" />
+                            <value xsi:type="SLIST_PQ">
+                                <origin unit="uV" value="0" />
+                                <scale unit="uV" value="1" />
+                                <digits>-346 -346 -346 -345 -344 -343 -340 -336 -330 -324 -317 -309
+                                    -300 -292 -283 -274 -264 -253 -243 -233 -223 -213 -203 -194 -185
+                                    -176 -167 -158
+                                </digits>
+                            </value>
+                        </sequence>
+                    </component>
+                    <component>
+                        <sequence>
+                            <code code="MDC_ECG_LEAD_V6" codeSystem="2.16.840.1.113883.6.24"
+                                codeSystemName="MDC" />
+                            <value xsi:type="SLIST_PQ">
+                                <origin unit="uV" value="0" />
+                                <scale unit="uV" value="1" />
+                                <digits>-415 -418 -420 -422 -423 -423 -421 -419 -415 -410 -404 -397
+                                    -390 -383 -375 -367 -358 -348 -339 -329 -319 -310 -300 -290 -280
+                                    -270 -259 -250 1
+                                </digits>
+                            </value>
+                        </sequence>
+                    </component>
+                </sequenceSet>
+            </component>
+            <!--现在, 我们在派生系列上提供了一个注释集  -->
+            <!--和原来的系列一样, 我们可以提供更多的套件  -->
+            <!--在本例中, 我们为派生系列的代表性节拍提供了全局注释 -->
+            <subjectOf>
+                <!--注解集-->
+                <annotationSet>
+                    <activityTime value="20240301094940" />
+                    <component>
+                        <annotation>
+                            <!--Hr-->
+                            <code code="MDC_ECG_HEART_RATE" codeSystem="2.16.840.1.113883.6.24"
+                                codeSystemName="MDC" />
+                            <value unit="bpm" value="65" xsi:type="PQ" />
+                        </annotation>
+                    </component>
+                    <component>
+                        <annotation>
+                            <!--PR波长度-->
+                            <code code="MDC_ECG_TIME_PD_PR" codeSystem="2.16.840.1.113883.6.24"
+                                codeSystemName="MDC" />
+                            <value unit="ms" value="216" xsi:type="PQ" />
+                        </annotation>
+                    </component>
+                    <component>
+                        <annotation>
+                            <!--QRS波长度-->
+                            <code code="MDC_ECG_TIME_PD_QRS" codeSystem="2.16.840.1.113883.6.24"
+                                codeSystemName="MDC" />
+                            <value unit="ms" value="136" xsi:type="PQ" />
+                        </annotation>
+                    </component>
+                    <component>
+                        <annotation>
+                            <!--QT波长度-->
+                            <code code="MDC_ECG_TIME_PD_QT" codeSystem="2.16.840.1.113883.6.24"
+                                codeSystemName="MDC" />
+                            <value unit="ms" value="441" xsi:type="PQ" />
+                        </annotation>
+                    </component>
+                    <component>
+                        <annotation>
+                            <!--QTc-->
+                            <code code="MDC_ECG_TIME_PD_QTc" codeSystem="2.16.840.1.113883.6.24"
+                                codeSystemName="MDC" />
+                            <value unit="ms" value="454" xsi:type="PQ" />
+                        </annotation>
+                    </component>
+                    <component>
+                        <annotation>
+                            <code code="MDC_ECG_ANGLE_P_FRONT" codeSystem="2.16.840.1.113883.6.24"
+                                codeSystemName="MDC" />
+                            <value unit="deg" value="69" xsi:type="PQ" />
+                        </annotation>
+                    </component>
+                    <component>
+                        <annotation>
+                            <code code="MDC_ECG_ANGLE_QRS_FRONT" codeSystem="2.16.840.1.113883.6.24"
+                                codeSystemName="MDC" />
+                            <value unit="deg" value="61" xsi:type="PQ" />
+                        </annotation>
+                    </component>
+                    <component>
+                        <annotation>
+                            <code code="MDC_ECG_ANGLE_T_FRONT" codeSystem="2.16.840.1.113883.6.24"
+                                codeSystemName="MDC" />
+                            <value unit="deg" value="126" xsi:type="PQ" />
+                        </annotation>
+                    </component>
+                    <component>
+                        <annotation>
+                            <code code="ZONCARE_ECG_RV5" codeSystem="2.16.840.1.113883.6.24"
+                                codeSystemName="MDC" />
+                            <value unit="mv" value="2.262" xsi:type="PQ" />
+                        </annotation>
+                    </component>
+                    <component>
+                        <annotation>
+                            <code code="ZONCARE_ECG_SV1" codeSystem="2.16.840.1.113883.6.24"
+                                codeSystemName="MDC" />
+                            <value unit="mv" value="1.265" xsi:type="PQ" />
+                        </annotation>
+                    </component>
+                    <component>
+                        <annotation>
+                            <code code="MDC_ECG_INTERPRETATION"
+                                codeSystem="2.16.840.1.113883.6.24" />
+                            <component>
+                                <annotation>
+                                    <code code="MDC_ECG_INTERPRETATION_STATEMENT"
+                                        codeSystem="2.16.840.1.113883.6.24" />
+                                    <value xsi:type="ST">** 正常心电图 **</value>
+                                </annotation>
+                            </component>
+                            <component>
+                                <annotation>
+                                    <code code="MDC_ECG_INTERPRETATION_STATEMENT"
+                                        codeSystem="2.16.840.1.113883.6.24" />
+                                    <value xsi:type="ST">窦性心律</value>
+                                </annotation>
+                            </component>
+                        </annotation>
+                    </component>
+                </annotationSet>
+            </subjectOf>
+            <derivation>
+                <derivedSeries>
+                 <!--      具有代表性的节拍波形           -->
+                    <code code="REPRESENTATIVE_BEAT" codeSystem="2.16.840.1.113883.5.4"
+                        codeSystemName="ActCode" displayName="Representative Beat Waveforms" />
+                    <effectiveTime>
+                        <low inclusive="true" value="20240301094940" />
+                        <high inclusive="false" value="20240301094940" />
+                    </effectiveTime>
+                    <component>
+                        <sequenceSet>
+                            <component>
+                                <sequence>
+                                    <code code="TIME_RELATIVE" codeSystem="2.16.840.1.113883.5.4"
+                                        codeSystemName="ActCode" displayName="Relative Time" />
+                                    <value xsi:type="GLIST_PQ">
+                                        <head unit="s" value="0.000" />
+                                        <increment unit="s" value="0.001" />
+                                    </value>
+                                </sequence>
+                            </component>
+                            <component>
+                                <sequence>
+                                    <code code="MDC_ECG_LEAD_I" codeSystem="2.16.840.1.113883.6.24"
+                                        codeSystemName="MDC" />
+                                    <value xsi:type="SLIST_PQ">
+                                        <origin unit="uV" value="0" />
+                                        <scale unit="uV" value="1" />
+                                        <digits>71 71 71 70 68 66 63 61 58 56 54 52 51 50 50 50 51
+                                            52 54 55 57 58 59 59 59 59 59 58 57 56 55 54 53 53 52 51
+                                            51 50 49 48 47 45 44 41
+                                        </digits>
+                                    </value>
+                                </sequence>
+                            </component>
+                            <component>
+                                <sequence>
+                                    <code code="MDC_ECG_LEAD_II" codeSystem="2.16.840.1.113883.6.24"
+                                        codeSystemName="MDC" />
+                                    <value xsi:type="SLIST_PQ">
+                                        <origin unit="uV" value="0" />
+                                        <scale unit="uV" value="1" />
+                                        <digits>-41 -42 -43 -44 -45 -46 -46 -47 -47 -48 -48 -48 -48
+                                            -48 -47 -47 -46 -45 -45 -44 -44 -43 -42 -42 -41 -41 -41
+                                            -41 -41 -41 -41 -41 -41
+                                        </digits>
+                                    </value>
+                                </sequence>
+                            </component>
+                            <component>
+                                <sequence>
+                                    <code code="MDC_ECG_LEAD_III"
+                                        codeSystem="2.16.840.1.113883.6.24" codeSystemName="MDC" />
+                                    <value xsi:type="SLIST_PQ">
+                                        <origin unit="uV" value="0" />
+                                        <scale unit="uV" value="1" />
+                                        <digits>-25 -26 -26 -27 -28 -29 -29 -29 -29 -29 -28 -28 -28
+                                            -28 -27 -27 -27 -27 -28 -28 -28 -28 -29 -29 -29 -30 -30
+                                            -30 -30 -31 -31 -31 -31
+                                        </digits>
+                                    </value>
+                                </sequence>
+                            </component>
+                            <component>
+                                <sequence>
+                                    <code code="MDC_ECG_LEAD_AVR"
+                                        codeSystem="2.16.840.1.113883.6.24" codeSystemName="MDC" />
+                                    <value xsi:type="SLIST_PQ">
+                                        <origin unit="uV" value="0" />
+                                        <scale unit="uV" value="1" />
+                                        <digits>-1 0 3 6 10 13 17 20 23 24 24 23 21 18 15 11 7 5 2 1
+                                            1 2 5 8 11 15 18 21 23 24 25 24 21 19 15 11 8 5 3 1 1 2
+                                            4 7 10 13 17 19 22 23 23
+                                        </digits>
+                                    </value>
+                                </sequence>
+                            </component>
+                            <component>
+                                <sequence>
+                                    <code code="MDC_ECG_LEAD_AVL"
+                                        codeSystem="2.16.840.1.113883.6.24" codeSystemName="MDC" />
+                                    <value xsi:type="SLIST_PQ">
+                                        <origin unit="uV" value="0" />
+                                        <scale unit="uV" value="1" />
+                                        <digits>17 18 18 18 17 16 14 12 10 8 7 5 5 5 5 7 8 11 13 16
+                                            18 20 22 23 23 22 21 19 17 15 13 10 9 7 7 6 7 8 9 10 11
+                                            12 13 12 12 10 9 6 4 1 0
+                                        </digits>
+                                    </value>
+                                </sequence>
+                            </component>
+                            <component>
+                                <sequence>
+                                    <code code="MDC_ECG_LEAD_AVF"
+                                        codeSystem="2.16.840.1.113883.6.24" codeSystemName="MDC" />
+                                    <value xsi:type="SLIST_PQ">
+                                        <origin unit="uV" value="0" />
+                                        <scale unit="uV" value="1" />
+                                        <digits>-33 -33 -34 -35 -36 -37 -37 -38 -38 -38 -39 -39 -39
+                                            -38 -38 -38 -37 -37 -37 -36 -36 -35 -35 -35 -35 -35 -35
+                                            -35 -35 -36 -36 -36 -36
+                                        </digits>
+                                    </value>
+                                </sequence>
+                            </component>
+                            <component>
+                                <sequence>
+                                    <code code="MDC_ECG_LEAD_V1" codeSystem="2.16.840.1.113883.6.24"
+                                        codeSystemName="MDC" />
+                                    <value xsi:type="SLIST_PQ">
+                                        <origin unit="uV" value="0" />
+                                        <scale unit="uV" value="1" />
+                                        <digits>-16 -16 -16 -16 -16 -16 -16 -16 -16 -16 -16 -16 -16
+                                            -16 -17 -17 -17 -17 -17 -17 -17 -17 -17 -18 -18 -18 -18
+                                            -18 -18 -18 -18 -18 -18
+                                        </digits>
+                                    </value>
+                                </sequence>
+                            </component>
+                            <component>
+                                <sequence>
+                                    <code code="MDC_ECG_LEAD_V2" codeSystem="2.16.840.1.113883.6.24"
+                                        codeSystemName="MDC" />
+                                    <value xsi:type="SLIST_PQ">
+                                        <origin unit="uV" value="0" />
+                                        <scale unit="uV" value="1" />
+                                        <digits>-29 -27 -24 -23 -21 -21 -21 -22 -22 -23 -25 -26 -27
+                                            -29 -30 -30 -30 -30 -30 -29 -29 -29 -29 -29 -31 -33 -35
+                                            -38 -41 -45 -48 -51 -54
+                                        </digits>
+                                    </value>
+                                </sequence>
+                            </component>
+                            <component>
+                                <sequence>
+                                    <code code="MDC_ECG_LEAD_V3" codeSystem="2.16.840.1.113883.6.24"
+                                        codeSystemName="MDC" />
+                                    <value xsi:type="SLIST_PQ">
+                                        <origin unit="uV" value="0" />
+                                        <scale unit="uV" value="1" />
+                                        <digits>-167 -168 -168 -169 -171 -172 -173 -174 -176 -177
+                                            -179 -180 -182 -184 -186 -188 -190 -193 -195 -198 -200
+                                            -203 -206 -210 -213 -217
+                                        </digits>
+                                    </value>
+                                </sequence>
+                            </component>
+                            <component>
+                                <sequence>
+                                    <code code="MDC_ECG_LEAD_V5" codeSystem="2.16.840.1.113883.6.24"
+                                        codeSystemName="MDC" />
+                                    <value xsi:type="SLIST_PQ">
+                                        <origin unit="uV" value="0" />
+                                        <scale unit="uV" value="1" />
+                                        <digits>-68 -68 -69 -70 -71 -72 -72 -73 -74 -74 -75 -76 -76
+                                            -77 -77 -77 -77 -77 -77 -77 -77 -77 -77 -77 -76 -76 -75
+                                            -75 -74 -73 -73 -72 -72
+                                        </digits>
+                                    </value>
+                                </sequence>
+                            </component>
+                            <component>
+                                <sequence>
+                                    <code code="MDC_ECG_LEAD_V6" codeSystem="2.16.840.1.113883.6.24"
+                                        codeSystemName="MDC" />
+                                    <value xsi:type="SLIST_PQ">
+                                        <origin unit="uV" value="0" />
+                                        <scale unit="uV" value="1" />
+                                        <digits>-46 -47 -48 -49 -49 -50 -51 -51 -52 -52 -52 -53 -53
+                                            -53 -54 -54 -54 -54 -54 -54 -54 -54 -53 -53 -52 -52 -51
+                                            -51 -50 -50 -49 -49 -48
+                                        </digits>
+                                    </value>
+                                </sequence>
+                            </component>
+                        </sequenceSet>
+                    </component>
+                    <subjectOf>
+                        <annotationSet>
+                            <component>
+                                <annotation>
+                                    <code code="MDC_ECG_WAVC" codeSystem="2.16.840.1.113883.6.24"
+                                        codeSystemName="MDC" />
+                                    <value code="MDC_ECG_WAVC_PWAVE" codeSystem="2.16.840.1.113883.6.24"
+                                        xsi:type="CE" />
+                                    <support>
+                                        <supportingROI>
+                                            <code code="ROIPS" codeSystem="2.16.840.1.113883.5.4" />
+                                            <component>
+                                                <boundary>
+                                                    <code code="TIME_RELATIVE"
+                                                        codeSystem="2.16.840.1.113883.5.4" />
+                                                    <value xsi:type="IVL_PQ">
+                                                        <low unit="ms" value="0" />
+                                                        <high unit="ms" value="0" />
+                                                    </value>
+                                                </boundary>
+                                            </component>
+                                        </supportingROI>
+                                    </support>
+                                </annotation>
+                            </component>
+                            <component>
+                                <annotation>
+                                    <code code="MDC_ECG_WAVC" codeSystem="2.16.840.1.113883.6.24"
+                                        codeSystemName="MDC" />
+                                    <value code="MDC_ECG_WAVC_QRSWAVE" codeSystem="2.16.840.1.113883.6.24"
+                                        xsi:type="CE" />
+                                    <support>
+                                        <supportingROI>
+                                            <code code="ROIPS" codeSystem="2.16.840.1.113883.5.4" />
+                                            <component>
+                                                <boundary>
+                                                    <code code="TIME_RELATIVE"
+                                                        codeSystem="2.16.840.1.113883.5.4" />
+                                                    <value xsi:type="IVL_PQ">
+                                                        <low unit="ms" value="0" />
+                                                        <high unit="ms" value="0" />
+                                                    </value>
+                                                </boundary>
+                                            </component>
+                                        </supportingROI>
+                                    </support>
+                                </annotation>
+                            </component>
+                            <component>
+                                <annotation>
+                                    <code code="MDC_ECG_WAVC" codeSystem="2.16.840.1.113883.6.24"
+                                        codeSystemName="MDC" />
+                                    <value code="MDC_ECG_WAVC_TWAVE" codeSystem="2.16.840.1.113883.6.24"
+                                        xsi:type="CE" />
+                                    <support>
+                                        <supportingROI>
+                                            <code code="ROIPS" codeSystem="2.16.840.1.113883.5.4" />
+                                            <component>
+                                                <boundary>
+                                                    <code code="TIME_RELATIVE"
+                                                        codeSystem="2.16.840.1.113883.5.4" />
+                                                    <value xsi:type="IVL_PQ">
+                                                        <high unit="ms" value="0" />
+                                                    </value>
+                                                </boundary>
+                                            </component>
+                                        </supportingROI>
+                                    </support>
+                                </annotation>
+                            </component>
+                        </annotationSet>
+                    </subjectOf>
+                </derivedSeries>
+            </derivation>
+        </series>
+    </component>
+</AnnotatedECG>
