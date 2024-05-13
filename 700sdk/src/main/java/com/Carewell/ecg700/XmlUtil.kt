@@ -1,391 +1,544 @@
-package com.Carewell.ecg700;
+package com.Carewell.ecg700
 
-import android.annotation.SuppressLint;
-import android.content.Context;
-import android.media.MediaScannerConnection;
-import android.util.Log;
+import android.content.Context
+import android.media.MediaScannerConnection
+import android.net.Uri
+import android.util.ArrayMap
+import com.Carewell.ecg700.entity.MacureResultBean
+import com.Carewell.view.ecg12.LeadType
+import org.dom4j.Document
+import org.dom4j.Element
+import org.dom4j.io.OutputFormat
+import org.dom4j.io.SAXReader
+import org.dom4j.io.XMLWriter
+import java.io.File
+import java.io.FileOutputStream
+import java.io.InputStream
+import java.io.OutputStream
+import java.text.SimpleDateFormat
+import java.util.Date
 
-import com.Carewell.view.ecg12.LeadType;
-
-import org.dom4j.Attribute;
-import org.dom4j.Document;
-import org.dom4j.Element;
-import org.dom4j.io.OutputFormat;
-import org.dom4j.io.SAXReader;
-import org.dom4j.io.XMLWriter;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-
-public class XmlUtil {
-
-    public static String TAG = "pc700";
-
-    public static String currentTime(Date date, String formate) {
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(formate);
-        return simpleDateFormat.format(date);
-
-    }
-
-    public static InputStream getFromAssetss(Context context, String fileName) { //android里边读取streamingAsset目录的文件
-        try {
-            //得到资源中的Raw数据流
-            InputStream in = context.getResources().getAssets().open(fileName);
-            return in;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
+object XmlUtil {
+    private fun getStringByShortArray(shortArray: ShortArray?): String {
+        if (shortArray == null || shortArray.isEmpty()) return ""
+        val len = shortArray.size
+        val stringBuffer = StringBuffer()
+        for (index in 0 until len) {
+            stringBuffer.append(shortArray[index].toInt()).append(" ")
         }
-    }
-
-    public static String getStringByShortArray(short[] shortArray) {
-        if (shortArray == null || shortArray.length == 0)
-            return "";
-        int len = shortArray.length;
-        StringBuffer stringBuffer = new StringBuffer();
-        for (int index = 0; index < len; index++) {
-            stringBuffer.append(shortArray[index]).append(" ");
-        }
-        return stringBuffer.toString();
+        return stringBuffer.toString()
     }
 
     /**
      * @param filePathAI   生成xml文件的路径
      * @param fileNameAI   生成xml文件名
      * @param ecgDataArray 心电数据
-     * @param name         patientNumber  生成xml文件所需的测试人信息（姓名、年龄、性别、身份证号）
      */
-    public static String makeHl7Xml(Context context, String filePathAI, String fileNameAI,
-                                    String name, String patientNumber, short[][] ecgDataArray,
-                                    LeadType leadType, String lowPassHz, String hpHz, String acHz) {
-        String lead1String = "";
-        String lead2String = "";
-        String lead3String = "";
-        String leadaVRString = "";
-        String leadaVLString = "";
-        String leadaVFString = "";
-        String leadV1String = "";
-        String leadV2String = "";
-        String leadV3String = "";
-        String leadV4String = "";
-        String leadV5String = "";
-        String leadV6String = "";
-        lead1String = getStringByShortArray(ecgDataArray[0]);
-        lead2String = getStringByShortArray(ecgDataArray[1]);
-        lead3String = getStringByShortArray(ecgDataArray[2]);
-        leadaVRString = getStringByShortArray(ecgDataArray[3]);
-        leadaVLString = getStringByShortArray(ecgDataArray[4]);
-        leadaVFString = getStringByShortArray(ecgDataArray[5]);
-        leadV1String = getStringByShortArray(ecgDataArray[6]);
-        leadV2String = getStringByShortArray(ecgDataArray[7]);
-        leadV3String = getStringByShortArray(ecgDataArray[8]);
-        leadV4String = getStringByShortArray(ecgDataArray[9]);
-        leadV5String = getStringByShortArray(ecgDataArray[10]);
-        leadV6String = getStringByShortArray(ecgDataArray[11]);
-        String sample = "0.001";// 采样率
-        @SuppressLint("DefaultLocale")
-        String gain = String.format("%.4f", 0.9536F);  //todo
-        String timeString = currentTime(new Date(), "yyyyMMddHHmmss.SSS");
+    fun makeHl7Xml(
+        context: Context,
+        filePathAI: String?,
+        fileNameAI: String,
+        patientNumber: String?,
+        ecgDataArray: Array<ShortArray>,
+        leadType: LeadType?,
+        lowPassHz: String?,
+        hpHz: String?,
+        acHz: String?,
+        result: MacureResultBean
+    ) {
+        val lead1String = getStringByShortArray(ecgDataArray[0])
+        val lead2String = getStringByShortArray(ecgDataArray[1])
+        val lead3String = getStringByShortArray(ecgDataArray[2])
+        val leadaVRString = getStringByShortArray(ecgDataArray[3])
+        val leadaVLString = getStringByShortArray(ecgDataArray[4])
+        val leadaVFString = getStringByShortArray(ecgDataArray[5])
+        val leadV1String = getStringByShortArray(ecgDataArray[6])
+        val leadV2String = getStringByShortArray(ecgDataArray[7])
+        val leadV3String = getStringByShortArray(ecgDataArray[8])
+        val leadV4String = getStringByShortArray(ecgDataArray[9])
+        val leadV5String = getStringByShortArray(ecgDataArray[10])
+        val leadV6String = getStringByShortArray(ecgDataArray[11])
+        val sample = "0.001" // 采样率
+        val gain = String.format("%.4f", 0.9536f)
+        val timeString = SimpleDateFormat("yyyyMMddHHmmss").format(Date())
         // 修改xml中的节点内容
-        InputStream is = null;
-        OutputStream out = null;
-        XMLWriter xmlwriter = null;
-        Document doc = null;
+        var input: InputStream? = null
+        var out: OutputStream? = null
+        var writer: XMLWriter? = null
+        var doc: Document? = null
         try {
-            SAXReader sax = new SAXReader();
-            is = getFromAssetss(context, "ceshi.xml");
-            doc = sax.read(is);
+            val sax = SAXReader()
+            input = context.resources.assets.open("ceshi.xml")
+            doc = sax.read(input)
             // 根节点
-            Element root = doc.getRootElement();
-            // 取得某节点下名为"effectiveTime"的字节点
-            Element effectiveTimeElement = root.element("effectiveTime");
-            /** 修改addAttribute的value值 <low value=“修改值”> text </low> */
-            effectiveTimeElement.element("low").addAttribute("value", timeString);
-            effectiveTimeElement.element("high").addAttribute("value", timeString);
-            /** 修改 <low value=“修改值”> text </low> 中text 的值 */
-            effectiveTimeElement.element("low").setText(timeString);
-            effectiveTimeElement.element("high").setText(timeString);
-            // =====================
-            // 取得某节点下名为"componentOf/timepointEvent/effectiveTime"的所有字节点
-            Element componentOfElement = root.element("componentOf");
-            Element timepointEventElement = componentOfElement
-                    .element("timepointEvent");
-            effectiveTimeElement = timepointEventElement
-                    .element("effectiveTime");
-            //设置attribute值,分析中心要求此字段必填
-            effectiveTimeElement.element("low").addAttribute("value", timeString);
-            effectiveTimeElement.element("high").addAttribute("value", timeString);
-            effectiveTimeElement.element("low")
-                    .setText(timeString);
-            effectiveTimeElement.element("high")
-                    .setText(timeString);
-            // =====================
-            // 取得某节点下名为"componentOf/timepointEvent/componentOf/subjectAssignment/subject/trialSubject/id"的所有字节点
-            componentOfElement = timepointEventElement.element("componentOf");
-            Element subjectAssignmentElement = componentOfElement
-                    .element("subjectAssignment");
-            Element subjectElement = subjectAssignmentElement
-                    .element("subject");
-            Element trialSubjectElement = subjectElement
-                    .element("trialSubject");
-            Element idElement = trialSubjectElement.element("id");
-            idElement.attribute("extension").setText(patientNumber);
-            // =====================
-            // 取得某节点下名为"component/series/effectiveTime"的所有字节点
-            Element componentElement = root.element("component");
-            Element seriesElement = componentElement.element("series");
-            effectiveTimeElement = seriesElement.element("effectiveTime");
-            effectiveTimeElement.element("low").addAttribute("value", timeString);
-            effectiveTimeElement.element("high").addAttribute("value", timeString);
-            effectiveTimeElement.element("low")
-                    .setText(timeString);
-            effectiveTimeElement.element("high")
-                    .setText(timeString);
-            // =====================
-            // 取得某节点下名为"component/series/author/manufacturedProduct/manufacturerOrganization/name"的所有字节点
-            Element authorElement = seriesElement.element("author");
-            Element manufacturedProductElement = authorElement
-                    .element("manufacturedProduct");
-            Element manufacturerOrganizationElement = manufacturedProductElement
-                    .element("manufacturerOrganization");
-            Element nameElement = manufacturerOrganizationElement
-                    .element("name");
-            nameElement.setText(name);
-            // =====================
-            // 取得某节点下名为"component/series/component/sequenceSet"的所有字节点
-            componentElement = seriesElement.element("component");
-            Element sequenceSetElement = componentElement
-                    .element("sequenceSet");
-            List nodesComponent = sequenceSetElement.elements("component");
-            Element element = null;
-            for (Object obj : nodesComponent) {
-                element = (Element) obj;
-                Element sequenceElement = element.element("sequence");
-                Element codeElement = sequenceElement.element("code");
-                String codeValue = codeElement.attribute("code").getValue();
-                if ("TIME_ABSOLUTE".equals(codeValue)) {
-                    // sample
-                    Element valueElement = sequenceElement.element("value");
-                    Element incrementElement = valueElement
-                            .element("increment");
-                    incrementElement.attribute("value").setText(sample);
-                } else if ("MDC_ECG_LEAD_I".equals(codeValue)
-                        || "MDC_ECG_LEAD_II".equals(codeValue)
-                        || "MDC_ECG_LEAD_III".equals(codeValue)
-                        || "MDC_ECG_LEAD_AVR".equals(codeValue)
-                        || "MDC_ECG_LEAD_AVL".equals(codeValue)
-                        || "MDC_ECG_LEAD_AVF".equals(codeValue)
-                        || "MDC_ECG_LEAD_V1".equals(codeValue)
-                        || "MDC_ECG_LEAD_V2".equals(codeValue)
-                        || "MDC_ECG_LEAD_V3".equals(codeValue)
-                        || "MDC_ECG_LEAD_V4".equals(codeValue)
-                        || "MDC_ECG_LEAD_V5".equals(codeValue)
-                        || "MDC_ECG_LEAD_V6".equals(codeValue)) {
-                    Element valueElement = sequenceElement.element("value");
+            val root = doc.rootElement
+            // 时间戳
+            var effectiveTime = root.element("effectiveTime")
+            effectiveTime.element("center").addAttribute("value", timeString)
+            //id
+            var componentOf = root.element("componentOf")
+            val timepointEvent = componentOf.element("timepointEvent")
+            componentOf = timepointEvent.element("componentOf")
+            val subjectAssignment = componentOf.element("subjectAssignment")
+            val subject = subjectAssignment.element("subject")
+            val trialSubject = subject.element("trialSubject")
+            val id = trialSubject.element("id")
+            id.attribute("extension").text = patientNumber
+            // 采集时间段
+            var component = root.element("component")
+            val series = component.element("series")
+            effectiveTime = series.element("effectiveTime")
+            effectiveTime.element("low").addAttribute("value", timeString)
+            effectiveTime.element("high").addAttribute("value", timeString)
+            effectiveTime.element("low").text = timeString
+            effectiveTime.element("high").text = timeString
+            //保存滤波信息
+            val nodes = series.elements("controlVariable")
+            for (obj in nodes) {
+                val element = obj as Element
+                val controlVariable = element.element("controlVariable")
+                val code = controlVariable.element("code")
+                val codeValue = code.attribute("code").value
+                val attribute =
+                    controlVariable.element("component").element("controlVariable").element("value")
+                        .attribute("value")
+                attribute.text = when (codeValue) {
+                    "MDC_ECG_CTL_VBL_ATTR_FILTER_LOW_PASS" -> lowPassHz
+                    "MDC_ECG_CTL_VBL_ATTR_FILTER_HIGH_PASS" -> hpHz
+                    else -> acHz
+                }
+            }
+            //保存原始数据
+            component = series.element("component")
+            val sequenceSet = component.element("sequenceSet")
+            val nodesComponent = sequenceSet.elements("component")
+            for (obj in nodesComponent) {
+                val element = obj as Element
+                val sequenceElement = element.element("sequence")
+                val codeElement = sequenceElement.element("code")
+                val codeValue = codeElement.attribute("code").value
+                if ("TIME_ABSOLUTE" == codeValue) {
+                    // 采样
+                    val valueElement = sequenceElement.element("value")
+                    val incrementElement = valueElement.element("increment")
+                    incrementElement.attribute("value").text = sample
+                } else if ("MDC_ECG_LEAD_I" == codeValue || "MDC_ECG_LEAD_II" == codeValue
+                    || "MDC_ECG_LEAD_III" == codeValue || "MDC_ECG_LEAD_AVR" == codeValue
+                    || "MDC_ECG_LEAD_AVL" == codeValue || "MDC_ECG_LEAD_AVF" == codeValue
+                    || "MDC_ECG_LEAD_V1" == codeValue || "MDC_ECG_LEAD_V2" == codeValue
+                    || "MDC_ECG_LEAD_V3" == codeValue || "MDC_ECG_LEAD_V4" == codeValue
+                    || "MDC_ECG_LEAD_V5" == codeValue || "MDC_ECG_LEAD_V6" == codeValue
+                ) {
+                    val valueElement = sequenceElement.element("value")
                     // gain
-                    Element scaleElement = valueElement.element("scale");
-                    scaleElement.attribute("value").setText(gain);
+                    val scaleElement = valueElement.element("scale")
+                    scaleElement.attribute("value").text = gain
                     // data
-                    Element digitsElement = valueElement.element("digits");
-                    if ("MDC_ECG_LEAD_I".equals(codeValue)) {
-                        digitsElement.setText(lead1String);
-                    } else if ("MDC_ECG_LEAD_II".equals(codeValue)) {
-                        digitsElement.setText(lead2String);
-                    } else if ("MDC_ECG_LEAD_III".equals(codeValue)) {
-                        digitsElement.setText(lead3String);
-                    } else if ("MDC_ECG_LEAD_AVR".equals(codeValue)) {
-                        digitsElement.setText(leadaVRString);
-                    } else if ("MDC_ECG_LEAD_AVL".equals(codeValue)) {
-                        digitsElement.setText(leadaVLString);
-                    } else if ("MDC_ECG_LEAD_AVF".equals(codeValue)) {
-                        digitsElement.setText(leadaVFString);
-                    } else if ("MDC_ECG_LEAD_V1".equals(codeValue)) {
-                        digitsElement.setText(leadV1String);
-                    } else if ("MDC_ECG_LEAD_V2".equals(codeValue)) {
-                        digitsElement.setText(leadV2String);
-                    } else if ("MDC_ECG_LEAD_V3".equals(codeValue)) {
-                        digitsElement.setText(leadV3String);
-                    } else if ("MDC_ECG_LEAD_V4".equals(codeValue)) {
-                        digitsElement.setText(leadV4String);
-                    } else if ("MDC_ECG_LEAD_V5".equals(codeValue)) {
-                        digitsElement.setText(leadV5String);
-                    } else if ("MDC_ECG_LEAD_V6".equals(codeValue)) {
-                        digitsElement.setText(leadV6String);
+                    val digitsElement = valueElement.element("digits")
+                    digitsElement.text = when (codeValue) {
+                        "MDC_ECG_LEAD_I" -> lead1String
+                        "MDC_ECG_LEAD_II" -> lead2String
+                        "MDC_ECG_LEAD_III" -> lead3String
+                        "MDC_ECG_LEAD_AVR" -> leadaVRString
+                        "MDC_ECG_LEAD_AVL" -> leadaVLString
+                        "MDC_ECG_LEAD_AVF" -> leadaVFString
+                        "MDC_ECG_LEAD_V1" -> leadV1String
+                        "MDC_ECG_LEAD_V2" -> leadV2String
+                        "MDC_ECG_LEAD_V3" -> leadV3String
+                        "MDC_ECG_LEAD_V4" -> leadV4String
+                        "MDC_ECG_LEAD_V5" -> leadV5String
+                        "MDC_ECG_LEAD_V6" -> leadV6String
+                        else -> leadV6String
                     }
                 }
             }
             //删除没用的节点
-            for (Object obj : nodesComponent) {
-                element = (Element) obj;
-                Element sequenceElement = element.element("sequence");
-                Element codeElement = sequenceElement.element("code");
-                String codeValue = codeElement.attribute("code").getValue();
-                if ("MDC_ECG_LEAD_I".equals(codeValue)
-                        || "MDC_ECG_LEAD_II".equals(codeValue)
-                        || "MDC_ECG_LEAD_III".equals(codeValue)
-                        || "MDC_ECG_LEAD_AVR".equals(codeValue)
-                        || "MDC_ECG_LEAD_AVL".equals(codeValue)
-                        || "MDC_ECG_LEAD_AVF".equals(codeValue)
-                        || "MDC_ECG_LEAD_V1".equals(codeValue)
-                        || "MDC_ECG_LEAD_V2".equals(codeValue)
-                        || "MDC_ECG_LEAD_V3".equals(codeValue)
-                        || "MDC_ECG_LEAD_V4".equals(codeValue)
-                        || "MDC_ECG_LEAD_V5".equals(codeValue)
-                        || "MDC_ECG_LEAD_V6".equals(codeValue)) {
-                    switch (leadType) {
-                        case LEAD_6:
-                            if ("MDC_ECG_LEAD_V1".equals(codeValue)
-                                    || "MDC_ECG_LEAD_V2".equals(codeValue)
-                                    || "MDC_ECG_LEAD_V3".equals(codeValue)
-                                    || "MDC_ECG_LEAD_V4".equals(codeValue)
-                                    || "MDC_ECG_LEAD_V5".equals(codeValue)
-                                    || "MDC_ECG_LEAD_V6".equals(codeValue)) {
-                                element.detach();
-                            }
-                            break;
-                        case LEAD_I:
-                            if ("MDC_ECG_LEAD_II".equals(codeValue)
-                                    || "MDC_ECG_LEAD_III".equals(codeValue)
-                                    || "MDC_ECG_LEAD_AVR".equals(codeValue)
-                                    || "MDC_ECG_LEAD_AVL".equals(codeValue)
-                                    || "MDC_ECG_LEAD_AVF".equals(codeValue)
-                                    || "MDC_ECG_LEAD_V1".equals(codeValue)
-                                    || "MDC_ECG_LEAD_V2".equals(codeValue)
-                                    || "MDC_ECG_LEAD_V3".equals(codeValue)
-                                    || "MDC_ECG_LEAD_V4".equals(codeValue)
-                                    || "MDC_ECG_LEAD_V5".equals(codeValue)
-                                    || "MDC_ECG_LEAD_V6".equals(codeValue)) {
-                                element.detach();
-                            }
-                            break;
-                        case LEAD_II:
-                            if ("MDC_ECG_LEAD_I".equals(codeValue)
-                                    || "MDC_ECG_LEAD_III".equals(codeValue)
-                                    || "MDC_ECG_LEAD_AVR".equals(codeValue)
-                                    || "MDC_ECG_LEAD_AVL".equals(codeValue)
-                                    || "MDC_ECG_LEAD_AVF".equals(codeValue)
-                                    || "MDC_ECG_LEAD_V1".equals(codeValue)
-                                    || "MDC_ECG_LEAD_V2".equals(codeValue)
-                                    || "MDC_ECG_LEAD_V3".equals(codeValue)
-                                    || "MDC_ECG_LEAD_V4".equals(codeValue)
-                                    || "MDC_ECG_LEAD_V5".equals(codeValue)
-                                    || "MDC_ECG_LEAD_V6".equals(codeValue)) {
-                                element.detach();
-                            }
-                            break;
-                        default:
-                            break;
+            for (obj in nodesComponent) {
+                val element = obj as Element
+                val sequenceElement = element.element("sequence")
+                val codeElement = sequenceElement.element("code")
+                val codeValue = codeElement.attribute("code").value
+                if ("MDC_ECG_LEAD_I" == codeValue || "MDC_ECG_LEAD_II" == codeValue
+                    || "MDC_ECG_LEAD_III" == codeValue || "MDC_ECG_LEAD_AVR" == codeValue
+                    || "MDC_ECG_LEAD_AVL" == codeValue || "MDC_ECG_LEAD_AVF" == codeValue
+                    || "MDC_ECG_LEAD_V1" == codeValue || "MDC_ECG_LEAD_V2" == codeValue
+                    || "MDC_ECG_LEAD_V3" == codeValue || "MDC_ECG_LEAD_V4" == codeValue
+                    || "MDC_ECG_LEAD_V5" == codeValue || "MDC_ECG_LEAD_V6" == codeValue
+                ) {
+                    when (leadType) {
+                        LeadType.LEAD_6 -> if ("MDC_ECG_LEAD_V1" == codeValue || "MDC_ECG_LEAD_V2" == codeValue
+                            || "MDC_ECG_LEAD_V3" == codeValue || "MDC_ECG_LEAD_V4" == codeValue
+                            || "MDC_ECG_LEAD_V5" == codeValue || "MDC_ECG_LEAD_V6" == codeValue
+                        ) {
+                            element.detach()
+                        }
+
+                        LeadType.LEAD_I -> if ("MDC_ECG_LEAD_II" == codeValue || "MDC_ECG_LEAD_III" == codeValue
+                            || "MDC_ECG_LEAD_AVR" == codeValue || "MDC_ECG_LEAD_AVL" == codeValue
+                            || "MDC_ECG_LEAD_AVF" == codeValue || "MDC_ECG_LEAD_V1" == codeValue
+                            || "MDC_ECG_LEAD_V2" == codeValue || "MDC_ECG_LEAD_V3" == codeValue
+                            || "MDC_ECG_LEAD_V4" == codeValue || "MDC_ECG_LEAD_V5" == codeValue
+                            || "MDC_ECG_LEAD_V6" == codeValue
+                        ) {
+                            element.detach()
+                        }
+
+                        LeadType.LEAD_II -> if ("MDC_ECG_LEAD_I" == codeValue || "MDC_ECG_LEAD_III" == codeValue
+                            || "MDC_ECG_LEAD_AVR" == codeValue || "MDC_ECG_LEAD_AVL" == codeValue
+                            || "MDC_ECG_LEAD_AVF" == codeValue || "MDC_ECG_LEAD_V1" == codeValue
+                            || "MDC_ECG_LEAD_V2" == codeValue || "MDC_ECG_LEAD_V3" == codeValue
+                            || "MDC_ECG_LEAD_V4" == codeValue || "MDC_ECG_LEAD_V5" == codeValue
+                            || "MDC_ECG_LEAD_V6" == codeValue
+                        ) {
+                            element.detach()
+                        }
+
+                        else -> {}
                     }
                 }
             }
-            //保存滤波信息
-            nodesComponent = sequenceSetElement.elements("controlVariable");
-            for (Object obj : nodesComponent) {
-                element = (Element) obj;
-                Element sequenceElement = element.element("controlVariable");
-                Element codeElement = sequenceElement.element("code");
-                String codeValue = codeElement.attribute("code").getValue();
 
-                Attribute attribute = sequenceElement.element("value").attribute("value");
-                if ("LOWPASS_FILTER".equals(codeValue)) {
-                    attribute.setText(lowPassHz);
-                } else if ("HIGHPASS_FILTER".equals(codeValue)) {
-                    attribute.setText(hpHz);
-                } else if ("AC_FILTER".equals(codeValue)) {
-                    attribute.setText(acHz);
+            //注释集
+            val subjectOf = series.element("subjectOf")
+            val annotationSet = subjectOf.element("annotationSet")
+            annotationSet.element("activityTime").attribute("value").text = timeString
+            val components = annotationSet.elements("component")
+            for (obj in components) {
+                val element = obj as Element
+                val annotation = element.element("annotation")
+                val codeValue = annotation.element("code").attribute("code").value
+                val attribute = annotation.element("value")?.attribute("value")
+                when (codeValue) {
+                    "MDC_ECG_HEART_RATE" -> attribute?.text = "${result.aiResultBean.hr}"
+                    "MDC_ECG_TIME_PD_PR" -> attribute?.text = "${result.aiResultBean.pr}"
+                    "MDC_ECG_TIME_PD_QRS" -> attribute?.text = "${result.aiResultBean.qrs}"
+                    "MDC_ECG_TIME_PD_QT" -> attribute?.text = "${result.aiResultBean.qt}"
+                    "MDC_ECG_TIME_PD_QTc" -> attribute?.text = "${result.aiResultBean.qTc}"
+                    "MDC_ECG_ANGLE_P_FRONT" -> attribute?.text = "${result.aiResultBean.pAxis}"
+                    "MDC_ECG_ANGLE_QRS_FRONT" -> attribute?.text = "${result.aiResultBean.qrsAxis}"
+                    "MDC_ECG_ANGLE_T_FRONT" -> attribute?.text = "${result.aiResultBean.tAxis}"
+                    "ZONCARE_ECG_RV5" -> attribute?.text = "${result.aiResultBean.rV5}"
+                    "ZONCARE_ECG_SV1" -> attribute?.text = "${result.aiResultBean.sV1}"
+                    //结论
+                    "MDC_ECG_INTERPRETATION" -> {
+                        annotation.elements("component").forEachIndexed { index, any ->
+                            val diagnosis = result.aiResultBean.aiResultDiagnosisBean.diagnosis
+                            val ele = any as Element
+                            ele.element("annotation").element("value").text =
+                                if (index < diagnosis.size) {
+                                    "${map[diagnosis[index].code]}"
+                                } else {
+                                    ""
+                                }
+                        }
+                    }
                 }
             }
+            val derivation = series.element("derivation")
+            val derivedSeries = derivation.element("derivedSeries")
+            effectiveTime = derivedSeries.element("effectiveTime")
+            effectiveTime.element("low").text = timeString
+            effectiveTime.element("high").text = timeString
+            val sequences = derivedSeries.element("component").elements("sequenceSet")
+            for (obj in sequences) {
+                val element = obj as Element
+                val comp = element.element("component")
+                val sequence = comp.element("sequence")
+                val codeValue = sequence.element("code").attribute("code").value
+                val value = sequence.element("value")
+                when (codeValue) {
+                    "TIME_RELATIVE" -> value.element("increment").attribute("value").text = sample
+                    "MDC_ECG_LEAD_I" -> value.element("digits").text =
+                        "${result.aiResultBean.waveForm12[0]}"
+
+                    "MDC_ECG_LEAD_II" -> value.element("digits").text =
+                        "${result.aiResultBean.waveForm12[1]}"
+
+                    "MDC_ECG_LEAD_III" -> value.element("digits").text =
+                        "${result.aiResultBean.waveForm12[2]}"
+
+                    "MDC_ECG_LEAD_AVR" -> value.element("digits").text =
+                        "${result.aiResultBean.waveForm12[3]}"
+
+                    "MDC_ECG_LEAD_AVL" -> value.element("digits").text =
+                        "${result.aiResultBean.waveForm12[4]}"
+
+                    "MDC_ECG_LEAD_AVF" -> value.element("digits").text =
+                        "${result.aiResultBean.waveForm12[5]}"
+
+                    "MDC_ECG_LEAD_V1" -> value.element("digits").text =
+                        "${result.aiResultBean.waveForm12[6]}"
+
+                    "MDC_ECG_LEAD_V2" -> value.element("digits").text =
+                        "${result.aiResultBean.waveForm12[7]}"
+
+                    "MDC_ECG_LEAD_V3" -> value.element("digits").text =
+                        "${result.aiResultBean.waveForm12[8]}"
+
+                    "MDC_ECG_LEAD_V4" -> value.element("digits").text =
+                        "${result.aiResultBean.waveForm12[9]}"
+
+                    "MDC_ECG_LEAD_V5" -> value.element("digits").text =
+                        "${result.aiResultBean.waveForm12[10]}"
+
+                    "MDC_ECG_LEAD_V6" -> value.element("digits").text =
+                        "${result.aiResultBean.waveForm12[11]}"
+                }
+            }
+
             // 输出格式
-            OutputFormat outformat = new OutputFormat();
+            val outformat = OutputFormat()
             // 指定XML编码
-            outformat.setEncoding("UTF-8");
-            outformat.setNewlines(true);
-            outformat.setIndent(true);
-            outformat.setTrimText(true);
+            outformat.encoding = "UTF-8"
+            outformat.isNewlines = true
+            outformat.setIndent(true)
+            outformat.isTrimText = true
             //保存到本地
-            File file = createDir(filePathAI);
-            Log.d(TAG, "file" + file.getPath() + "/" + fileNameAI + ".xml");
-            file = new File(file.getPath() + "/" + fileNameAI + ".xml");
-            out = new FileOutputStream(file);
-            xmlwriter = new XMLWriter(out, outformat);
-            xmlwriter.write(doc);
-            scamFile(context, file);
-        } catch (Exception e) {
-            Log.d(TAG, "Exception" + e.toString());
+            var file = createDir(filePathAI)
+            LogUtil.v("file" + file!!.path + "/" + fileNameAI + ".xml")
+            file = File(file.path + "/" + fileNameAI + ".xml")
+            out = FileOutputStream(file)
+            writer = XMLWriter(out, outformat)
+            writer.write(doc)
+            scamFile(context, file)
+        } catch (e: Exception) {
+            e.printStackTrace()
         } finally {
-            close(xmlwriter, out, is);
+            try {
+                writer?.close()
+                out?.close()
+                input?.close()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
-
-        return doc.asXML();
+        doc?.asXML()
     }
 
-    /**
-     * @param xmlwriter
-     * @param out
-     * @param is
-     */
-    private static void close(XMLWriter xmlwriter, OutputStream out, InputStream is) {
-        if (null != xmlwriter) {
-            try {
-                xmlwriter.close();
-            } catch (IOException e) {
-                Log.e(TAG, Log.getStackTraceString(e));
-            }
-            xmlwriter = null;
-        }
-        if (null != out) {
-            try {
-                out.close();
-            } catch (IOException e) {
-                Log.e(TAG, Log.getStackTraceString(e));
-            }
-            out = null;
-        }
-        if (null != is) {
-            try {
-                is.close();
-            } catch (IOException e) {
-                Log.e(TAG, Log.getStackTraceString(e));
-            }
-            is = null;
-        }
-    }
 
     /**
      * 递归创建文件夹
      *
      * @param path 文件夹路径
      */
-    public static File createDir(String path) throws Exception {
-        if (path == null || path.equals("")) {
-            new NullPointerException();
+    fun createDir(path: String?): File? {
+        if (path == null || path == "") {
+            return null
         }
-        File file = new File(path);
-        if (file.exists())
-            return file;
-        File p = file.getParentFile();
-        if (!p.exists()) {
-            createDir(p.getPath());
+        val file = File(path)
+        if (file.exists()) return file
+        val p = file.parentFile
+        if (p?.exists() == false) {
+            createDir(p.path)
         }
-        if (file.mkdir())
-            return file;
-        return null;
+        if (file.mkdir()) return file
+        return null
     }
 
     /*
      * 扫描文件
      * 使文件能被发现
      * */
-    public static void scamFile(Context context, File file) {
-        MediaScannerConnection.scanFile(context, new String[]{file.getAbsolutePath()},
-                null, (path, uri) -> {
+    private fun scamFile(context: Context?, file: File) {
+        MediaScannerConnection.scanFile(
+            context, arrayOf(file.absolutePath),
+            null
+        ) { _: String?, _: Uri? -> }
+    }
 
-                });
+    var map = ArrayMap<String, String>().apply {
+        put("872", "心房扑动")
+        put("871", "心房颤动")
+        put("870", "房性心动过速")
+        put("869", "加速性室性自主心律")
+        put("868", "非阵发性交界性心动过速")
+        put("867", "室性期前收缩二连发")
+        put("866", "室上性期前收缩二连发")
+        put("863", "室性心动过速")
+        put("861", "室上性心动过速")
+        put("848", "室性期前收缩二联律")
+        put("847", "室上性期前收缩二联律")
+        put("844", "室性期前收缩三联律")
+        put("843", "室上性期前收缩三联律")
+        put("842", "室性期前收缩")
+        put("841", "室上性期前收缩")
+        put("837", "室性逸搏心律")
+        put("836", "交界性逸搏心律")
+        put("835", "房性逸搏心律")
+        put("834", "室性逸搏")
+        put("833", "交界性逸搏")
+        put("832", "房性逸搏")
+        put("823", "窦性心动过速伴不齐")
+        put("822", "窦性心动过缓伴不齐")
+        put("821", "窦性心律不齐")
+        put("812", "窦性心动过速")
+        put("811", "窦性心动过缓")
+        put("805", "心室停博")
+        put("768", "右心室心肌梗塞（可能急性）")
+        put("758", "右心室心肌梗塞（不确定时期）")
+        put("748", "可能右心室心肌梗塞")
+        put("766", "前侧壁心肌梗塞（可能急性）")
+        put("756", "前侧壁心肌梗塞（不确定时期）")
+        put("746", "可能前侧壁心肌梗塞")
+        put("765", "后壁心肌梗塞（可能急性）")
+        put("755", "后壁心肌梗塞（不确定时期）")
+        put("745", "可能后壁心肌梗塞")
+        put("735", "怀疑后壁心肌梗塞")
+        put("764", "前间壁心肌梗死（可能近期）")
+        put("754", "前间壁心肌梗死")
+        put("744", "可能前间壁心肌梗死")
+        put("734", "怀疑前间壁心肌梗死")
+        put("773", "下壁心肌梗死（可能急性）")
+        put("763", "下壁心肌梗死（可能近期）")
+        put("753", "下壁心肌梗死")
+        put("743", "可能下壁心肌梗死")
+        put("733", "怀疑下壁心肌梗死")
+        put("772", "侧壁心肌梗死（可能急性）")
+        put("762", "侧壁心肌梗死（可能近期）")
+        put("752", "侧壁心肌梗死")
+        put("742", "可能侧壁心肌梗死")
+        put("732", "怀疑侧壁心肌梗死")
+        put("791", "可能广泛前壁心肌梗死")
+        put("781", "广泛前壁心肌梗死")
+        put("771", "前壁心肌梗死（可能急性）")
+        put("761", "前壁心肌梗死（可能近期）")
+        put("751", "前壁心肌梗死")
+        put("741", "可能前壁心肌梗死")
+        put("731", "怀疑前壁心肌梗死")
+        put("711", "异常Q波")
+        put("701", "R波递增不良")
+        put("673", "显著ST段抬高")
+        put("672", "中度ST段抬高")
+        put("671", "轻度ST段抬高")
+        put("663", "显著ST段压低")
+        put("662", "中度ST段压低")
+        put("661", "轻度ST段压低")
+        put("651", "T波高尖")
+        put("631", "T波双向")
+        put("623", "巨大T波倒置")
+        put("622", "T波深倒置")
+        put("621", "T波倒置")
+        put("611", "T波低平")
+        put("512", "左后束支阻滞")
+        put("511", "左前束支阻滞")
+        put("510", "怀疑左前束支阻滞")
+        put("505", "完全性左束支阻滞")
+        put("504", "完全性右束支阻滞")
+        put("502", "心室内阻滞")
+        put("501", "不完全右束支阻滞")
+        put("421", "人工心脏起搏器")
+        put("417", "二度II型窦房阻滞（莫氏型）")
+        put("416", "二度I型窦房阻滞（文氏型）")
+        put("415", "三度房室阻滞")
+        put("414", "房室阻滞（2:1）")
+        put("413", "二度II型房室阻滞（莫氏型）")
+        put("412", "二度I型房室阻滞（文氏型）")
+        put("411", "一度房室阻滞")
+        put("410", "P-R间期延长")
+        put("403", "怀疑WPW征候群")
+        put("402", "WPW征候群")
+        put("401", "P-R间期缩短")
+        put("315", "左心室肥大")
+        put("314", "左右心室肥大")
+        put("313", "左右心房扩大")
+        put("308", "右心房扩大")
+        put("307", "左心房扩大")
+        put("306", "右心室肥大")
+        put("304", "怀疑左心室肥大")
+        put("303", "怀疑右心室肥大")
+        put("301", "左心室高电压")
+        put("206", "S1，S2，S3图形")
+        put("205", "心电轴左偏")
+        put("204", "显著心电轴右偏")
+        put("203", "心电轴右偏")
+        put("201", "无法确定的心电轴")
+        put("151", "右位心（请检查电极位置）")
+        put("142", "QT缩短")
+        put("141", "QT延长")
+        put("133", "低电位差（全部导联）")
+        put("132", "低电位差（胸部导联）")
+        put("131", "低电位差（四肢导联）")
+        put("122", "顺钟向转位")
+        put("121", "逆钟向转位")
+        put("113", "导联脱落")
+        put("112", "左右上肢电极接反")
+        put("111", "记录不良")
+        put("110", "窦性心律")
+        put("101", "正常范围内")
     }
 }
+
+//{
+//    "aiResultBean": {
+//        "HR": 60,
+//        "PA": 0,
+//        "PAxis": 46,
+//        "PB": 0,
+//        "PE": 0,
+//        "PR": 159,
+//        "Pd": 86,
+//        "QA": 0,
+//        "QRS": 83,
+//        "QRSAxis": 46,
+//        "QRSB": 0,
+//        "QRSE": 0,
+//        "QT": 369,
+//        "QTc": 369,
+//        "RA": 0,
+//        "RV5": 1234,
+//        "RV6": 1231,
+//        "SA": 0,
+//        "ST20A": 0,
+//        "ST40A": 0,
+//        "ST60A": 0,
+//        "ST80A": 0,
+//        "SV1": 975,
+//        "SV2": 1318,
+//        "TA": 0,
+//        "TAxis": 47,
+//        "TB": 0,
+//        "TE": 0,
+//        "aiResultDiagnosisBean": {
+//            "diagnosis": [
+//                {
+//                    "code": "110",
+//                    "createTime": 0,
+//                    "id": 0,
+//                    "lead": ""
+//                },
+//                {
+//                    "code": "308",
+//                    "createTime": 0,
+//                    "id": 0,
+//                    "lead": ""
+//                }
+//            ],
+//            "minnesotacodes": [
+//                "9-3-1"
+//            ]
+//        },
+//        "aiResultType": 0,
+//        "arrDiagnosis": "JSON:{\"diagnosis\":[{\"code\":\"110\",\"lead\":\"\"},{\"code\":\"308\",\"lead\":\"\"}],\"minnesotacodes\":[\"9-3-1\"]}",
+//        "leadcount": 12,
+//        "length": 0,
+//        "macureValueArray": [      113,      0  ],
+//        "patientAge": 20,
+//        "patientGender": "M",
+//        "sample": 0,
+//        "scale": 0,
+//        "type_result": -255,
+//        "ucDay": "\u0000",
+//        "ucHour": "\u0000",
+//        "ucMinute": "\u0000",
+//        "ucMonth": "\u0000",
+//        "ucSecond": "\u0000",
+//        "ucYear": "\u0000",
+//        "waveForm12": [
+//            [
+
+//                -25
+//            ]
+//        ]
+//    },
+//    "ecgMacureResultEnum": "TYPE_LOCAL_TRADITIONAL_RESULT"
+//}

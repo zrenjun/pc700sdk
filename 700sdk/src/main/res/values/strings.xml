@@ -6,4 +6,28 @@
     <string name="Heavy_high">重高</string>
     <string name="normal">正常</string>
     <string name="Blood_pressure_level">血压等级:</string>
+
+    <string name="print_export_title">心电图报告</string>
+    <string name="print_export_patient_number">病历号</string>
+    <string name="print_export_patient_name">姓名</string>
+    <string name="print_export_patient_sex">性别</string>
+    <string name="print_export_patient_age">年龄</string>
+    <string name="print_export_patient_apply_department">申请科室</string>
+    <string name="print_export_patient_apply_doctor">申请医生</string>
+    <string name="print_export_patient_check_department">检查科室</string>
+    <string name="print_export_patient_check_doctor">检查医生</string>
+    <string name="print_export_patient_bed_number">床号</string>
+    <string name="print_measure_hr">HR</string>
+    <string name="print_measure_time_limit">时限</string>
+    <string name="print_measure_time_interval">间期</string>
+    <string name="print_measure_electric_axis">电轴</string>
+    <string name="print_measure_amplitude">振幅</string>
+    <string name="print_minnesota_code">明尼苏达码</string>
+    <string name="print_analysis_result">诊断结论</string>
+    <string name="print_report_to_confirm">报告需医生确认</string>
+    <string name="print_time_second">秒</string>
+    <string name="print_export_sex_man">男</string>
+    <string name="print_export_sex_woman">女</string>
+    <string name="print_export_bottom_info_checktime">检查</string>
+    <string name="print_export_bottom_info">本报告仅供临床医生参考,不作为最终诊断证明。</string>
 </resources>

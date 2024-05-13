@@ -3,13 +3,13 @@ package com.lepu.pc700
 import android.annotation.SuppressLint
 import android.os.Bundle
 import android.os.Environment
-import android.util.Log
 import android.view.View
 import android.view.WindowManager
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.Carewell.OmniEcg.jni.JniTraditionalAnalysis
 import com.Carewell.OmniEcg.jni.toJson
+import com.Carewell.ecg700.EcgDataManager
 import com.Carewell.ecg700.LogUtil
 import com.Carewell.ecg700.OnECG12DataListener
 import com.Carewell.ecg700.ParseEcg12Data
@@ -381,7 +381,6 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
 
     @SuppressLint("SimpleDateFormat")
     private fun getLocalXML(ecgDataArray: Array<ShortArray>) {
-        LogUtil.e("ecgDataArray.size = ${ecgDataArray.size}")
         //病人信息设置
         val patientInfoBean = PatientInfoBean()
         patientInfoBean.archivesName = "moArchivesName"
@@ -394,45 +393,55 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
         patientInfoBean.birthdate = "2003-09-08"
         patientInfoBean.leadoffstate = 0
         launchWhenResumed {
-//            withContext(Dispatchers.IO) {
-                //I/II/III/aVR/aVL/aVF/V1/V2/V3/V4/V5/V6
-                val data = ArrayList<ShortArray>()
-                var index = 0
-                for (i in 0..7) {
-                    index = i
-                    if (i > 1) {
-                        index = i + 4
-                    }
-                    data.add(ecgDataArray[index])
+            //I/II/III/aVR/aVL/aVF/V1/V2/V3/V4/V5/V6
+            val data = ArrayList<ShortArray>()
+            var index = 0
+            for (i in 0..7) {
+                index = i
+                if (i > 1) {
+                    index = i + 4
                 }
-                val dir = Environment.getExternalStorageDirectory().absolutePath
-                val filePath = "$dir/PC700/test"
-                XmlUtil.createDir(filePath)
-                val fileName =
-                    SimpleDateFormat("yyyyMMddHHmmss").format(System.currentTimeMillis())
-                //本地算法分析，分析出来数据
-                val xmlPath = "${filePath}/${fileName}.xml"
-                val resultBean = JniTraditionalAnalysis.traditionalAnalysis(
-                    xmlPath,
-                    EcgSettingConfigEnum.LeadType.LEAD_12,
-                    patientInfoBean,
-                    data.toTypedArray()
-                )
-                LogUtil.e(resultBean.toJson())
-                //2.生成心电分析xml上传  参数根据UI设置
-//                XmlUtil.makeHl7Xml(
-//                    requireContext(),
-//                    filePath,
-//                    fileName,
-//                    "test",
-//                    "610423198612206399",
-//                    saveDataList,
-//                    LeadType.LEAD_II,
-//                    "35",
-//                    "0.67",
-//                    "50.0f"
-//                )
-//            }
+                data.add(ecgDataArray[index])
+            }
+            val dir = Environment.getExternalStorageDirectory().absolutePath
+            val filePath = "$dir/PC700/test"
+            XmlUtil.createDir(filePath)
+            val fileName =
+                SimpleDateFormat("yyyyMMddHHmmss").format(System.currentTimeMillis())
+            //本地算法分析，分析出来数据
+            val xmlPath = "${filePath}/${fileName}.xml"
+            val resultBean = JniTraditionalAnalysis.traditionalAnalysis(
+                xmlPath,
+                EcgSettingConfigEnum.LeadType.LEAD_12,
+                patientInfoBean,
+                data.toTypedArray()
+            )
+            LogUtil.e(resultBean.toJson())
+            //2.生成心电分析xml  参数根据UI设置
+            XmlUtil.makeHl7Xml(
+                requireContext(),
+                filePath,
+                fileName,
+                "610423198612206399",
+                saveDataList,
+                LeadType.LEAD_12,
+                "35",
+                "0.67",
+                "50",
+                resultBean
+            )
+            //2.生成心电分析PDF
+            EcgDataManager.instance?.exportPdf(
+                requireContext(),
+                patientInfoBean,
+                resultBean,
+                saveDataList,
+                System.currentTimeMillis(),
+                "${filePath}/${fileName}.pdf",
+                "35",
+                "0.67",
+                "50"
+            )
         }
     }
 }

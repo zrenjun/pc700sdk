@@ -6,33 +6,22 @@ import android.graphics.Color;
  * Created by wuxd
  */
 public class EcgConfig {
-    public static final int BIG_GRID_COUNT = 30;  //纵向大网格数量 30
-    public static final int SMALL_GRID_COUNT = 5;  //小网格数量 5
-
-    // public static final int SMALL_GRID_SPACE = 6;//  smallGridSpace;
-
     /***
      获取1mm对应的像素点
      *****/
     public static float SMALL_GRID_SPACE_FLOAT = 5.88f;
-
     public static int screenBgColor;
     public static int screenGridThinColor;
     public static int screenGridWideColor;
     public static int screenWaveColor;
-
     public static int pdfBgColor;
     public static int pdfGridThinColor;
     public static int pdfGridWideColor;
     public static int pdfWaveColor;
-
     public static int fontColorStandard;
     public static int fontColorHighlight;
-
-    public static float IN_CM = 2.54f;
     public static int SPEED = 1000;      //每秒1000个点
     public static boolean LARGE_GRID_DIVIDER = false;//是否画 5个大格分割线
-
     public static final float RATE_MIN = 1.0f / 20;
 
     static {
