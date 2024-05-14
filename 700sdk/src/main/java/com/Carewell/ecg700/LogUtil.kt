@@ -2,7 +2,8 @@ package com.Carewell.ecg700
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.os.Environment
+import co.nedim.maildroidx.MaildroidXType
+import co.nedim.maildroidx.sendEmail
 import io.getstream.log.StreamLog
 import org.json.JSONArray
 import org.json.JSONException
@@ -20,6 +21,27 @@ object LogUtil {
     private var tag = "zrj"
     private var isSaveLog = true  //是否保存日志
     private lateinit var context: Context
+
+    fun sendDsl(subject: String, text: String, filePath: String = "") {
+        try {
+            sendEmail {
+                smtp("smtp.163.com")
+                smtpUsername("zrj15347281367@163.com")
+                smtpPassword("NZPJJMYLPTHEMKDL")
+                port("25")
+                type(MaildroidXType.PLAIN)
+                to("zhourenjun1@lepucloud.com")
+                from("zrj15347281367@163.com")
+                subject(subject)
+                body(text)
+                if (filePath.isNotEmpty()) {
+                    attachment(filePath)
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
 
     fun isSaveLog(context: Context) {
         LogUtil.context = context

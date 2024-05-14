@@ -279,8 +279,7 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
         observeEvent<NIBPGetMeasureErrorEvent> {
             binding.tvSys.text = resources.getString(R.string.const_sys_text)
             if (it.error > 0) {
-                val errMsg: String = resources.getStringArray(R.array.nibp_errors)[it.error - 1]
-                binding.tvResult.text = errMsg
+                binding.tvResult.text = resources.getStringArray(R.array.nibp_errors)[it.error - 1]
             }
             binding.insView.setProgress(0, false)
             binding.realplayPc300TvSys.text = "- -"

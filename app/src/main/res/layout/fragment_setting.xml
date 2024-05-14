@@ -18,5 +18,12 @@
         android:gravity="center"
         android:text="固件升级" />
 
+    <TextView
+        android:id="@+id/tv3"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/dp_64"
+        android:gravity="center"
+        android:text="日志发送" />
+
 
 </LinearLayout>

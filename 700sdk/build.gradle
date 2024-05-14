@@ -57,6 +57,7 @@ dependencies {
     api 'io.getstream:stream-log-android:1.1.4'
     api 'io.getstream:stream-log-android-file:1.1.4'
     api 'com.google.code.gson:gson:2.8.9'
+    api 'com.github.nedimf:maildroid:v0.0.8-release'
 }
 
 afterEvaluate {

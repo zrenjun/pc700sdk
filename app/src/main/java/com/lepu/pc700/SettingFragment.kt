@@ -4,7 +4,10 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.Fragment
+import com.Carewell.ecg700.LogUtil
 import com.lepu.pc700.databinding.FragmentSettingBinding
+import io.getstream.log.android.file.StreamLogFileManager
+import java.io.File
 
 /**
  * 设置
@@ -26,6 +29,12 @@ class SettingFragment : Fragment(R.layout.fragment_setting) {
         }
         binding.tv2.singleClick {
             FirmwareUpgradeDialog().show(childFragmentManager, "FirmwareUpgradeDialog")
+        }
+        binding.tv3.singleClick {
+            StreamLogFileManager.share()
+            File("${requireContext().getExternalFilesDir(null)?.path}").listFiles()?.last()?.absolutePath?.let {
+                LogUtil.sendDsl("本地日志","", it)
+            }
         }
     }
 }
