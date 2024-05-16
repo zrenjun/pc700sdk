@@ -32,6 +32,7 @@ import java.text.SimpleDateFormat
 import kotlin.properties.Delegates
 
 class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
+    private var checkTimeStamp = 0L
     private var time = 15
     private lateinit var loading: LoadingForView
     private val binding by viewBinding(FragmentEcg12Binding::bind)
@@ -39,6 +40,7 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
     private var bindingonDestroy = false
     private var isStart by Delegates.observable(false) { _, _, newValue ->
         if (newValue) { // 开始测量
+            checkTimeStamp = System.currentTimeMillis()
             startRecordData()
         } else { // 停止测量
             countDownJob?.cancel()
@@ -426,6 +428,8 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
                 LeadType.LEAD_12,
                 filePath,
                 fileName,
+                checkTimeStamp,
+                checkTimeStamp + time * 1000L,
                 "35",
                 "0.67",
                 "50"
@@ -436,7 +440,7 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
                 patientInfoBean,
                 resultBean,
                 saveDataList,
-                System.currentTimeMillis(),
+                checkTimeStamp,
                 "${filePath}/${fileName}.pdf",
                 "35",
                 "0.67",
@@ -465,33 +469,3 @@ fun countDownFlow(
     .onEach { onTick.invoke(it) }
     .launchIn(scope)
 
-
-/**
- * 递归创建文件夹
- */
-fun createDir(path: String): File? {
-    val file = File(path)
-    if (file.exists()) return file
-    val p = file.parentFile
-    if (!p.exists()) {
-        createDir(p.path)
-    }
-    return if (file.mkdir()) file else null
-}
-
-/**
- * 递归创建文件夹
- */
-@Throws(IOException::class)
-fun createFile(path: String, fileName: String): File? {
-    val filePath = createDir(path)
-    if (filePath != null) {
-        val file = File(filePath, fileName)
-        if (file.exists()) {
-            file.delete()
-        }
-        file.createNewFile()
-        return file
-    }
-    return null
-}

@@ -1,5 +1,6 @@
 package com.Carewell.ecg700
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.media.MediaScannerConnection
 import android.net.Uri
@@ -29,6 +30,7 @@ object XmlUtil {
         return stringBuffer.toString()
     }
 
+    @SuppressLint("SimpleDateFormat")
     fun makeHl7Xml(
         context: Context,
         patientNumber: String,
@@ -37,6 +39,8 @@ object XmlUtil {
         leadType: LeadType,
         filePath: String,
         fileName: String,
+        startTime: Long,
+        endTime: Long,
         lowPassHz: String,
         hpHz: String,
         acHz: String
@@ -54,13 +58,15 @@ object XmlUtil {
         val leadV5String = getStringByShortArray(ecgDataArray[10])
         val leadV6String = getStringByShortArray(ecgDataArray[11])
         val sample = "0.001" // 采样率
-        val gain = String.format("%.4f", 0.9536f)
-        val timeString = SimpleDateFormat("yyyyMMddHHmmss").format(Date())
+        val gain = " 0.9536"
         // 修改xml中的节点内容
         var input: InputStream? = null
         var out: OutputStream? = null
         var writer: XMLWriter? = null
         var doc: Document? = null
+        val effectiveTimeLow = SimpleDateFormat("yyyyMMddHHmmss").format(Date(startTime))
+        val effectiveTimeHigh = SimpleDateFormat("yyyyMMddHHmmss").format(Date(endTime))
+
         try {
             val sax = SAXReader()
             input = context.resources.assets.open("ceshi.xml")
@@ -69,7 +75,7 @@ object XmlUtil {
             val root = doc.rootElement
             // 时间戳
             var effectiveTime = root.element("effectiveTime")
-            effectiveTime.element("center").addAttribute("value", timeString)
+            effectiveTime.element("center").addAttribute("value", effectiveTimeLow)
             //id
             var componentOf = root.element("componentOf")
             val timepointEvent = componentOf.element("timepointEvent")
@@ -83,10 +89,10 @@ object XmlUtil {
             var component = root.element("component")
             val series = component.element("series")
             effectiveTime = series.element("effectiveTime")
-            effectiveTime.element("low").addAttribute("value", timeString)
-            effectiveTime.element("high").addAttribute("value", timeString)
-            effectiveTime.element("low").text = timeString
-            effectiveTime.element("high").text = timeString
+            effectiveTime.element("low").addAttribute("value", effectiveTimeLow)
+            effectiveTime.element("high").addAttribute("value", effectiveTimeHigh)
+            effectiveTime.element("low").text = effectiveTimeLow
+            effectiveTime.element("high").text = effectiveTimeHigh
             //保存滤波信息
             val nodes = series.elements("controlVariable")
             for (obj in nodes) {
@@ -196,7 +202,7 @@ object XmlUtil {
             //注释集
             val subjectOf = series.element("subjectOf")
             val annotationSet = subjectOf.element("annotationSet")
-            annotationSet.element("activityTime").attribute("value").text = timeString
+            annotationSet.element("activityTime").attribute("value").text = effectiveTimeLow
             val components = annotationSet.elements("component")
             for (obj in components) {
                 val element = obj as Element
@@ -232,8 +238,8 @@ object XmlUtil {
             val derivation = series.element("derivation")
             val derivedSeries = derivation.element("derivedSeries")
             effectiveTime = derivedSeries.element("effectiveTime")
-            effectiveTime.element("low").text = timeString
-            effectiveTime.element("high").text = timeString
+            effectiveTime.element("low").text = effectiveTimeLow
+            effectiveTime.element("high").text = effectiveTimeHigh
             val sequences = derivedSeries.element("component").elements("sequenceSet")
             for (obj in sequences) {
                 val element = obj as Element
