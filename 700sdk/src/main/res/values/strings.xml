@@ -28,6 +28,6 @@
     <string name="print_time_second">秒</string>
     <string name="print_export_sex_man">男</string>
     <string name="print_export_sex_woman">女</string>
-    <string name="print_export_bottom_info_checktime">检查</string>
+    <string name="print_export_bottom_info_checktime">检查时间:</string>
     <string name="print_export_bottom_info">本报告仅供临床医生参考,不作为最终诊断证明。</string>
 </resources>

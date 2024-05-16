@@ -1,5 +1,6 @@
 package com.Carewell.ecg700
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
 import android.text.TextUtils
@@ -89,6 +90,7 @@ class EcgDataManager private constructor() {
         return ecgReportTemplateRoutine.bgEcg
     }
 
+   @SuppressLint("SimpleDateFormat")
    private fun getPrintBottomInfo(context: Context, checkTimeStamp: Long, lowPassHz: String, hpHz: String, acHz: String): String {
        val space = "\t \t"
        val sb = StringBuilder()
@@ -96,9 +98,9 @@ class EcgDataManager private constructor() {
        sb.append("25 mm/s").append(space)
        sb.append("10 mm/mV").append(space)
        //滤波
-       sb.append(String.format("AC: %s", acHz)).append(space)
-       sb.append(String.format("HP: %s", hpHz)).append(space)
-       sb.append(String.format("LP: %s", lowPassHz)).append(space)
+       sb.append(String.format("工频滤波: %s", "$acHz Hz")).append(space)
+       sb.append(String.format("高通滤波: %s",  "$hpHz Hz")).append(space)
+       sb.append(String.format("低通滤波: %s",  "$acHz Hz")).append(space)
        //检查时间
        if (checkTimeStamp > 0) {
            sb.append(

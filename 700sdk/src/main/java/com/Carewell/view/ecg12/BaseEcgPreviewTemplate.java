@@ -13,7 +13,9 @@ import android.graphics.RectF;
 import android.text.Layout;
 import android.text.StaticLayout;
 import android.text.TextPaint;
+
 import com.creative.sdkpack.R;
+
 import java.util.List;
 
 public abstract class BaseEcgPreviewTemplate {
@@ -447,7 +449,7 @@ public abstract class BaseEcgPreviewTemplate {
     /**
      * 绘制时间标尺
      */
-    public void drawTimeRuler(Context context,float timeLen, float speed, float startTime, float dataLen) {
+    public void drawTimeRuler(Context context, float timeLen, float speed, float startTime) {
         if (timeRulerHeight == 0)
             return;
 
@@ -466,23 +468,12 @@ public abstract class BaseEcgPreviewTemplate {
                 timeRulerPaint.setStyle(Paint.Style.FILL_AND_STROKE);
                 timeRulerPaint.setTextSize(25);
                 timeRulerPaint.setStrokeWidth(4.0f);
-            } else if (previewPageEnum == PreviewPageEnum.PAGE_PREVIEW || previewPageEnum == PreviewPageEnum.PAGE_FREEZE) {
-                PathEffect effects = new DashPathEffect(new float[]{3, 3}, 0);
-                timeRulerPaint.setPathEffect(effects);
-                timeRulerPaint.setColor(Color.WHITE);
-                timeRulerPaint.setStyle(Paint.Style.FILL_AND_STROKE);
-                timeRulerPaint.setTextSize(15);
-                timeRulerPaint.setStrokeWidth(2.0f);
-                yOffset = 20;
             }
         }
 
         if (previewPageEnum == PreviewPageEnum.PAGE_REPORT) {
             yOffset = 20;
             verticalLineHeight = 40;
-        } else if (previewPageEnum == PreviewPageEnum.PAGE_PREVIEW || previewPageEnum == PreviewPageEnum.PAGE_FREEZE) {
-            yOffset = 20;
-            verticalLineHeight = 10;
         }
         Canvas canvas = canvasBg;
         float horizontalLineY = baseY + yOffset;
@@ -498,57 +489,25 @@ public abstract class BaseEcgPreviewTemplate {
 
         timeRulerPath.moveTo(baseX + 1, horizontalLineY);
         timeRulerPath.lineTo(baseX + len, horizontalLineY);
-        if (previewPageEnum == PreviewPageEnum.PAGE_REPORT)
-            timeRulerPaint.setStrokeWidth(2.0f);
-        else if (previewPageEnum == PreviewPageEnum.PAGE_PREVIEW || previewPageEnum == PreviewPageEnum.PAGE_FREEZE)
-            timeRulerPaint.setStrokeWidth(1.0f);
+        timeRulerPaint.setStrokeWidth(1.0f);
         canvas.drawPath(timeRulerPath, timeRulerPaint);
 
         timeRulerPaint.setStyle(Paint.Style.FILL);
         timeRulerPaint.setTextAlign(Paint.Align.LEFT);
         String formatStr = previewPageEnum == PreviewPageEnum.PAGE_REPORT ? "%.1f" : "%.2f";
-        if ((previewPageEnum == PreviewPageEnum.PAGE_FREEZE || previewPageEnum == PreviewPageEnum.PAGE_PREVIEW)) {
-            float unitTime = timeLen / leadColumes;
-            startTime = startTime - unitTime * (leadColumes - 1);
-            if (startTime < 0) {
-                startTime = 0;
-                unitTime = dataLen / leadColumes / 1000;
-            }
-            for (int i = 0; i <= leadColumes - 1; i++) {
-                canvas.drawText(String.format(formatStr + context.getString(R.string.print_time_second), startTime), baseX + nTimeScaleBitmapW / leadColumes * i + 2, baseY + yOffset - 5, timeRulerPaint);
-                startTime += unitTime;
-            }
-            startTime = startTime - unitTime + timeLen / leadColumes;
+        canvas.drawText(String.format(formatStr + context.getString(R.string.print_time_second), 0 + startTime), baseX + 3, horizontalLineY + verticalLineHeight - 15, timeRulerPaint);
+        if (leadColumes == 1) {
             timeRulerPaint.setTextAlign(Paint.Align.RIGHT);
-            canvas.drawText(String.format(formatStr + context.getString(R.string.print_time_second), startTime), baseX + nTimeScaleBitmapW, baseY + yOffset - 5, timeRulerPaint);
-            return;
-        }
-        canvas.drawText(String.format(formatStr + context.getString(R.string.print_time_second), 0 + startTime), baseX + 3, horizontalLineY - 5, timeRulerPaint);
-        if (previewPageEnum == PreviewPageEnum.PAGE_FREEZE || previewPageEnum == PreviewPageEnum.PAGE_PREVIEW) {
-            for (int i = 1; i < leadColumes; i++) {
-                canvas.drawText(String.format(formatStr + context.getString(R.string.print_time_second), startTime), baseX + nTimeScaleBitmapW / leadColumes * i + 2, horizontalLineY - 5, timeRulerPaint);
-            }
-            timeRulerPaint.setTextAlign(Paint.Align.RIGHT);
-            canvas.drawText(String.format(formatStr + context.getString(R.string.print_time_second), startTime + timeLen / leadColumes), baseX + nTimeScaleBitmapW, horizontalLineY - 5, timeRulerPaint);
-
+            canvas.drawText(String.format(formatStr + context.getString(R.string.print_time_second), startTime + timeLen / leadColumes), baseX + nTimeScaleBitmapW / leadColumes + 2, horizontalLineY + verticalLineHeight - 15, timeRulerPaint);
         } else {
-            if (leadColumes == 1) {
-                for (int i = 1; i <= leadColumes; i++) {
-                    if (i == leadColumes)
-                        timeRulerPaint.setTextAlign(Paint.Align.RIGHT);
-                    canvas.drawText(String.format(formatStr + context.getString(R.string.print_time_second), startTime + timeLen / leadColumes * i), baseX + nTimeScaleBitmapW / leadColumes * i + 2, horizontalLineY - 5, timeRulerPaint);
-                }
-
+            for (int i = 1; i < leadColumes; i++) {
+                canvas.drawText(String.format(formatStr + context.getString(R.string.print_time_second), startTime), baseX + nTimeScaleBitmapW / leadColumes * i + 2, horizontalLineY + verticalLineHeight - 15, timeRulerPaint);
+            }
+            timeRulerPaint.setTextAlign(Paint.Align.RIGHT);
+            if (timeLen % leadColumes == 0) {
+                canvas.drawText(String.format(formatStr + context.getString(R.string.print_time_second), startTime + timeLen / leadColumes), baseX + nTimeScaleBitmapW, horizontalLineY + verticalLineHeight - 15, timeRulerPaint);
             } else {
-                for (int i = 1; i < leadColumes; i++) {
-                    canvas.drawText(String.format(formatStr + context.getString(R.string.print_time_second), startTime), baseX + nTimeScaleBitmapW / leadColumes * i + 2, horizontalLineY - 5, timeRulerPaint);
-                }
-                timeRulerPaint.setTextAlign(Paint.Align.RIGHT);
-                if (timeLen % leadColumes == 0) {
-                    canvas.drawText(String.format(formatStr + context.getString(R.string.print_time_second), startTime + timeLen / leadColumes), baseX + nTimeScaleBitmapW, horizontalLineY - 5, timeRulerPaint);
-                } else {
-                    canvas.drawText(String.format(formatStr + context.getString(R.string.print_time_second), startTime + timeLen / leadColumes), baseX + nTimeScaleBitmapW, horizontalLineY - 5, timeRulerPaint);
-                }
+                canvas.drawText(String.format(formatStr + context.getString(R.string.print_time_second), startTime + timeLen / leadColumes), baseX + nTimeScaleBitmapW, horizontalLineY + verticalLineHeight - 15, timeRulerPaint);
             }
         }
     }
@@ -608,11 +567,6 @@ public abstract class BaseEcgPreviewTemplate {
      */
     public void setEcgMode(EcgShowModeEnum ecgShowModeEnum) {
         leadManager.setEcgMode(ecgShowModeEnum);
-    }
-
-
-    public int getLeadColumes() {
-        return leadColumes;
     }
 
     public void updateFontPaintColor() {

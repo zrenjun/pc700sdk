@@ -1,11 +1,10 @@
 package com.Carewell.view.ecg12;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.text.Layout;
 import android.text.StaticLayout;
 import android.text.TextPaint;
-
 import com.Carewell.ecg700.XmlUtil;
 import com.Carewell.ecg700.entity.MinnesotaCodeItemBean;
 import com.creative.sdkpack.R;
@@ -40,6 +39,7 @@ public class EcgReportTemplateRoutine extends BaseEcgReportTemplate {
         drawPatientInfoTopLandscapeMulColume(patientInfoBean);
     }
 
+    @SuppressLint("DefaultLocale")
     @Override
     public void drawMacureResult(MacureResultBean macureResultBean) {
         ptText.setTextSize(TEXT_SIZE_NORMAL);
@@ -65,13 +65,7 @@ public class EcgReportTemplateRoutine extends BaseEcgReportTemplate {
 
         //================测量值 ====================
 
-        boolean aiResultShow = true;
-        AiResultBean aiResultBean = null;
-        if (macureResultBean != null && macureResultBean.getAiResultBean() != null) {
-            aiResultBean = macureResultBean.getAiResultBean();
-        } else {
-            aiResultShow = false;
-        }
+        AiResultBean aiResultBean =  macureResultBean.getAiResultBean();
         float marginValue = largeGrid * 3F;
         float marginUnit = largeGrid * 14F;
 
@@ -85,63 +79,27 @@ public class EcgReportTemplateRoutine extends BaseEcgReportTemplate {
         ecgCanvas.drawText("RV5+SV1", marginX, top + 8 * largeGrid, ptText);
         ecgCanvas.drawText("RV6/SV2", marginX, top + 9 * largeGrid, ptText);
 
-        if (aiResultShow) {
-            boolean isQBQ = EcgDataManager.checkIfPacemaker(aiResultBean);
-            if (isQBQ) {
-                ecgCanvas.drawText("       : --", (marginX + marginValue), top + largeGrid, ptText);
-                ecgCanvas.drawText(String.format("%s : --", context.getString(R.string.print_measure_time_limit)),
-                        (marginX + marginValue), top + 2 * largeGrid, ptText);
-                ecgCanvas.drawText(String.format("%s : --", context.getString(R.string.print_measure_time_interval)),
-                        (marginX + marginValue), top + 3 * largeGrid, ptText);
-                ecgCanvas.drawText(String.format("%s : --", context.getString(R.string.print_measure_time_limit)),
-                        (marginX + marginValue), top + 4 * largeGrid, ptText);
-                ecgCanvas.drawText(String.format("%s : -- / --", context.getString(R.string.print_measure_time_limit)),
-                        (marginX + marginValue), top + 5 * largeGrid, ptText);
-                ecgCanvas.drawText(String.format("%s : --/ --/ --", context.getString(R.string.print_measure_electric_axis)),
-                        (marginX + marginValue), top + 6 * largeGrid, ptText);
-                ecgCanvas.drawText(String.format("%s : -- / --", context.getString(R.string.print_measure_amplitude)),
-                        (marginX + marginValue), top + 7 * largeGrid, ptText);
-                ecgCanvas.drawText(String.format("%s : --", context.getString(R.string.print_measure_amplitude)),
-                        (marginX + marginValue), top + 8 * largeGrid, ptText);
-                ecgCanvas.drawText(String.format("%s : -- / --", context.getString(R.string.print_measure_amplitude)),
-                        (marginX + marginValue), top + 9 * largeGrid, ptText);
-            } else {
-                ecgCanvas.drawText(String.format("      : %d", aiResultBean.getHR()), (marginX + marginValue), top + largeGrid, ptText);
-                ecgCanvas.drawText(String.format(context.getString(R.string.print_measure_time_limit) + " : %d", aiResultBean.getPd()),
-                        (marginX + marginValue), top + 2 * largeGrid, ptText);
-                ecgCanvas.drawText(String.format(context.getString(R.string.print_measure_time_interval) + " : %d", aiResultBean.getPR()),
-                        (marginX + marginValue), top + 3 * largeGrid, ptText);
-                ecgCanvas.drawText(String.format(context.getString(R.string.print_measure_time_limit) + " : %d", aiResultBean.getQRS()),
-                        (marginX + marginValue), top + 4 * largeGrid, ptText);
-                ecgCanvas.drawText(String.format(context.getString(R.string.print_measure_time_limit) + " : %d / %d", aiResultBean.getQT(), aiResultBean.getQTc()),
-                        (marginX + marginValue), top + 5 * largeGrid, ptText);
-                ecgCanvas.drawText(String.format(context.getString(R.string.print_measure_electric_axis) + " : %d/ %d/ %d", aiResultBean.getPAxis(), aiResultBean.getQRSAxis(), aiResultBean.getTAxis()),
-                        (marginX + marginValue), top + 6 * largeGrid, ptText);
-                ecgCanvas.drawText(String.format(context.getString(R.string.print_measure_amplitude) + " : %.3f / %.3f", aiResultBean.getRV5() / 1000f, aiResultBean.getSV1() / 1000f),
-                        (marginX + marginValue), top + 7 * largeGrid, ptText);
-                ecgCanvas.drawText(String.format(context.getString(R.string.print_measure_amplitude) + " : %.3f", aiResultBean.getRV5() / 1000f + aiResultBean.getSV1() / 1000f),
-                        (marginX + marginValue), top + 8 * largeGrid, ptText);
-                ecgCanvas.drawText(String.format(context.getString(R.string.print_measure_amplitude) + " : %.3f / %.3f", aiResultBean.getRV6() / 1000f, aiResultBean.getSV2() / 1000f),
-                        (marginX + marginValue), top + 9 * largeGrid, ptText);
-            }
+        boolean isQBQ = EcgDataManager.checkIfPacemaker(aiResultBean);
+        if (isQBQ) {
+            ecgCanvas.drawText("         : --", (marginX + marginValue), top + largeGrid, ptText);
+            ecgCanvas.drawText(String.format("%s : --", context.getString(R.string.print_measure_time_limit)), (marginX + marginValue), top + 2 * largeGrid, ptText);
+            ecgCanvas.drawText(String.format("%s : --", context.getString(R.string.print_measure_time_interval)), (marginX + marginValue), top + 3 * largeGrid, ptText);
+            ecgCanvas.drawText(String.format("%s : --", context.getString(R.string.print_measure_time_limit)), (marginX + marginValue), top + 4 * largeGrid, ptText);
+            ecgCanvas.drawText(String.format("%s : -- / --", context.getString(R.string.print_measure_time_limit)), (marginX + marginValue), top + 5 * largeGrid, ptText);
+            ecgCanvas.drawText(String.format("%s : --/ --/ --", context.getString(R.string.print_measure_electric_axis)), (marginX + marginValue), top + 6 * largeGrid, ptText);
+            ecgCanvas.drawText(String.format("%s : -- / --", context.getString(R.string.print_measure_amplitude)), (marginX + marginValue), top + 7 * largeGrid, ptText);
+            ecgCanvas.drawText(String.format("%s : --", context.getString(R.string.print_measure_amplitude)), (marginX + marginValue), top + 8 * largeGrid, ptText);
+            ecgCanvas.drawText(String.format("%s : -- / --", context.getString(R.string.print_measure_amplitude)), (marginX + marginValue), top + 9 * largeGrid, ptText);
         } else {
-            ecgCanvas.drawText("       : ", (marginX + marginValue), top + largeGrid, ptText);
-            ecgCanvas.drawText(String.format("%s : ", context.getString(R.string.print_measure_time_limit)),
-                    (marginX + marginValue), top + 2 * largeGrid, ptText);
-            ecgCanvas.drawText(String.format("%s : ", context.getString(R.string.print_measure_time_interval)),
-                    (marginX + marginValue), top + 3 * largeGrid, ptText);
-            ecgCanvas.drawText(String.format("%s : ", context.getString(R.string.print_measure_time_limit)),
-                    (marginX + marginValue), top + 4 * largeGrid, ptText);
-            ecgCanvas.drawText(String.format("%s : ", context.getString(R.string.print_measure_time_limit)),
-                    (marginX + marginValue), top + 5 * largeGrid, ptText);
-            ecgCanvas.drawText(String.format("%s : ", context.getString(R.string.print_measure_electric_axis)),
-                    (marginX + marginValue), top + 6 * largeGrid, ptText);
-            ecgCanvas.drawText(String.format("%s : ", context.getString(R.string.print_measure_amplitude)),
-                    (marginX + marginValue), top + 7 * largeGrid, ptText);
-            ecgCanvas.drawText(String.format("%s : ", context.getString(R.string.print_measure_amplitude)),
-                    (marginX + marginValue), top + 8 * largeGrid, ptText);
-            ecgCanvas.drawText(String.format("%s : ", context.getString(R.string.print_measure_amplitude)),
-                    (marginX + marginValue), top + 9 * largeGrid, ptText);
+            ecgCanvas.drawText(String.format("         : %d", aiResultBean.getHR()), (marginX + marginValue), top + largeGrid, ptText);
+            ecgCanvas.drawText(String.format(context.getString(R.string.print_measure_time_limit) + " : %d", aiResultBean.getPd()), (marginX + marginValue), top + 2 * largeGrid, ptText);
+            ecgCanvas.drawText(String.format(context.getString(R.string.print_measure_time_interval) + " : %d", aiResultBean.getPR()), (marginX + marginValue), top + 3 * largeGrid, ptText);
+            ecgCanvas.drawText(String.format(context.getString(R.string.print_measure_time_limit) + " : %d", aiResultBean.getQRS()), (marginX + marginValue), top + 4 * largeGrid, ptText);
+            ecgCanvas.drawText(String.format(context.getString(R.string.print_measure_time_limit) + " : %d / %d", aiResultBean.getQT(), aiResultBean.getQTc()), (marginX + marginValue), top + 5 * largeGrid, ptText);
+            ecgCanvas.drawText(String.format(context.getString(R.string.print_measure_electric_axis) + " : %d/ %d/ %d", aiResultBean.getPAxis(), aiResultBean.getQRSAxis(), aiResultBean.getTAxis()), (marginX + marginValue), top + 6 * largeGrid, ptText);
+            ecgCanvas.drawText(String.format(context.getString(R.string.print_measure_amplitude) + " : %.3f / %.3f", aiResultBean.getRV5() / 1000f, aiResultBean.getSV1() / 1000f), (marginX + marginValue), top + 7 * largeGrid, ptText);
+            ecgCanvas.drawText(String.format(context.getString(R.string.print_measure_amplitude) + " : %.3f", aiResultBean.getRV5() / 1000f + aiResultBean.getSV1() / 1000f), (marginX + marginValue), top + 8 * largeGrid, ptText);
+            ecgCanvas.drawText(String.format(context.getString(R.string.print_measure_amplitude) + " : %.3f / %.3f", aiResultBean.getRV6() / 1000f, aiResultBean.getSV2() / 1000f), (marginX + marginValue), top + 9 * largeGrid, ptText);
         }
         ecgCanvas.drawText("bpm", (marginX + marginUnit), top + largeGrid, ptText);
         ecgCanvas.drawText("ms", (marginX + marginUnit), top + 2 * largeGrid, ptText);
@@ -157,18 +115,14 @@ public class EcgReportTemplateRoutine extends BaseEcgReportTemplate {
         marginX = (marginX + perRectWidth);
 
         StringBuilder codeSb = new StringBuilder();
-        if (macureResultBean != null && macureResultBean.getAiResultBean() != null) {
-            AiResultBean aiResul = macureResultBean.getAiResultBean();
-            if (aiResul.getAiResultDiagnosisBean() != null) {
-                String[] codes = aiResul.getAiResultDiagnosisBean().getMinnesotacodes();
-                if (codes != null) {
-                    for (String code : codes) {
-                        codeSb.append(code).append("\t \t");
-                    }
+        if (aiResultBean.getAiResultDiagnosisBean() != null) {
+            String[] codes = aiResultBean.getAiResultDiagnosisBean().getMinnesotacodes();
+            if (codes != null) {
+                for (String code : codes) {
+                    codeSb.append(code).append("\t \t");
                 }
             }
         }
-
         ecgCanvas.save();
         ecgCanvas.translate(marginX, top + smartGrid * 2);
         String contentCode = String.format("%s : %s", context.getString(R.string.print_minnesota_code), codeSb);
@@ -179,14 +133,11 @@ public class EcgReportTemplateRoutine extends BaseEcgReportTemplate {
 
 
         StringBuilder diaResultSb = new StringBuilder();
-        if (macureResultBean != null && macureResultBean.getAiResultBean() != null) {
-            AiResultBean resultBean = macureResultBean.getAiResultBean();
-            List<MinnesotaCodeItemBean> diagnosis = resultBean.getAiResultDiagnosisBean().getDiagnosis();
-            if (diagnosis != null && !diagnosis.isEmpty()) {
-                for (int i = 0; i < diagnosis.size(); i++) {
-                    diaResultSb.append(String.format("%d . ", i + 1));
-                    diaResultSb.append(XmlUtil.INSTANCE.getMap().get(diagnosis.get(i).getCode())).append("\t \t ");
-                }
+        List<MinnesotaCodeItemBean> diagnosis = aiResultBean.getAiResultDiagnosisBean().getDiagnosis();
+        if (diagnosis != null && !diagnosis.isEmpty()) {
+            for (int i = 0; i < diagnosis.size(); i++) {
+                diaResultSb.append(String.format("%d . ", i + 1));
+                diaResultSb.append(XmlUtil.INSTANCE.getMap().get(diagnosis.get(i).getCode())).append("\t \t ");
             }
         }
 
@@ -199,17 +150,7 @@ public class EcgReportTemplateRoutine extends BaseEcgReportTemplate {
         ecgCanvas.restore();
 
         //医生确认
-        ecgCanvas.drawText(String.format("%s : %s", context.getString(R.string.print_report_to_confirm), ""),
-                (marginX), top + patientInfoHeight - smartGrid * 2, ptText);
-        if (macureResultBean != null && macureResultBean.getAiResultBean() != null && macureResultBean.getAiResultBean().getSignPicture() != null) {
-            float textWidth = ptText.measureText(String.format("%s : %s", context.getString(R.string.print_report_to_confirm), ""));
-            Bitmap sign = BitmapUtil.bytesToBimap(macureResultBean.getAiResultBean().getSignPicture());
-            Bitmap scaleBitmap = BitmapUtil.scaleTo(sign, 200, 100);
-            if (scaleBitmap != null) {
-                ecgCanvas.drawBitmap(scaleBitmap, marginX + textWidth + 20, bottom - 105, ptText);
-                sign.recycle();
-            }
-        }
+        ecgCanvas.drawText(String.format("%s : %s", context.getString(R.string.print_report_to_confirm), ""), (marginX), top + patientInfoHeight - smartGrid * 2, ptText);
     }
 
 
@@ -228,7 +169,7 @@ public class EcgReportTemplateRoutine extends BaseEcgReportTemplate {
         baseEcgPreviewTemplate.setEcgMode(EcgShowModeEnum.MODE_SCROLL);
         baseEcgPreviewTemplate.addEcgData(ecgDataArray);
         baseEcgPreviewTemplate.drawEcgReport();
-        baseEcgPreviewTemplate.drawTimeRuler(context,ecgDataArray[0].length / 1000f, 25f, 0, ecgDataArray[0].length);
+        baseEcgPreviewTemplate.drawTimeRuler(context,ecgDataArray[0].length / 1000f, 25f, 0);
 
         ecgCanvas.drawBitmap(baseEcgPreviewTemplate.getBgBitmap(), left, top, ptLine);
     }

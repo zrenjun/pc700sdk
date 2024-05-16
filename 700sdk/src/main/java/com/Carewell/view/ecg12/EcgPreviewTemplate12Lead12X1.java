@@ -75,7 +75,7 @@ public class EcgPreviewTemplate12Lead12X1 extends BaseEcgPreviewTemplate {
                 drawLeadStandard(canvasBg, leadStandardPaint, gridRect.left + gridSpace * 3 + reportWaveOffsetLeft, i,
                         num > 5, false, false, false, needScaleMove, leadLines);
             }
-            canvasBg.drawText(leadNameList.get(num), gridRect.left + largeGridSpace + reportWaveOffsetLeft, i - leadNameYOffset, fontPaint);
+            canvasBg.drawText(leadNameList.get(num), gridRect.left + largeGridSpace  * 2 , i - leadNameYOffset, fontPaint);
             num++;
         }
     }

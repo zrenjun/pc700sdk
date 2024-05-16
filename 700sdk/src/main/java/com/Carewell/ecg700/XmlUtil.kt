@@ -29,22 +29,17 @@ object XmlUtil {
         return stringBuffer.toString()
     }
 
-    /**
-     * @param filePathAI   生成xml文件的路径
-     * @param fileNameAI   生成xml文件名
-     * @param ecgDataArray 心电数据
-     */
     fun makeHl7Xml(
         context: Context,
-        filePathAI: String?,
-        fileNameAI: String,
-        patientNumber: String?,
+        patientNumber: String,
+        result: MacureResultBean,
         ecgDataArray: Array<ShortArray>,
-        leadType: LeadType?,
-        lowPassHz: String?,
-        hpHz: String?,
-        acHz: String?,
-        result: MacureResultBean
+        leadType: LeadType,
+        filePath: String,
+        fileName: String,
+        lowPassHz: String,
+        hpHz: String,
+        acHz: String
     ) {
         val lead1String = getStringByShortArray(ecgDataArray[0])
         val lead2String = getStringByShortArray(ecgDataArray[1])
@@ -294,9 +289,9 @@ object XmlUtil {
             outformat.setIndent(true)
             outformat.isTrimText = true
             //保存到本地
-            var file = createDir(filePathAI)
-            LogUtil.v("file" + file!!.path + "/" + fileNameAI + ".xml")
-            file = File(file.path + "/" + fileNameAI + ".xml")
+            var file = createDir(filePath)
+            LogUtil.v("file" + file!!.path + "/" + fileName + ".xml")
+            file = File(file.path + "/" + fileName + ".xml")
             out = FileOutputStream(file)
             writer = XMLWriter(out, outformat)
             writer.write(doc)

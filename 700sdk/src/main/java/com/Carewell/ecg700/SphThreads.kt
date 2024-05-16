@@ -116,15 +116,8 @@ class SphThreads(inputStream: InputStream, listener: OnSerialPortDataListener) {
                                                     ParseEcg12Data.addData(data)
                                                     if (data[1] == head5) {
                                                         listener.onDataReceived(data)
-                                                        if (data[3] == 0x01.toByte()) {//开始12导测量 回复
-//                                                            LogUtil.v("心率算法 ----> init")
-//                                                            WaveFilter.instance?.initHeartRateDetect()
-                                                        }
                                                         if (data[3] == 0x02.toByte()) { //停止12导测量 回复
-//                                                            LogUtil.v("心率算法 ----> close")
                                                             ParseEcg12Data.clear()
-//                                                            delay(100)
-//                                                            WaveFilter.instance?.closeHeartRateDetect()
                                                         }
                                                     }
                                                 } else {

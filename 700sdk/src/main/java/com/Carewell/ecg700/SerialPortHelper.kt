@@ -41,7 +41,7 @@ class SerialPortHelper : OnSerialPortDataListener {
     fun start() {
         sphThreads = SphThreads(serialPort.inputStream, this)
         parseEcg12Data.start()
-        wakeUp()
+//        wakeUp()
     }
 
     fun pause() {
@@ -57,7 +57,7 @@ class SerialPortHelper : OnSerialPortDataListener {
     private val commandTimeoutMill = 500L
     private val mTimeoutHandler = Handler(Looper.getMainLooper())
     private val mCommandTimeoutRunnable = CommandTimeoutRunnable()
-    private var retry = 6
+    private var retry = 3
 
     private inner class CommandTimeoutRunnable : Runnable {
         override fun run() {
@@ -144,7 +144,7 @@ class SerialPortHelper : OnSerialPortDataListener {
             LogUtil.v("等待发送下一条cmd")
             mTimeoutHandler.removeCallbacksAndMessages(null)
             canSend = true
-            retry = 6
+            retry = 3
             processCommand()
         }
     }

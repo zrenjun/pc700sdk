@@ -420,15 +420,15 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
             //2.生成心电分析xml  参数根据UI设置
             XmlUtil.makeHl7Xml(
                 requireContext(),
-                filePath,
-                fileName,
                 "610423198612206399",
+                resultBean,
                 saveDataList,
                 LeadType.LEAD_12,
+                filePath,
+                fileName,
                 "35",
                 "0.67",
-                "50",
-                resultBean
+                "50"
             )
             //2.生成心电分析PDF
             EcgDataManager.instance?.exportPdf(
