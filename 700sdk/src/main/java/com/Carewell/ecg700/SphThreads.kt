@@ -60,82 +60,72 @@ class SphThreads(inputStream: InputStream, listener: OnSerialPortDataListener) {
                     try {
                         if (inputStream.available() > 0) {
                             val len = inputStream.read(buffer) // 读取数据
+                            if (len < 22) {
+                                LogUtil.v("数据---->${HexUtil.bytesToHexString(buffer.copyOfRange(0, len))}")
+                            }
                             if (len == buffer.size) {
-                                LogUtil.v(
-                                    "缓存  len ---->  $len 数据---->${
-                                        HexUtil.bytesToHexString(
-                                            buffer
-                                        )
-                                    }"
-                                )
                                 Arrays.fill(buffer, 0.toByte())
                             } else {
                                 if (len % 22 != 0 && buffer[0] != head1) {
-                                    LogUtil.v(
-                                        "len ---->  $len  需要拼接${if (mReceiveBuffer.size == 0) "下一包" else "上一包"} ${
-                                            HexUtil.bytesToHexString(buffer.copyOfRange(0, len))
-                                        }"
-                                    )
+                                    LogUtil.v("len ---->  $len  需要拼接${if (mReceiveBuffer.size == 0) "下一包" else "上一包"}")
                                 }
                                 for (i in 0 until len) {
                                     mReceiveBuffer.add(buffer[i])
                                 }
-                                while (true) {
-                                    if (mReceiveBuffer.size > 5) {
-                                        // 数据尾
-                                        var end = -1
-                                        if (mReceiveBuffer[0] == head1 && mReceiveBuffer[1] == head2) {
-                                            val length = mReceiveBuffer[3].toInt() and 0xFF//长度
-                                            end = length + 4
-                                        }
-                                        if (mReceiveBuffer[0] == head3 && (mReceiveBuffer[1] == head4 || mReceiveBuffer[1] == head5)) {
-                                            end = 22
-                                        }
-                                        if (end > 0) {
-                                            if (end <= mReceiveBuffer.size) {
-                                                val data = ByteArray(end)
-                                                for (i in 0 until end) {
-                                                    val curByte = mReceiveBuffer.removeAt(0)
-                                                    data[i] = curByte
-                                                    if (end == 22 && mReceiveBuffer.size > 1 && mReceiveBuffer[0] == head1 && mReceiveBuffer[1] == head2) {  //异常数据且不能拼接了
-                                                        break
-                                                    }
+                                while (mReceiveBuffer.size > 5) {
+                                    // 数据尾
+                                    var end = -1
+                                    if (mReceiveBuffer[0] == head1 && mReceiveBuffer[1] == head2) {
+                                        val length = mReceiveBuffer[3].toInt() //长度
+                                        LogUtil.v("length：$length")
+                                        end = length + 4
+                                    }
+                                    if (mReceiveBuffer[0] == head3 && (mReceiveBuffer[1] == head4 || mReceiveBuffer[1] == head5)) {
+                                        end = 22
+                                    }
+                                    if (end > 0) {
+                                        if (end <= mReceiveBuffer.size) {
+                                            val data = ByteArray(end)
+                                            for (i in 0 until end) {
+                                                val curByte = mReceiveBuffer.removeAt(0)
+                                                data[i] = curByte
+                                                if (end == 22 && mReceiveBuffer.size > 1 && mReceiveBuffer[0] == head1 && mReceiveBuffer[1] == head2) {  //异常数据且不能拼接了
+                                                    break
                                                 }
-                                                if (data[0] == head3) {
-                                                    if (!checkSum(data[21], data)) {
-                                                        //异常数据 ---->  7f, 81, 01, 00, 00, 00, 00, 00, 00, 00, 00, aa, 55, ff, 08, 01, 50, 43, 37, 30, 30, 00,
-                                                        LogUtil.v(
-                                                            "异常数据 ---->  ${
-                                                                HexUtil.bytesToHexString(
-                                                                    data
-                                                                )
-                                                            }"
-                                                        )
-                                                        break
-                                                    }
-                                                    ParseEcg12Data.addData(data)
-                                                    if (data[1] == head5) {
-                                                        listener.onDataReceived(data)
-                                                        if (data[3] == 0x02.toByte()) { //停止12导测量 回复
-                                                            ParseEcg12Data.clear()
-                                                        }
-                                                    }
-                                                } else {
+                                            }
+                                            if (data[0] == head3) {
+                                                if (!checkSum(data[21], data)) {
+                                                    //异常数据 ---->  7f, 81, 01, 00, 00, 00, 00, 00, 00, 00, 00, aa, 55, ff, 08, 01, 50, 43, 37, 30, 30, 00,
+                                                    LogUtil.v(
+                                                        "异常数据 ---->  ${
+                                                            HexUtil.bytesToHexString(
+                                                                data
+                                                            )
+                                                        }"
+                                                    )
+                                                    break
+                                                }
+                                                ParseEcg12Data.addData(data)
+                                                if (data[1] == head5) {
                                                     listener.onDataReceived(data)
-                                                    ParseData.processingOrdinaryData(data)
+                                                    if (data[3] == 0x02.toByte()) { //停止12导测量 回复
+                                                        ParseEcg12Data.clear()
+                                                    }
                                                 }
                                             } else {
-                                                break
+                                                listener.onDataReceived(data)
+                                                ParseData.processingOrdinaryData(data)
                                             }
                                         } else {
-                                            mReceiveBuffer.removeAt(0)
+                                            break
                                         }
                                     } else {
-                                        break
+                                        LogUtil.v("end：$end")
+                                        mReceiveBuffer.removeAt(0)
                                     }
                                 }
                             }
-                        } else {
+                        }else {
                             delay(3)
                         }
                     } catch (e: Exception) {

@@ -70,6 +70,16 @@ class EcgDataManager private constructor() {
         return if (outFile.exists()) outFile else null
     }
 
+    /**
+     * 导出pdf
+     */
+    fun exportPdf(bitmap: Bitmap, outfilePath: String): File? {
+        Log.d("pc700", "save pdf path = $outfilePath")
+        PdfUtil.saveBitmapForPdf(bitmap, outfilePath, false)
+        val outFile = File(outfilePath)
+        return if (outFile.exists()) outFile else null
+    }
+
     private fun makeReportRoutine(
         context: Context, patientInfoBean: PatientInfoBean, resultBean: MacureResultBean,
         reportTimeStamp: Long, gainArray: FloatArray,
@@ -90,29 +100,36 @@ class EcgDataManager private constructor() {
         return ecgReportTemplateRoutine.bgEcg
     }
 
-   @SuppressLint("SimpleDateFormat")
-   private fun getPrintBottomInfo(context: Context, checkTimeStamp: Long, lowPassHz: String, hpHz: String, acHz: String): String {
-       val space = "\t \t"
-       val sb = StringBuilder()
-       //走速 增益
-       sb.append("25 mm/s").append(space)
-       sb.append("10 mm/mV").append(space)
-       //滤波
-       sb.append(String.format("工频滤波: %s", "$acHz Hz")).append(space)
-       sb.append(String.format("高通滤波: %s",  "$hpHz Hz")).append(space)
-       sb.append(String.format("低通滤波: %s",  "$lowPassHz Hz")).append(space)
-       //检查时间
-       if (checkTimeStamp > 0) {
-           sb.append(
-               String.format(
-                   "%s %s",
-                   context.getString(R.string.print_export_bottom_info_checktime),
-                   SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(checkTimeStamp)
-               )
-           ).append(space)
-       }
-       return sb.toString()
-   }
+    @SuppressLint("SimpleDateFormat")
+    private fun getPrintBottomInfo(
+        context: Context,
+        checkTimeStamp: Long,
+        lowPassHz: String,
+        hpHz: String,
+        acHz: String
+    ): String {
+        val space = "\t \t"
+        val sb = StringBuilder()
+        //走速 增益
+        sb.append("25 mm/s").append(space)
+        sb.append("10 mm/mV").append(space)
+        //滤波
+        sb.append(String.format("工频滤波: %s", "$acHz Hz")).append(space)
+        sb.append(String.format("高通滤波: %s", "$hpHz Hz")).append(space)
+        sb.append(String.format("低通滤波: %s", "$lowPassHz Hz")).append(space)
+        //检查时间
+        if (checkTimeStamp > 0) {
+            sb.append(
+                String.format(
+                    "%s %s",
+                    context.getString(R.string.print_export_bottom_info_checktime),
+                    SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(checkTimeStamp)
+                )
+            ).append(space)
+        }
+        return sb.toString()
+    }
+
     companion object {
         var instance: EcgDataManager? = null
             get() {
