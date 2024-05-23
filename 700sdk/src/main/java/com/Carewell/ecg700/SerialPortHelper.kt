@@ -41,7 +41,7 @@ class SerialPortHelper : OnSerialPortDataListener {
     fun start() {
         sphThreads = SphThreads(serialPort.inputStream, this)
         parseEcg12Data.start()
-//        wakeUp()
+        wakeUp()
     }
 
     fun pause() {
@@ -54,16 +54,14 @@ class SerialPortHelper : OnSerialPortDataListener {
 
     private var canSend = true  //当前是否可以发送命令
     private var writeData: WriteData? = null
-    private val commandTimeoutMill = 500L
     private val mTimeoutHandler = Handler(Looper.getMainLooper())
     private val mCommandTimeoutRunnable = CommandTimeoutRunnable()
-    private var retry = 3
+    private var retry = 0
 
     private inner class CommandTimeoutRunnable : Runnable {
         override fun run() {
             canSend = true
             if (retry > -1) {
-                retry--
                 LogUtil.v("超时重发")
                 sendData()
             } else {
@@ -94,7 +92,7 @@ class SerialPortHelper : OnSerialPortDataListener {
                         return
                     }
                     writeData = pendingQueue.poll()
-                    retry--
+                    retry = writeData?.retry ?: 0
                     sendData()
                 }
             }
@@ -140,11 +138,10 @@ class SerialPortHelper : OnSerialPortDataListener {
             }
         }
 
-        if (flag){
+        if (flag) {
             LogUtil.v("等待发送下一条cmd")
             mTimeoutHandler.removeCallbacksAndMessages(null)
             canSend = true
-            retry = 3
             processCommand()
         }
     }
@@ -157,12 +154,13 @@ class SerialPortHelper : OnSerialPortDataListener {
         canSend = false
         writeData?.let {
             sendScope.launch {
+                retry--
                 delay(it.delay)
                 if (it.isCRC) {
                     BaseProtocol.getCRC(it.bytes, it.bytes.size)
                 }
-                if (it.isRetry) {
-                    mTimeoutHandler.postDelayed(mCommandTimeoutRunnable, commandTimeoutMill)
+                if (retry > 0) {
+                    mTimeoutHandler.postDelayed(mCommandTimeoutRunnable, it.commandTimeoutMill)
                 }
                 try {
                     serialPort.outputStream.write(it.bytes)
@@ -171,7 +169,7 @@ class SerialPortHelper : OnSerialPortDataListener {
                 } catch (e: IOException) {
                     e.printStackTrace()
                 }
-                if (!it.isRetry) {
+                if (retry < 0) {
                     canSend = true
                     processCommand()
                 }
@@ -182,13 +180,13 @@ class SerialPortHelper : OnSerialPortDataListener {
     /**
      * 唤醒下位机
      */
-     fun wakeUp() {
+    fun wakeUp() {
         send(
             WriteData(
                 ByteArray(80),
                 method = "唤醒下位机",
                 priority = Priority.IMMEDIATELY,
-                isRetry = false,
+                retry = 0,
                 isCRC = false
             )
         )
@@ -197,7 +195,7 @@ class SerialPortHelper : OnSerialPortDataListener {
     }
 
     fun sleep() {
-        send(WriteData(Cmd.sleepMachine, method = "休眠下位机", isRetry = false))
+        send(WriteData(Cmd.sleepMachine, method = "休眠下位机", retry = 0))
     }
 
     //获取版本来区别温度
@@ -256,18 +254,14 @@ class SerialPortHelper : OnSerialPortDataListener {
     fun stopNIBPMeasure() {
         send(WriteData(Cmd.bNIBP_StopMeasureNIBP, method = "停止血压测量"))
     }
-
-    fun getAllTransData() {
-        send(WriteData(Cmd.allTrans, method = "蓝牙传输"))
-    }
-
     fun startTransfer() {
         send(
             WriteData(
                 Cmd.startTransfer,
                 method = "开始12导透传",
                 priority = Priority.DEFAULT,
-                isCRC = false
+                isCRC = false,
+                commandTimeoutMill = 2000L
             )
         )
     }
@@ -282,7 +276,8 @@ class SerialPortHelper : OnSerialPortDataListener {
                 method = "开始12导测量",
                 delay = 2000L,
                 priority = Priority.IMMEDIATELY,
-                isCRC = false
+                isCRC = false,
+                commandTimeoutMill = 2000L
             )
         )
     }
@@ -293,7 +288,8 @@ class SerialPortHelper : OnSerialPortDataListener {
                 Cmd.stopECG12Measure,
                 method = "停止12导测量",
                 priority = Priority.HIGH,
-                isCRC = false
+                isCRC = false,
+                commandTimeoutMill = 3000L
             )
         )
     }
@@ -304,7 +300,8 @@ class SerialPortHelper : OnSerialPortDataListener {
                 Cmd.stopTransfer,
                 method = "停止12导透传",
                 priority = Priority.HIGH,
-                isCRC = false
+                isCRC = false,
+                commandTimeoutMill = 3000L
             )
         )
     }
@@ -330,8 +327,9 @@ data class WriteData(
     var priority: Int = Priority.LOW,
     var method: String = "",
     var delay: Long = 0L,
-    var isRetry: Boolean = true,
-    var isCRC: Boolean = true
+    var retry: Int = 2,
+    var isCRC: Boolean = true,
+    var commandTimeoutMill: Long = 500L,
 ) {
     override fun hashCode(): Int {
         return super.hashCode()

@@ -1,5 +1,8 @@
 package com.Carewell.ecg700
 
+import android.graphics.BitmapFactory
+import com.zkteco.android.IDReader.IDPhotoHelper
+import com.zkteco.android.IDReader.WLTService
 import java.io.UnsupportedEncodingException
 import java.math.BigDecimal
 import java.nio.charset.Charset
@@ -453,6 +456,7 @@ object ParseData {
 
                 0x40 -> {
                     // 扫描到身份证并成功读取信息，返回身份证信息(文字+图像)
+                    // aa, 55, 60, 28, 40, 01, 00, 04, 00, 28, 01, 31, 67, 10, 62, 20, 00, 20, 00, 20, 00, 20, 00, 20, 00, 20, 00, 20, 00, 20, 00, 20, 00, 20, 00, 20, 00, 20, 00, 20, 00, 31, 00, 5f,
                     var temp1 = bytes[5].toInt() and 0xFF // H
                     var temp2 = bytes[6].toInt() and 0xFF // L
                     idCardInfoTextLength = (temp1 shl 8) + temp2 // 文本信息长度
@@ -595,8 +599,10 @@ object ParseData {
         idCard.grantDept = getInfo(textInfo, 30, 158)
         idCard.userLifeBegin = getInfo(textInfo, 16, 188)
         idCard.userLifeEnd = getInfo(textInfo, 16, 204)
-        //getInfo(textInfo,36,220) 备用。 220+36 = 256
-//        LogUtil.json(idCard.toJson())
+        val buf = ByteArray(WLTService.imgLength)
+        if (1 == WLTService.wlt2Bmp(imgInfo, buf)) {
+            idCard.headBitmap = IDPhotoHelper.Bgr2Bitmap(buf)
+        }
         postEvent(GetSMAInfo(IDCardErrorCode.ERROR_NORMAL, idCard))
     }
 

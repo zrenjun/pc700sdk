@@ -57,6 +57,7 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
         (activity as MainActivity).setMainTitle("常规检测")
         //0：科瑞康血压模块 ,1：景新浩血压
         App.serial.mAPI?.setPressureMode(1)  //咨询销售确认设备模块供应商
+        App.serial.mAPI?.setGluType(gluDeviceType + 1)
         with(binding) {
             setUnitSp()
             spoView.setScope(150, 0)
@@ -331,7 +332,8 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
                 }
                 binding.tvResult.text = getString(R.string.measure_result) + speechMsg
             } else {
-                binding.tvResult.text = getString(R.string.the_measurement_result_is_wrong_please_try_again)
+                binding.tvResult.text =
+                    getString(R.string.the_measurement_result_is_wrong_please_try_again)
             }
         }
         //血糖
@@ -793,15 +795,7 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
             binding.drawSpo2Rect.startOrStop = false
             binding.drawSpo2Rect.invalidate()
         }
-        launchWhenResumed {
-            delay(2000)
-            when (gluDeviceType) {
-                0 -> App.serial.mAPI?.setGluType(1)
-                1 -> App.serial.mAPI?.setGluType(2)
-                2 -> App.serial.mAPI?.setGluType(3)
-                3 -> App.serial.mAPI?.setGluType(4)
-            }
-        }
+
     }
 
 

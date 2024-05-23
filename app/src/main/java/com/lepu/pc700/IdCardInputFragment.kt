@@ -8,6 +8,8 @@ import com.Carewell.ecg700.GetSMAInfo
 import com.Carewell.ecg700.LogUtil
 import com.Carewell.ecg700.observeEvent
 import com.lepu.pc700.databinding.FragmentIdcardinputBinding
+import com.zkteco.android.IDReader.IDPhotoHelper
+import com.zkteco.android.IDReader.WLTService
 import kotlinx.coroutines.InternalCoroutinesApi
 
 /**
@@ -44,6 +46,7 @@ class IdCardInputFragment : Fragment(R.layout.fragment_idcardinput) {
             it.info?.apply {
                 binding.etName.setText(name)
                 binding.etIdCardNo.setText(iDCardNo)
+                binding.iv.setImageBitmap(headBitmap)
             }
         }
     }

@@ -147,7 +147,7 @@ class IPAThreads(inputStream: InputStream, outputStream: OutputStream) {
             }
             //唤醒下位机 握手
             (0xFF).toByte() -> { //aa, 55, ff, 08, 01, 50, 43, 37, 30, 30, 00, 48,
-                if (len == 8 && type == 1){
+                if (len == 8 && type == 1) {
                     postEvent(ShakeHandsEvent())
                 }
             }
@@ -177,7 +177,7 @@ class IPAThreads(inputStream: InputStream, outputStream: OutputStream) {
                 WriteData(
                     getCmd(mCmdFile),
                     method = "文件帧 ${page * 16 + frame}",
-                    isRetry = false
+                    retry = 0
                 )
             )
             frame += 1
@@ -194,7 +194,7 @@ class IPAThreads(inputStream: InputStream, outputStream: OutputStream) {
                         getCmd(mCmdCheck),
                         method = "checking",
                         delay = 100,
-                        isRetry = false
+                        retry = 0
                     )
                 )
                 return@launch
@@ -281,7 +281,7 @@ class IPAThreads(inputStream: InputStream, outputStream: OutputStream) {
                 ByteArray(80),
                 method = "唤醒下位机",
                 priority = Priority.IMMEDIATELY,
-                isRetry = false,
+                retry = 0,
                 isCRC = false
             )
         )
@@ -376,7 +376,7 @@ class IPAThreads(inputStream: InputStream, outputStream: OutputStream) {
                 if (it.isCRC) {
                     BaseProtocol.getCRC(it.bytes, it.bytes.size)
                 }
-                if (it.isRetry) {
+                if (it.retry > 0) {
                     mTimeoutHandler.postDelayed(mCommandTimeoutRunnable, commandTimeoutMill)
                 }
                 try {
@@ -388,7 +388,7 @@ class IPAThreads(inputStream: InputStream, outputStream: OutputStream) {
                 } catch (e: IOException) {
                     e.printStackTrace()
                 }
-                if (!it.isRetry) {
+                if (it.retry < 1) {
                     canSend = true
                     processCommand()
                 }
