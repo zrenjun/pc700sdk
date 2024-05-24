@@ -2,7 +2,6 @@
 
 package com.Carewell.ecg700
 
-import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android_serialport_api.SerialPort
@@ -12,6 +11,7 @@ import kotlinx.coroutines.*
 import java.io.File
 import java.io.IOException
 import java.util.*
+import kotlin.properties.Delegates
 
 
 /**
@@ -41,7 +41,6 @@ class SerialPortHelper : OnSerialPortDataListener {
     fun start() {
         sphThreads = SphThreads(serialPort.inputStream, this)
         parseEcg12Data.start()
-        wakeUp()
     }
 
     fun pause() {
@@ -52,7 +51,10 @@ class SerialPortHelper : OnSerialPortDataListener {
         sphThreads?.reStart()
     }
 
-    private var canSend = true  //当前是否可以发送命令
+    //当前是否可以发送命令
+    private var canSend by Delegates.observable(true) { _, _, newValue ->
+        if (newValue) processCommand()
+    }
     private var writeData: WriteData? = null
     private val mTimeoutHandler = Handler(Looper.getMainLooper())
     private val mCommandTimeoutRunnable = CommandTimeoutRunnable()
@@ -60,12 +62,11 @@ class SerialPortHelper : OnSerialPortDataListener {
 
     private inner class CommandTimeoutRunnable : Runnable {
         override fun run() {
-            canSend = true
             if (retry > -1) {
                 LogUtil.v("超时重发")
                 sendData()
             } else {
-                processCommand() //发送下一条
+                canSend = true
             }
         }
     }
@@ -77,7 +78,9 @@ class SerialPortHelper : OnSerialPortDataListener {
         try {
             if (!pendingQueue.contains(writeData)) {
                 pendingQueue.add(writeData)
-                processCommand()
+                if (canSend){
+                    processCommand()
+                }
             }
         } catch (e: NullPointerException) {
             e.printStackTrace()
@@ -93,6 +96,7 @@ class SerialPortHelper : OnSerialPortDataListener {
                     }
                     writeData = pendingQueue.poll()
                     retry = writeData?.retry ?: 0
+                    LogUtil.v("新命令 ----> ${writeData?.method}")
                     sendData()
                 }
             }
@@ -122,28 +126,8 @@ class SerialPortHelper : OnSerialPortDataListener {
 
     override fun onDataReceived(bytes: ByteArray) {
         LogUtil.v("receive  ---->  " + HexUtil.bytesToHexString(bytes))
-        var flag = true
-        writeData?.let {
-            // 设置血糖设备类型  ---->  aa, 55, e0, 03, 01, 03, 5f
-            if (it.method == "设置血糖设备类型" && bytes[2] != 0xe0.toByte()) {
-                flag = false
-            }
-            //停止12导测量  7f, c2, 00, 02, 00, 81, 08, 01, 00, 56, 31, 2e, 30, 2e, 30, 2e, 30, 00, 00, 00, 00, 6e,
-            if (it.method == "停止12导测量" && bytes[1] != 0xc2.toByte() && bytes[3] != 0x02.toByte()) {
-                flag = false
-            }
-            // 停止12导透传 aa, 55, 30, 02, 02, aa
-            if (it.method == "停止12导透传" && bytes[2] != 0x30.toByte() && bytes[4] != 0x02.toByte()) {
-                flag = false
-            }
-        }
-
-        if (flag) {
-            LogUtil.v("等待发送下一条cmd")
-            mTimeoutHandler.removeCallbacksAndMessages(null)
-            canSend = true
-            processCommand()
-        }
+        mTimeoutHandler.removeCallbacksAndMessages(null)
+        canSend = true
     }
 
     /**
@@ -159,19 +143,18 @@ class SerialPortHelper : OnSerialPortDataListener {
                 if (it.isCRC) {
                     BaseProtocol.getCRC(it.bytes, it.bytes.size)
                 }
-                if (retry > 0) {
+                if (retry > -1) {
                     mTimeoutHandler.postDelayed(mCommandTimeoutRunnable, it.commandTimeoutMill)
                 }
                 try {
+                    LogUtil.v("---->  " + HexUtil.bytesToHexString(it.bytes))
                     serialPort.outputStream.write(it.bytes)
                     serialPort.outputStream.flush()
-                    LogUtil.v(it.method + "  ---->  " + HexUtil.bytesToHexString(it.bytes))
                 } catch (e: IOException) {
                     e.printStackTrace()
                 }
                 if (retry < 0) {
                     canSend = true
-                    processCommand()
                 }
             }
         }
@@ -191,23 +174,12 @@ class SerialPortHelper : OnSerialPortDataListener {
             )
         )
         //发送握手包,激活下位机
+        pendingQueue.removeIf { it.bytes.contentEquals(Cmd.sleepMachine) }
         send(WriteData(Cmd.handShake, method = "握手", delay = 1000, priority = Priority.HIGH))
     }
 
     fun sleep() {
         send(WriteData(Cmd.sleepMachine, method = "休眠下位机", retry = 0))
-    }
-
-    //获取版本来区别温度
-    private fun queryVersion() {
-        send(WriteData(Cmd.queryVersion, method = "查询版本"))
-    }
-
-    //获取电池充电放电标识
-    private fun queryBattery() {
-        synchronized(this) {
-            send(WriteData(Cmd.queryBattery, method = "查询电池状态"))
-        }
     }
 
     fun setPressureMode(mode: Int) {
@@ -254,7 +226,10 @@ class SerialPortHelper : OnSerialPortDataListener {
     fun stopNIBPMeasure() {
         send(WriteData(Cmd.bNIBP_StopMeasureNIBP, method = "停止血压测量"))
     }
+
     fun startTransfer() {
+        pendingQueue.removeIf { it.bytes.contentEquals(Cmd.stopECG12Measure) }
+        pendingQueue.removeIf { it.bytes.contentEquals(Cmd.stopTransfer) }
         send(
             WriteData(
                 Cmd.startTransfer,
@@ -267,9 +242,8 @@ class SerialPortHelper : OnSerialPortDataListener {
     }
 
     fun startECG12Measure() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            pendingQueue.removeIf { it.bytes.contentEquals(Cmd.stopTransfer) }
-        }
+        pendingQueue.removeIf { it.bytes.contentEquals(Cmd.stopECG12Measure) }
+        pendingQueue.removeIf { it.bytes.contentEquals(Cmd.stopTransfer) }
         send(
             WriteData(
                 Cmd.startECG12Measure,
@@ -283,6 +257,8 @@ class SerialPortHelper : OnSerialPortDataListener {
     }
 
     fun stopECG12Measure() {
+        pendingQueue.removeIf { it.bytes.contentEquals(Cmd.startTransfer) }
+        pendingQueue.removeIf { it.bytes.contentEquals(Cmd.startECG12Measure) }
         send(
             WriteData(
                 Cmd.stopECG12Measure,
@@ -295,6 +271,8 @@ class SerialPortHelper : OnSerialPortDataListener {
     }
 
     fun stopTransfer() {
+        pendingQueue.removeIf { it.bytes.contentEquals(Cmd.startTransfer) }
+        pendingQueue.removeIf { it.bytes.contentEquals(Cmd.startECG12Measure) }
         send(
             WriteData(
                 Cmd.stopTransfer,
@@ -326,7 +304,7 @@ data class WriteData(
     @Priority.Project
     var priority: Int = Priority.LOW,
     var method: String = "",
-    var delay: Long = 0L,
+    var delay: Long = 10L,
     var retry: Int = 2,
     var isCRC: Boolean = true,
     var commandTimeoutMill: Long = 500L,

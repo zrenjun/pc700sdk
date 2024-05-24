@@ -10,7 +10,7 @@ android {
     compileSdk 32
 
     defaultConfig {
-        minSdk 21
+        minSdk 24
         targetSdk 32
         versionCode 1
         versionName "1.0.0"
@@ -58,6 +58,7 @@ dependencies {
     api 'io.getstream:stream-log-android-file:1.1.4'
     api 'com.google.code.gson:gson:2.8.9'
     api 'com.github.nedimf:maildroid:v0.0.8-release'
+    api "androidx.bluetooth:bluetooth:1.0.0-alpha02"
 }
 
 afterEvaluate {
