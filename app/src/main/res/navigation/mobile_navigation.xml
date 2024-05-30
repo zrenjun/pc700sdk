@@ -6,42 +6,42 @@
 
     <keep_state_fragment
         android:id="@+id/mainFragment"
-        android:name="com.lepu.pc700.MainFragment"
+        android:name="com.lepu.pc700.fragment.MainFragment"
         tools:layout="@layout/fragment_main" />
 
     <keep_state_fragment
         android:id="@+id/settingFragment"
-        android:name="com.lepu.pc700.SettingFragment"
+        android:name="com.lepu.pc700.fragment.SettingFragment"
         tools:layout="@layout/fragment_setting" />
 
     <keep_state_fragment
         android:id="@+id/ecg12Fragment"
-        android:name="com.lepu.pc700.Ecg12Fragment"
+        android:name="com.lepu.pc700.fragment.Ecg12Fragment"
         tools:layout="@layout/fragment_ecg12" />
 
     <keep_state_fragment
         android:id="@+id/routineExaminationFragment"
-        android:name="com.lepu.pc700.RoutineExaminationFragment"
+        android:name="com.lepu.pc700.fragment.RoutineExaminationFragment"
         tools:layout="@layout/fragment_routineexamination" />
 
     <keep_state_fragment
         android:id="@+id/eCGSingleFragment"
-        android:name="com.lepu.pc700.ECGSingleFragment"
+        android:name="com.lepu.pc700.fragment.ECGSingleFragment"
         tools:layout="@layout/fragment_ecg_single" />
 
     <keep_state_fragment
         android:id="@+id/urineFragment"
-        android:name="com.lepu.pc700.UrineFragment"
+        android:name="com.lepu.pc700.fragment.UrineFragment"
         tools:layout="@layout/fragment_urine" />
 
     <keep_state_fragment
         android:id="@+id/bloodFragment"
-        android:name="com.lepu.pc700.BloodFragment"
+        android:name="com.lepu.pc700.fragment.BloodFragment"
         tools:layout="@layout/fragment_blood" />
 
     <keep_state_fragment
         android:id="@+id/idCardInputFragment"
-        android:name="com.lepu.pc700.IdCardInputFragment"
+        android:name="com.lepu.pc700.fragment.IdCardInputFragment"
         tools:layout="@layout/fragment_idcardinput" />
 
 </navigation>

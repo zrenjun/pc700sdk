@@ -1,10 +1,14 @@
-package com.lepu.pc700
+package com.lepu.pc700.dialog
 
 import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.DialogFragment
+import com.lepu.pc700.App
+import com.lepu.pc700.R
 import com.lepu.pc700.databinding.DialogMeasureBottomSettingBinding
+import com.lepu.pc700.singleClick
+import com.lepu.pc700.viewBinding
 
 
 class MultiBottomDialog : DialogFragment(R.layout.dialog_measure_bottom_setting) {

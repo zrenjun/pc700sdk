@@ -1,4 +1,4 @@
-package com.lepu.pc700
+package com.lepu.pc700.fragment
 
 import android.content.Context
 import android.os.Bundle

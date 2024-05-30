@@ -1,4 +1,4 @@
-package com.lepu.pc700
+package com.lepu.pc700.fragment
 
 import android.annotation.SuppressLint
 import android.graphics.ColorMatrix
@@ -16,8 +16,15 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
+import com.Carewell.OmniEcg.jni.toJson
 import com.Carewell.ecg700.*
+import com.lepu.pc700.App
+import com.lepu.pc700.MainActivity
+import com.lepu.pc700.R
 import com.lepu.pc700.databinding.FragmentRoutineexaminationBinding
+import com.lepu.pc700.dialog.MultiBottomDialog
+import com.lepu.pc700.singleClick
+import com.lepu.pc700.viewBinding
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.cancel
@@ -185,6 +192,7 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
     private fun initData() {
         //Spo2值
         observeEvent<SPOGetParamEvent> {
+            LogUtil.e(it.toJson())
             if (it.nSpO2 != 0 || it.nPR != 0 || it.nPI.toDouble() != 0.0) {
                 binding.realplayPc300TvSpo.text = it.nSpO2.toString() + ""
                 binding.realplayPc300TvPr.text = it.nPR.toString() + ""
@@ -213,6 +221,7 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
         }
         //Spo2柱状缓存释放
         observeEvent<SPOGetWaveEvent> {
+            LogUtil.e(it.toJson())
             binding.drawSpo2Rect.setSPORect(it.waves)
             for (i in it.waves.indices) {
                 binding.spoView.addQueueData(it.waves[i].data)
@@ -227,6 +236,7 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
         }
         //血压
         observeEvent<NIBPGetMeasureResultEvent> {
+            LogUtil.e(it.toJson())
             nIBPGetMeasureResultEvent = it
             setNIBP()
             if (it.rank > 0) {
@@ -278,9 +288,11 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
 
         /** 血压测量错误  */
         observeEvent<NIBPGetMeasureErrorEvent> {
+            LogUtil.e(it.toJson())
             binding.tvSys.text = resources.getString(R.string.const_sys_text)
             if (it.error > 0) {
-                binding.tvResult.text = resources.getStringArray(R.array.nibp_errors)[it.error - 1]
+                val errMsg: String = resources.getStringArray(R.array.nibp_errors)[it.error - 1]
+                binding.tvResult.text = errMsg
             }
             binding.insView.setProgress(0, false)
             binding.realplayPc300TvSys.text = "- -"
@@ -291,6 +303,7 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
         }
         /** 血压实时数据  */
         observeEvent<NIBPGetRealDataEvent> {
+            LogUtil.e(it.toJson())
             binding.tvSys.text = resources.getString(R.string.cuff_pressure)
             binding.insView.setProgress(it.realData, false)
             binding.realplayPc300TvDia.text = "- -"
@@ -309,6 +322,7 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
             }
         }
         observeEvent<NIBPStopMeasureEvent> {
+            LogUtil.e(it.toJson())
             binding.tvSys.text = resources.getString(R.string.const_sys_text)
             binding.realplayPc300TvSys.text = "- -"
             bNibpStart = false
@@ -318,6 +332,7 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
 
         //体温
         observeEvent<GetTMPResult> {
+            LogUtil.e(it.toJson())
             binding.realplayPc300TvTemp.text = it.strC
             if (it.strC.toFloat() in 32.0f..43.0f) {
                 val arrTempRank = resources.getStringArray(R.array.temp_rank)
@@ -338,6 +353,7 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
         }
         //血糖
         observeEvent<GetGLUResult> {
+            LogUtil.e(it.toJson())
             val gluNormalType = it.type
             val arrGluRank = resources.getStringArray(R.array.glu_rank)
             when (gluNormalType) {
@@ -371,6 +387,7 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
         }
         //尿酸
         observeEvent<GetUAResult> {
+            LogUtil.e(it.toJson())
             val arrUARank = resources.getStringArray(R.array.ua_rank)
             var valuef = it.data
             var unit = it.unit
@@ -407,6 +424,7 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
         }
         //总胆固醇
         observeEvent<GetCHOLResult> {
+            LogUtil.e(it.toJson())
             when (gluDeviceType) {
                 1, 2 -> {
                     val arrCholRank = resources.getStringArray(R.array.chol_rank)
@@ -795,7 +813,6 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
             binding.drawSpo2Rect.startOrStop = false
             binding.drawSpo2Rect.invalidate()
         }
-
     }
 
 

@@ -1,4 +1,4 @@
-package com.lepu.pc700
+package com.lepu.pc700.dialog
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
@@ -9,7 +9,12 @@ import android.view.View
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.lifecycleScope
 import com.Carewell.ecg700.*
+import com.lepu.pc700.App
+import com.lepu.pc700.R
 import com.lepu.pc700.databinding.DialogUpgradeBinding
+import com.lepu.pc700.singleClick
+import com.lepu.pc700.toast
+import com.lepu.pc700.viewBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -131,13 +136,6 @@ class FirmwareUpgradeDialog : DialogFragment(R.layout.dialog_upgrade) {
             if (SUB_MCU_VER != 0) {
                 tvNetMcuSubVer.text = SUB_MCU_VER.toString() + ""
             }
-            //下载软件最新版本
-//            viewModel.apply {
-//                progressData.observe(viewLifecycleOwner) {
-//                    tvDownloadPro.text = "$it%"
-//                    pbDownload.progress = it!!
-//                }
-//            }
         }
 
         this.isCancelable = false
@@ -187,12 +185,6 @@ class FirmwareUpgradeDialog : DialogFragment(R.layout.dialog_upgrade) {
             if (it.type < 100) {
                 binding.pbUpgrade.progress = it.type
                 binding.tvUpgradePro.text = "${it.type}%"
-                if (it.type == 100 && gujianup_main) {
-                    binding.tvMcuMainVer.text = MAIN_MCU_VER.toString()
-                }
-                if (it.type == 100 && gujianup_sub) {
-                    binding.tvMcuSubVer.text = SUB_MCU_VER.toString()
-                }
             } else {
                 lifecycleScope.launch(Dispatchers.Main) {
                     delay(7000)
@@ -206,13 +198,11 @@ class FirmwareUpgradeDialog : DialogFragment(R.layout.dialog_upgrade) {
                     }
                 }
             }
-
         }
         if (!App.serialStart) {
             App.serial.start()
             LogUtil.v("App.serialStart")
         }
-
         iapStart()
     }
 

@@ -1,11 +1,13 @@
-package com.lepu.pc700
+package com.lepu.pc700.fragment
 
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
+import com.lepu.pc700.R
 import com.lepu.pc700.databinding.FragmentMainBinding
-import io.getstream.log.android.file.StreamLogFileManager
+import com.lepu.pc700.singleClick
+import com.lepu.pc700.viewBinding
 
 /**
  * 主页
@@ -18,15 +20,11 @@ class MainFragment : Fragment(R.layout.fragment_main) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.tv1.singleClick {findNavController().navigate(R.id.routineExaminationFragment)}
+        binding.tv1.singleClick { findNavController().navigate(R.id.routineExaminationFragment) }
         binding.tv2.singleClick { findNavController().navigate(R.id.ecg12Fragment) }
         binding.tv3.singleClick { findNavController().navigate(R.id.eCGSingleFragment) }
         binding.tv4.singleClick { findNavController().navigate(R.id.idCardInputFragment) }
         binding.tv5.singleClick { findNavController().navigate(R.id.settingFragment) }
-        binding.tv5.setOnLongClickListener {
-            StreamLogFileManager.share()
-            true
-        }
     }
 }
 

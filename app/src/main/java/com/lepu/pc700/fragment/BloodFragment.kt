@@ -1,4 +1,4 @@
-package com.lepu.pc700
+package com.lepu.pc700.fragment
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
@@ -15,7 +15,12 @@ import androidx.bluetooth.ScanFilter
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.Carewell.ecg700.LogUtil
+import com.lepu.pc700.MainActivity
+import com.lepu.pc700.R
 import com.lepu.pc700.databinding.FragmentBloodBinding
+import com.lepu.pc700.singleClick
+import com.lepu.pc700.toast
+import com.lepu.pc700.viewBinding
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.delay
@@ -56,7 +61,7 @@ class BloodFragment : Fragment(R.layout.fragment_blood) {
             tvBloodfatUnit.singleClick {
                 val items = arrayOf("mmol/L", "mg/dL")
                 AlertDialog.Builder(requireContext())
-                    .setTitle(getString(R.string.setbloodfatuntil))
+                    .setTitle(getString(com.lepu.pc700.R.string.setbloodfatuntil))
                     .setItems(items) { _, which ->
                         intUnit = which
                         tvBloodfatUnit.text = items[which]
@@ -141,7 +146,7 @@ class BloodFragment : Fragment(R.layout.fragment_blood) {
                     12,
                     14
                 )
-                val bfRecordHelper: BFRecordHelper = BFRecordHelper.parseFromBTResult(data)
+                val bfRecordHelper = BFRecordHelper.parseFromBTResult(data)
                 binding.tvTime.text = time
                 val sChol = bfRecordHelper.getValueString(BFType.CHOL)
                 val sTrig = bfRecordHelper.getValueString(BFType.TRIG)

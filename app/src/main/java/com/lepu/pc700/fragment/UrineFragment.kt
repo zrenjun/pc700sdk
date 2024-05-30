@@ -1,4 +1,4 @@
-package com.lepu.pc700
+package com.lepu.pc700.fragment
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
@@ -16,7 +16,12 @@ import com.contec.bc.code.bean.ContecBluetoothType
 import com.contec.bc.code.callback.BluetoothSearchCallback
 import com.contec.bc.code.callback.CommunicateCallback
 import com.contec.bc.code.connect.ContecSdk
+import com.lepu.pc700.MainActivity
+import com.lepu.pc700.R
 import com.lepu.pc700.databinding.FragmentUrineBinding
+import com.lepu.pc700.singleClick
+import com.lepu.pc700.toast
+import com.lepu.pc700.viewBinding
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -55,9 +60,9 @@ class UrineFragment : Fragment(R.layout.fragment_urine) {
             btnUnbond.singleClick {
                 //解除SN绑定,可以连接其他尿液分析仪
                 if (TextUtils.isEmpty(devSN)) { //没有连接并且  没有输入尿液设备号码
-                    toast(resources.getString(R.string.bind_the_device_first))
+                    toast(resources.getString(com.lepu.pc700.R.string.bind_the_device_first))
                 } else {
-                    toast(resources.getString(R.string.the_device_is_unbound_successfully))
+                    toast(resources.getString(com.lepu.pc700.R.string.the_device_is_unbound_successfully))
                     tvDevSN.text = ""
                     setText(tvBluetoothState, "--")
                     devSN = ""

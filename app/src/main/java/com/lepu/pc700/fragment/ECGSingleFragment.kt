@@ -1,4 +1,4 @@
-package com.lepu.pc700
+package com.lepu.pc700.fragment
 
 import android.annotation.SuppressLint
 import android.os.Bundle
@@ -13,7 +13,14 @@ import com.Carewell.ecg700.GetSingleECGResult
 import com.Carewell.ecg700.LogUtil
 import com.Carewell.ecg700.ParseData
 import com.Carewell.ecg700.observeEvent
+import com.lepu.pc700.App
+import com.lepu.pc700.MainActivity
+import com.lepu.pc700.R
 import com.lepu.pc700.databinding.FragmentEcgSingleBinding
+import com.lepu.pc700.delayOnLifecycle
+import com.lepu.pc700.singleClick
+import com.lepu.pc700.toast
+import com.lepu.pc700.viewBinding
 import kotlinx.coroutines.*
 import java.util.*
 import kotlin.properties.Delegates

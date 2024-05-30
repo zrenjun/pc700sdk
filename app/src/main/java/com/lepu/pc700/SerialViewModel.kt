@@ -4,6 +4,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.Carewell.ecg700.LogUtil
 import com.Carewell.ecg700.SerialPortHelper
+import com.lepu.pc700.App
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext

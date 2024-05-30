@@ -1,5 +1,6 @@
 package com.lepu.pc700
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
@@ -8,6 +9,7 @@ import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
 import com.Carewell.ecg700.LogUtil
 import com.lepu.pc700.databinding.ActivityMainBinding
+import com.lepu.pc700.fragment.KeepStateNavigator
 
 
 /**
@@ -57,6 +59,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         }
     }
 
+    @SuppressLint("MissingSuperCall")
     override fun onSaveInstanceState(outState: Bundle) {
         LogUtil.e("onSaveInstanceState")
     }

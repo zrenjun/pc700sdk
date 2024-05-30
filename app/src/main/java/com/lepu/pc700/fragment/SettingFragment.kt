@@ -1,11 +1,17 @@
-package com.lepu.pc700
+package com.lepu.pc700.fragment
 
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.Fragment
 import com.Carewell.ecg700.LogUtil
+import com.lepu.pc700.MainActivity
+import com.lepu.pc700.R
 import com.lepu.pc700.databinding.FragmentSettingBinding
+import com.lepu.pc700.dialog.FirmwareUpgradeDialog
+import com.lepu.pc700.singleClick
+import com.lepu.pc700.toast
+import com.lepu.pc700.viewBinding
 import io.getstream.log.android.file.StreamLogFileManager
 import java.io.File
 

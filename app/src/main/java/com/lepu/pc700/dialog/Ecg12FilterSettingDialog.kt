@@ -1,4 +1,4 @@
-package com.lepu.pc700
+package com.lepu.pc700.dialog
 
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
@@ -6,7 +6,10 @@ import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.DialogFragment
 import com.Carewell.ecg700.ParseEcg12Data
+import com.lepu.pc700.R
 import com.lepu.pc700.databinding.DialogEcg12FilterSettingsBinding
+import com.lepu.pc700.singleClick
+import com.lepu.pc700.viewBinding
 
 
 class Ecg12FilterSettingDialog : DialogFragment(R.layout.dialog_ecg12_filter_settings) {
@@ -55,10 +58,16 @@ class Ecg12FilterSettingDialog : DialogFragment(R.layout.dialog_ecg12_filter_set
                     R.id.rb_pff_60 -> 60
                     else -> 0
                 }
-                ParseEcg12Data.setFilterParam(hpf, lpf, pff.toFloat())
-                ParseEcg12Data.setIsAddPacemaker(rbPmOn.isChecked)
+                onAdoptListener?.invoke(lpf, hpf, pff, rbPmOn.isChecked)
                 dismiss()
             }
         }
+    }
+
+    private var onAdoptListener: ((lowPassHz: Int, hpHz: Float, acHz: Int, isAddPaceMaker: Boolean) -> Unit)? = null
+
+    fun setOnAdoptListener(l: ((lowPassHz: Int, hpHz: Float, acHz: Int, isAddPaceMaker: Boolean) -> Unit)): Ecg12FilterSettingDialog {
+        this.onAdoptListener = l
+        return this
     }
 }

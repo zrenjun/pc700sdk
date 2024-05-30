@@ -1,8 +1,8 @@
-package com.lepu.pc700
+package com.lepu.pc700.fragment
 
 import android.annotation.SuppressLint
+import android.graphics.Bitmap
 import android.os.Bundle
-import android.os.Environment
 import android.view.View
 import android.view.WindowManager
 import androidx.fragment.app.Fragment
@@ -18,7 +18,17 @@ import com.Carewell.ecg700.entity.EcgSettingConfigEnum
 import com.Carewell.ecg700.entity.PatientInfoBean
 import com.Carewell.view.ecg12.*
 import com.Carewell.view.other.LoadingForView
+import com.lepu.pc700.App
+import com.lepu.pc700.MainActivity
+import com.lepu.pc700.R
 import com.lepu.pc700.databinding.FragmentEcg12Binding
+import com.lepu.pc700.delayOnLifecycle
+import com.lepu.pc700.dialog.Ecg12FilterSettingDialog
+import com.lepu.pc700.dialog.PROJECT_DIR
+import com.lepu.pc700.onItemSelectedListener
+import com.lepu.pc700.singleClick
+import com.lepu.pc700.toast
+import com.lepu.pc700.viewBinding
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
@@ -27,7 +37,7 @@ import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import java.io.File
-import java.io.IOException
+import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import kotlin.properties.Delegates
 
@@ -37,7 +47,7 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
     private lateinit var loading: LoadingForView
     private val binding by viewBinding(FragmentEcg12Binding::bind)
     private var leadType = LeadType.LEAD_12
-    private var bindingonDestroy = false
+    private var isPause = false
     private var isStart by Delegates.observable(false) { _, _, newValue ->
         if (newValue) { // 开始测量
             checkTimeStamp = System.currentTimeMillis()
@@ -49,8 +59,11 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
     }
     private var countDownJob: Job? = null
     private var saveDataList = Array(12) { ShortArray(time * 1000) }
-    private var isAiECG = false
-    private var goHealthRecord = false
+    private var lowPassHz = 35
+    private var hpHz = 0.67f
+    private var acHz = 50
+
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         (activity as MainActivity).setMainTitle("12导心电")
@@ -58,97 +71,100 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
             App.serial.start()
             LogUtil.v("App.serialStart")
         }
-
-        //屏幕常亮 手动按灭屏幕后 不知道为什么，这个页面屏幕会熄灭
+        //屏幕常亮
         requireActivity().window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        isAiECG = arguments?.getBoolean("isAiECG") ?: false
         MainEcgManager.getInstance().init(requireContext())
+        //默认增益
         val gain = "10"
         updateGain(gain, true)
+        //默认走速
         val speed = 25.0f
         updateSpeed(speed, true)
         MainEcgManager.getInstance().updateMainEcgShowStyle(leadType)
         MainEcgManager.getInstance().drawEcgRealView = binding.drawEcgRealView
 
-        with(binding) {
-            loading = LoadingForView(requireContext(), viewGroup)
-            loading.show()
-            btnStartMeasure.singleClick {
+        loading = LoadingForView(requireContext(), binding.viewGroup)
+        loading.show()
+        binding.btnStartMeasure.singleClick {
+            subscript = 0
+            if (loading.isShow) return@singleClick
+            isStart = !isStart
+            if (isStart) {
+                binding.spinnerGain.isEnabled = false
+                binding.spinnerSpeed.isEnabled = false
+                binding.spinnerShow.isEnabled = false
+                binding.spinnerTime.isEnabled = false
+            } else {
+                binding.spinnerGain.isEnabled = true
+                binding.spinnerSpeed.isEnabled = true
+                binding.spinnerShow.isEnabled = true
+                binding.spinnerTime.isEnabled = true
+            }
+        }
+        binding.btnSettings.singleClick {
+            if (isStart) {
+                toast(R.string.collecting_please_click_to_view_when_finished)
+                return@singleClick
+            }
+            Ecg12FilterSettingDialog().setOnAdoptListener { lowPassHz, hpHz, acHz, isAddPaceMaker ->
+                ParseEcg12Data.setFilterParam(hpHz, lowPassHz, acHz.toFloat())
+                ParseEcg12Data.setIsAddPacemaker(isAddPaceMaker)
+                this.lowPassHz = lowPassHz
+                this.hpHz = hpHz
+                this.acHz = acHz
+            }.show(childFragmentManager, "Ecg12FilterSettingDialog")
+        }
 
-                subscript = 0
-                if (loading.isShow) return@singleClick
-                isStart = !isStart
-                if (isStart) {
-                    spinnerGain.isEnabled = false
-                    spinnerSpeed.isEnabled = false
-                    spinnerShow.isEnabled = false
-                    spinnerTime.isEnabled = false
-                } else {
-                    spinnerGain.isEnabled = true
-                    spinnerSpeed.isEnabled = true
-                    spinnerShow.isEnabled = true
-                    spinnerTime.isEnabled = true
-                }
+        binding.spinnerGain.setSelection(
+            when (gain) {
+                LeadGainType.GAIN_2_P_5.value.toString() -> 0
+                LeadGainType.GAIN_5.value.toString() -> 1
+                LeadGainType.GAIN_10.value.toString() -> 2
+                LeadGainType.GAIN_20.value.toString() -> 3
+                LeadGainType.GAIN_40.value.toString() -> 4
+                else -> 5
             }
-            btnSettings.singleClick {
-                if (isStart) {
-                    toast(R.string.collecting_please_click_to_view_when_finished)
-                    return@singleClick
-                }
-                Ecg12FilterSettingDialog().show(childFragmentManager, "Ecg12FilterSettingDialog")
+        )
+        binding.spinnerGain.onItemSelectedListener {
+            val value = when (it) {
+                0 -> LeadGainType.GAIN_2_P_5.value.toString()
+                1 -> LeadGainType.GAIN_5.value.toString()
+                2 -> LeadGainType.GAIN_10.value.toString()
+                3 -> LeadGainType.GAIN_20.value.toString()
+                else -> LeadGainType.GAIN_40.value.toString()
             }
-
-            spinnerGain.setSelection(
-                when (gain) {
-                    LeadGainType.GAIN_2_P_5.value.toString() -> 0
-                    LeadGainType.GAIN_5.value.toString() -> 1
-                    LeadGainType.GAIN_10.value.toString() -> 2
-                    LeadGainType.GAIN_20.value.toString() -> 3
-                    LeadGainType.GAIN_40.value.toString() -> 4
-                    else -> 5
-                }
-            )
-            spinnerGain.onItemSelectedListener {
-                val value = when (it) {
-                    0 -> LeadGainType.GAIN_2_P_5.value.toString()
-                    1 -> LeadGainType.GAIN_5.value.toString()
-                    2 -> LeadGainType.GAIN_10.value.toString()
-                    3 -> LeadGainType.GAIN_20.value.toString()
-                    else -> LeadGainType.GAIN_40.value.toString()
-                }
-                updateGain(value, false)
+            updateGain(value, false)
+        }
+        binding.spinnerSpeed.setSelection(
+            when (speed) {
+                LeadSpeedType.FORMFEED_6_P_25.value -> 0
+                LeadSpeedType.FORMFEED_12_P_5.value -> 1
+                LeadSpeedType.FORMFEED_25.value -> 2
+                else -> 3
             }
-            spinnerSpeed.setSelection(
-                when (speed) {
-                    LeadSpeedType.FORMFEED_6_P_25.value -> 0
-                    LeadSpeedType.FORMFEED_12_P_5.value -> 1
-                    LeadSpeedType.FORMFEED_25.value -> 2
-                    else -> 3
-                }
-            )
-            spinnerSpeed.onItemSelectedListener {
-                val value = when (it) {
-                    0 -> LeadSpeedType.FORMFEED_6_P_25.value
-                    1 -> LeadSpeedType.FORMFEED_12_P_5.value
-                    2 -> LeadSpeedType.FORMFEED_25.value
-                    else -> LeadSpeedType.FORMFEED_50.value
-                }
-                updateSpeed(value, false)
+        )
+        binding.spinnerSpeed.onItemSelectedListener {
+            val value = when (it) {
+                0 -> LeadSpeedType.FORMFEED_6_P_25.value
+                1 -> LeadSpeedType.FORMFEED_12_P_5.value
+                2 -> LeadSpeedType.FORMFEED_25.value
+                else -> LeadSpeedType.FORMFEED_50.value
             }
-            spinnerShow.setSelection(0)
-            spinnerShow.onItemSelectedListener { updateEcgMode(it) }
-            spinnerTime.setSelection(0)
-            spinnerTime.onItemSelectedListener {
-                val value = when (it) {
-                    0 -> 15
-                    1 -> 30
-                    2 -> 60
-                    3 -> 180
-                    else -> 15
-                }
-                time = value
-                saveDataList = Array(12) { ShortArray(time * 1000) }
+            updateSpeed(value, false)
+        }
+        binding.spinnerShow.setSelection(0)
+        binding.spinnerShow.onItemSelectedListener { updateEcgMode(it) }
+        binding.spinnerTime.setSelection(0)
+        binding.spinnerTime.onItemSelectedListener {
+            val value = when (it) {
+                0 -> 15
+                1 -> 30
+                2 -> 60
+                3 -> 180
+                else -> 15
             }
+            time = value
+            saveDataList = Array(12) { ShortArray(time * 1000) }
         }
         initData()
     }
@@ -165,6 +181,7 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
             binding.spinnerShow.isEnabled = true
             binding.spinnerTime.isEnabled = true
             subscript = 0
+            //测量完成分析
             getLocalXML(saveDataList)
         }, onStart = {
 
@@ -232,43 +249,33 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
         if (!fall || leadType == LeadType.LEAD_12) return str
         // 后面单导和肢体导联不显示V1-V6的脱落情况，这里将V1-V6的字符窜用空字符窜代替, "|"表示间隔字符
         val str1 = str.replace("V1| V2| V3| V4| V5| V6".toRegex(), "")
-        var str2 = ""
-        when (leadType) {
-            LeadType.LEAD_6 -> { // 六导联下如果I（LA）和II（LL）脱落则显示，否则将“脱落”字符窜去掉
-                str2 = if (str1.contains("LA") || str1.contains("LL")) {
-                    str1
-                } else {
-                    str1.replace(getString(R.string.fall), "")
-                }
-            }
+        return when (leadType) {
+            // 六导联下如果I（LA）和II（LL）脱落则显示，否则将“脱落”字符窜去掉
+            LeadType.LEAD_6 -> if (str1.contains("LA") || str1.contains("LL")) str1 else str1.replace(
+                getString(R.string.fall),
+                ""
+            )
 
-            LeadType.LEAD_I -> { // I导联情况下,不显示II导联情况，将"LL"字符窜去掉
-                str2 = if (str1.contains("LA")) {
-                    str1.replace("LL", "")
-                } else {
-                    str1.replace(getString(R.string.fall), "")
-                }
-            }
+            // I导联情况下,不显示II导联情况，将"LL"字符窜去掉
+            LeadType.LEAD_I -> if (str1.contains("LA")) str1.replace("LL", "") else str1.replace(
+                getString(R.string.fall),
+                ""
+            )
 
-            LeadType.LEAD_II -> { // II导联情况下,不显示I导联情况，将"LA"字符窜去掉
-                str2 = if (str1.contains("LL")) {
-                    str1.replace("LA", "")
-                } else {
-                    str1.replace(getString(R.string.fall), "")
-                }
-            }
+            // II导联情况下,不显示I导联情况，将"LA"字符窜去掉
+            LeadType.LEAD_II -> if (str1.contains("LL")) str1.replace("LA", "") else str1.replace(
+                getString(R.string.fall),
+                ""
+            )
 
-            else -> {
-            }
+            else -> ""
         }
-        return str2
     }
 
     private var preHrTime = 0L
     private var preLeadTime = 0L
     private var subscript = 0
     private var isInit = true
-    private var isupFileLoading = true
     private var timeDelay = 0L
 
     private fun initData() {
@@ -292,14 +299,8 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
                 if (System.currentTimeMillis() - timeDelay < 2000L) {
                     return
                 }
-                if (isupFileLoading) {
-                    isupFileLoading = false
-                    //第一次进来这个页面的时候接收到数据后关闭。
-                    // 上传文件的时候也会弹出转圈圈，
-                    // 所以这个地方只能用一次就不能每次接收到数据都关闭
-                    activity?.runOnUiThread {
-                        loading.dismiss()
-                    }
+                if (loading.isShow) {
+                    activity?.runOnUiThread { loading.dismiss() }
                 }
 
                 MainEcgManager.getInstance().addEcgData(ecgDataArray)
@@ -311,7 +312,7 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
                 val now = System.currentTimeMillis()
                 if (now - preHrTime > 500) {//心电刷新率  500毫秒刷新一次。
                     preHrTime = now
-                    if (!bindingonDestroy) {
+                    if (!isPause) {
                         binding.tvHr.delayOnLifecycle {
                             val preHr = binding.tvHr.text.toString()
                             if (preHr != "--" && preHr.toInt() != hr) {
@@ -327,7 +328,7 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
                 val now = System.currentTimeMillis()
                 if (now - preLeadTime > 100) {
                     preLeadTime = now
-                    if (!bindingonDestroy) {
+                    if (!isPause) {
                         //联导脱落
                         binding.tvLeadFall.delayOnLifecycle {
                             binding.tvLeadFall.text = getStrByLeadFall(
@@ -340,7 +341,7 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
             }
         })
 
-        ParseEcg12Data.setFilterParam(0.67f, 35, 50.0f)
+        ParseEcg12Data.setFilterParam(hpHz, lowPassHz, acHz.toFloat())
         App.serial.mAPI?.apply {
             startTransfer() // 透传
             startECG12Measure() // 启动心电线程并发开始命令
@@ -349,35 +350,26 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
 
     override fun onResume() {
         super.onResume()
-        App.serial.mAPI?.apply {
-            startECG12Measure() // 启动心电线程并发开始命令
-        }
-        bindingonDestroy = false
+        // 启动心电线程并发开始命令
+        App.serial.mAPI?.startECG12Measure()
+        isPause = false
     }
 
     override fun onPause() {
         super.onPause()
-        bindingonDestroy = true
+        isPause = true
     }
 
     override fun onStop() {
         super.onStop()
         isStart = false
         countDownJob?.cancel()
-        if (!goHealthRecord) {
-            App.serial.mAPI?.apply {
-                stopECG12Measure()
-            }
-        }
+        App.serial.mAPI?.stopECG12Measure()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        if (!goHealthRecord) {
-            App.serial.mAPI?.apply {
-                stopTransfer()
-            }
-        }
+        App.serial.mAPI?.stopTransfer()
         MainEcgManager.getInstance().clearEcgData()
     }
 
@@ -393,59 +385,78 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
         patientInfoBean.patientNumber = "111"
         patientInfoBean.age = "20"
         patientInfoBean.birthdate = "2003-09-08"
-        patientInfoBean.leadoffstate = 0
+        patientInfoBean.leadoffstate = 0  // 0 导联正常 1 导联有脱落
         launchWhenResumed {
-            //I/II/III/aVR/aVL/aVF/V1/V2/V3/V4/V5/V6
-            val data = ArrayList<ShortArray>()
-            var index = 0
-            for (i in 0..7) {
-                index = i
-                if (i > 1) {
-                    index = i + 4
+            withContext(Dispatchers.IO) {
+                try {
+                    //I/II/ III/aVR/aVL/aVF /V1/V2/V3/V4/V5/V6
+                    val data = ArrayList<ShortArray>()
+                    var index: Int
+                    for (i in 0..7) {
+                        index = i
+                        if (i > 1) {
+                            index = i + 4
+                        }
+                        data.add(ecgDataArray[index])
+                    }
+                    val filePath = "$PROJECT_DIR/test"
+                    XmlUtil.createDir(filePath)
+                    val fileName =
+                        SimpleDateFormat("yyyyMMddHHmmss").format(System.currentTimeMillis())
+                    //本地算法分析，分析出来数据
+                    val xmlPath = "${filePath}/${fileName}.xml"
+                    //只需要8导联数据
+                    val resultBean = JniTraditionalAnalysis.traditionalAnalysis(
+                        xmlPath,
+                        EcgSettingConfigEnum.LeadType.LEAD_12,
+                        patientInfoBean,
+                        data.toTypedArray()
+                    )
+                    LogUtil.e(resultBean.toJson())
+                    //诊断结论
+                    resultBean.aiResultBean.aiResultDiagnosisBean.diagnosis.forEach {
+                        val result = XmlUtil.map[it.code]
+                    }
+                    //1.生成心电分析xml  参数根据UI设置
+                    XmlUtil.makeHl7Xml(
+                        requireContext(),
+                        "610423198612206399",
+                        resultBean,
+                        saveDataList,
+                        LeadType.LEAD_12,
+                        filePath,
+                        fileName,
+                        checkTimeStamp,
+                        checkTimeStamp + time * 1000L,
+                        "$lowPassHz",
+                        "$hpHz", "$acHz"
+                    )
+
+                    //2.返回Bitmap 写文件保存或是直接展示
+                    val imageBitmap = EcgDataManager.instance?.exportBmp(
+                        requireContext(),
+                        patientInfoBean,
+                        resultBean,
+                        saveDataList,
+                        checkTimeStamp,
+                        "$lowPassHz",
+                        "$hpHz",
+                        "$acHz",
+                    )
+
+                    val stream = FileOutputStream(File("${filePath}/${fileName}.jpg"))
+                    imageBitmap?.compress(Bitmap.CompressFormat.JPEG, 25, stream)
+                    stream.flush()
+                    stream.close()
+
+                    //3.生成心电分析PDF
+                    imageBitmap?.let {
+                        EcgDataManager.instance?.exportPdf(it, "${filePath}/${fileName}.pdf")
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
-                data.add(ecgDataArray[index])
             }
-            val dir = Environment.getExternalStorageDirectory().absolutePath
-            val filePath = "$dir/PC700/test"
-            XmlUtil.createDir(filePath)
-            val fileName =
-                SimpleDateFormat("yyyyMMddHHmmss").format(System.currentTimeMillis())
-            //本地算法分析，分析出来数据
-            val xmlPath = "${filePath}/${fileName}.xml"
-            val resultBean = JniTraditionalAnalysis.traditionalAnalysis(
-                xmlPath,
-                EcgSettingConfigEnum.LeadType.LEAD_12,
-                patientInfoBean,
-                data.toTypedArray()
-            )
-            LogUtil.e(resultBean.toJson())
-            //2.生成心电分析xml  参数根据UI设置
-            XmlUtil.makeHl7Xml(
-                requireContext(),
-                "610423198612206399",
-                resultBean,
-                saveDataList,
-                LeadType.LEAD_12,
-                filePath,
-                fileName,
-                checkTimeStamp,
-                checkTimeStamp + time * 1000L,
-                "35",
-                "0.67",
-                "50"
-            )
-            //2.生成心电分析PDF
-            EcgDataManager.instance?.exportPdf(
-                requireContext(),
-                patientInfoBean,
-                resultBean,
-                saveDataList,
-                checkTimeStamp,
-                "${filePath}/${fileName}.pdf",
-                "35",
-                "0.67",
-                "50"
-            )
         }
     }
 }
@@ -468,4 +479,5 @@ fun countDownFlow(
     .onCompletion { if (it == null) onFinish?.invoke() }
     .onEach { onTick.invoke(it) }
     .launchIn(scope)
+
 

@@ -1,4 +1,4 @@
-package com.lepu.pc700
+package com.lepu.pc700.fragment
 
 import android.os.Bundle
 import android.view.View
@@ -7,9 +7,12 @@ import com.Carewell.OmniEcg.jni.toJson
 import com.Carewell.ecg700.GetSMAInfo
 import com.Carewell.ecg700.LogUtil
 import com.Carewell.ecg700.observeEvent
+import com.lepu.pc700.App
+import com.lepu.pc700.MainActivity
+import com.lepu.pc700.R
 import com.lepu.pc700.databinding.FragmentIdcardinputBinding
-import com.zkteco.android.IDReader.IDPhotoHelper
-import com.zkteco.android.IDReader.WLTService
+import com.lepu.pc700.singleClick
+import com.lepu.pc700.viewBinding
 import kotlinx.coroutines.InternalCoroutinesApi
 
 /**
@@ -44,6 +47,7 @@ class IdCardInputFragment : Fragment(R.layout.fragment_idcardinput) {
         observeEvent<GetSMAInfo> {
             LogUtil.e(it.toJson())
             it.info?.apply {
+                binding.btnIdcardScan.performClick()
                 binding.etName.setText(name)
                 binding.etIdCardNo.setText(iDCardNo)
                 binding.iv.setImageBitmap(headBitmap)
