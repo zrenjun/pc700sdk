@@ -68,13 +68,11 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
     override fun onResume() {
         super.onResume()
         LogUtil.e("onResume")
-        App.serial.mAPI?.wakeUp()
     }
 
     override fun onPause() {
         super.onPause()
         LogUtil.e("onPause")
-        App.serial.mAPI?.sleep()
     }
 
 

@@ -41,6 +41,7 @@ class SerialPortHelper : OnSerialPortDataListener {
     fun start() {
         sphThreads = SphThreads(serialPort.inputStream, this)
         parseEcg12Data.start()
+        wakeUp()
     }
 
     fun pause() {
