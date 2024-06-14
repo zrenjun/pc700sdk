@@ -397,7 +397,8 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
                         if (i > 1) {
                             index = i + 4
                         }
-                        data.add(ecgDataArray[index])
+                        val temp = ecgDataArray[index]
+                        data.add(temp.copyOfRange(temp.size - 1000 * 10, temp.size))
                     }
                     val filePath = "$PROJECT_DIR/test"
                     XmlUtil.createDir(filePath)
