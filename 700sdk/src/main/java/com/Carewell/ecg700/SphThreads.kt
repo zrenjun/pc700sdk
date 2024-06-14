@@ -1,6 +1,5 @@
 package com.Carewell.ecg700
 
-import com.lepu.forwarder.util.HexUtil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel

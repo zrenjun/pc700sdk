@@ -6,7 +6,6 @@ import android.os.Handler
 import android.os.Looper
 import android_serialport_api.SerialPort
 import androidx.annotation.IntDef
-import com.lepu.forwarder.util.HexUtil
 import kotlinx.coroutines.*
 import java.io.File
 import java.io.IOException

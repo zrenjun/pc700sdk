@@ -64,7 +64,7 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
     private var acHz = 50
 
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         (activity as MainActivity).setMainTitle("12导心电")
         if (!App.serialStart) {

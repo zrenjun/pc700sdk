@@ -23,7 +23,7 @@ class LoadingForView(
     init {
         val view = ProgressBar(context)
         view.indeterminateDrawable = getLoadingDrawable(context)
-        val dp120 = 120f.dip2px(context)
+        val dp120 = dip2px(context,120f)
         view.layoutParams = FrameLayout.LayoutParams(dp120, dp120).run {
             gravity = Gravity.CENTER
             this
@@ -49,7 +49,7 @@ class LoadingForView(
     fun show() {
         if (viewGroup.indexOfChild(loading) == -1) {
             viewGroup.addView(loading)
-             isShow = true
+            isShow = true
         }
     }
 
@@ -68,9 +68,10 @@ class LoadingForView(
         drawable.drawable = AppCompatResources.getDrawable(context, R.drawable.ic_loading)
         return drawable
     }
+
+    private fun dip2px(context: Context, dip: Float): Int {
+        val scale = context.resources.displayMetrics.density
+        return (dip * scale + 0.5f).toInt()
+    }
 }
 
-fun Float.dip2px(context: Context): Int {
-    val scale = context.resources.displayMetrics.density
-    return (this * scale + 0.5f).toInt()
-}

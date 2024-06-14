@@ -2,7 +2,6 @@ package com.Carewell.ecg700
 
 import android.os.Handler
 import android.os.Looper
-import com.lepu.forwarder.util.HexUtil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel

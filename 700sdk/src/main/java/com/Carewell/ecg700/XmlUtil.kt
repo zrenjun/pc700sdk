@@ -5,6 +5,7 @@ import android.content.Context
 import android.media.MediaScannerConnection
 import android.net.Uri
 import android.util.ArrayMap
+import android.util.Log
 import com.Carewell.ecg700.entity.MacureResultBean
 import com.Carewell.view.ecg12.LeadType
 import org.dom4j.Document
@@ -14,6 +15,7 @@ import org.dom4j.io.SAXReader
 import org.dom4j.io.XMLWriter
 import java.io.File
 import java.io.FileOutputStream
+import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.text.SimpleDateFormat
@@ -29,6 +31,64 @@ object XmlUtil {
         }
         return stringBuffer.toString()
     }
+
+    fun getHl7XmlMvData(context: Context,fileName: String): List<ShortArray> {  //mv 值
+        var inputStream: InputStream? = null
+        val list = mutableListOf<ShortArray>()
+        try {
+            val sax = SAXReader()
+            inputStream = context.resources.assets.open(fileName)
+            val root = sax.read(inputStream).rootElement// 根节点
+            var componentElement = root.element("component")
+            val seriesElement = componentElement.element("series")
+            // 取得某节点下名为"component/series/component/sequenceSet"的所有字节点
+            componentElement = seriesElement.element("component")
+            val sequenceSetElement = componentElement.element("sequenceSet")
+            val nodesComponent = sequenceSetElement.elements("component")
+            var element: Element?
+            for (obj in nodesComponent) {
+                element = obj as Element?
+                element?.element("sequence")?.element("value")?.let {
+                    // gain
+                    val scale = it.element("scale")?.attributeValue("value")?.toFloat()?:1f
+                    it.element("digits")?.let { digits ->
+                        list.add(digits.text.split(" ").map { uv -> uv.toShort() }.toShortArray())
+                    }
+                }
+            }
+            return list
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            close(null, null, inputStream)
+        }
+        return list
+    }
+
+    private fun close(xmlWriter: XMLWriter?, out: OutputStream?, ipPut: InputStream?) {
+        if (null != xmlWriter) {
+            try {
+                xmlWriter.close()
+            } catch (e: IOException) {
+               e.printStackTrace()
+            }
+        }
+        if (null != out) {
+            try {
+                out.close()
+            } catch (e: IOException) {
+                e.printStackTrace()
+            }
+        }
+        if (null != ipPut) {
+            try {
+                ipPut.close()
+            } catch (e: IOException) {
+                e.printStackTrace()
+            }
+        }
+    }
+
 
     @SuppressLint("SimpleDateFormat")
     fun makeHl7Xml(
@@ -536,7 +596,7 @@ object XmlUtil {
 //        "ucYear": "\u0000",
 //        "waveForm12": [
 //            [
-
+//
 //                -25
 //            ]
 //        ]
