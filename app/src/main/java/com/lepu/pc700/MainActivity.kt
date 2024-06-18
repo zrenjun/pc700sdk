@@ -95,7 +95,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         patientInfoBean.leadoffstate = 0  // 0 导联正常 1 导联有脱落
         val data = XmlUtil.getHl7XmlMvData(
             this,
-            "11_2024-06-13 14-56-50.xml"
+            "1_2024-06-17 10-36-47.xml"
         )  // I II III aVR aVL aVF V1 V2 V3 V4 V5 V6
         val filePath = "$PROJECT_DIR/test"
         XmlUtil.createDir(filePath)
@@ -107,7 +107,9 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
                 test.add(shorts.copyOfRange(shorts.size - 1000 * 10, shorts.size))
             }
         }
-
+       (0..6).forEach {
+           test.add(ShortArray(1000 * 10))  //win android linux 统一算法代码 这个地方补7导数据 默认0 一起15导数据
+       }
         val xmlPath = "${filePath}/${fileName}.xml"
         //只需要8导联数据
         val resultBean = JniTraditionalAnalysis.traditionalAnalysis(

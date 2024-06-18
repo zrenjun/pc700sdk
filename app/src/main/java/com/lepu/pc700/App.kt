@@ -21,8 +21,11 @@ class App : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        //初始化日志
         LogUtil.isSaveLog(applicationContext)
-        CommonApp.init(this) //初始化bus
+        //初始化bus
+        CommonApp.init(this)
+        //初始化串口
         serial = SerialViewModel(this)
         serial.start()
     }
