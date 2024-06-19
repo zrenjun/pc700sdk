@@ -8,7 +8,14 @@ import android.text.TextUtils
 import android.view.View
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.lifecycleScope
-import com.Carewell.ecg700.*
+import com.Carewell.ecg700.port.IAPCheckEvent
+import com.Carewell.ecg700.port.IAPEndEvent
+import com.Carewell.ecg700.port.IAPProgramingEvent
+import com.Carewell.ecg700.port.IAPVersionEvent
+import com.Carewell.ecg700.port.IPAThreads
+import com.Carewell.ecg700.port.LogUtil
+import com.Carewell.ecg700.port.ShakeHandsEvent
+import com.Carewell.ecg700.port.observeEvent
 import com.lepu.pc700.App
 import com.lepu.pc700.R
 import com.lepu.pc700.databinding.DialogUpgradeBinding

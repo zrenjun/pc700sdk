@@ -14,7 +14,7 @@ import androidx.bluetooth.GattClientScope
 import androidx.bluetooth.ScanFilter
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
-import com.Carewell.ecg700.LogUtil
+import com.Carewell.ecg700.port.LogUtil
 import com.lepu.pc700.MainActivity
 import com.lepu.pc700.R
 import com.lepu.pc700.databinding.FragmentBloodBinding

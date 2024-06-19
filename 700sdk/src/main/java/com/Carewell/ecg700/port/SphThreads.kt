@@ -1,4 +1,4 @@
-package com.Carewell.ecg700
+package com.Carewell.ecg700.port
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -61,7 +61,16 @@ class SphThreads(inputStream: InputStream, listener: OnSerialPortDataListener) {
                             val len = inputStream.read(buffer) // 读取数据
                             if (len < 22) {
                                 LogUtil.v("队列数据---->${HexUtil.bytesToHexString(mReceiveBuffer.toByteArray())}")
-                                LogUtil.v("读取-->${HexUtil.bytesToHexString(buffer.copyOfRange(0, len))}")
+                                LogUtil.v(
+                                    "读取-->${
+                                        HexUtil.bytesToHexString(
+                                            buffer.copyOfRange(
+                                                0,
+                                                len
+                                            )
+                                        )
+                                    }"
+                                )
                             }
                             if (len == buffer.size) {
                                 Arrays.fill(buffer, 0.toByte())

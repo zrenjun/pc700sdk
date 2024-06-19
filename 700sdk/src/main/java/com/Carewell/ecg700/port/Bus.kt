@@ -1,6 +1,6 @@
 @file:Suppress("unused")
 
-package com.Carewell.ecg700
+package com.Carewell.ecg700.port
 
 import android.app.Application
 import androidx.activity.ComponentActivity

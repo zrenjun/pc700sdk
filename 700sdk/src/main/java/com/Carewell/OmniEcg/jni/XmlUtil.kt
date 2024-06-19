@@ -1,11 +1,11 @@
-package com.Carewell.ecg700
+package com.Carewell.OmniEcg.jni
 
 import android.annotation.SuppressLint
 import android.content.Context
 import android.media.MediaScannerConnection
 import android.net.Uri
 import android.util.ArrayMap
-import android.util.Log
+import com.Carewell.ecg700.port.LogUtil
 import com.Carewell.ecg700.entity.MacureResultBean
 import com.Carewell.view.ecg12.LeadType
 import org.dom4j.Document

@@ -2,9 +2,8 @@ package com.lepu.pc700
 
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.Carewell.ecg700.LogUtil
-import com.Carewell.ecg700.SerialPortHelper
-import com.lepu.pc700.App
+import com.Carewell.ecg700.port.LogUtil
+import com.Carewell.ecg700.port.SerialPortHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext

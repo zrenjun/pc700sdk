@@ -10,17 +10,19 @@ import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
 import com.Carewell.OmniEcg.jni.JniTraditionalAnalysis
 import com.Carewell.OmniEcg.jni.toJson
-import com.Carewell.ecg700.EcgDataManager
-import com.Carewell.ecg700.LogUtil
-import com.Carewell.ecg700.XmlUtil
+import com.Carewell.OmniEcg.jni.EcgDataManager
+import com.Carewell.ecg700.port.LogUtil
+import com.Carewell.OmniEcg.jni.XmlUtil
 import com.Carewell.ecg700.entity.EcgSettingConfigEnum
-import com.Carewell.ecg700.entity.MacureResultBean
 import com.Carewell.ecg700.entity.PatientInfoBean
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
 import com.lepu.pc700.databinding.ActivityMainBinding
 import com.lepu.pc700.dialog.PROJECT_DIR
 import com.lepu.pc700.fragment.KeepStateNavigator
+import com.lepu.pc700.fragment.launchWhenResumed
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
@@ -79,10 +81,18 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
     }
 
 
-    @SuppressLint("SimpleDateFormat")
     override fun onResume() {
         super.onResume()
         LogUtil.e("onResume")
+        launchWhenResumed {
+            withContext(Dispatchers.IO) {
+                pdfCreate()
+            }
+        }
+    }
+
+    @SuppressLint("SimpleDateFormat")
+    private fun pdfCreate() {
         val patientInfoBean = PatientInfoBean()
         patientInfoBean.archivesName = "moArchivesName"
         patientInfoBean.firstName = "moFirstName"
@@ -95,23 +105,26 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         patientInfoBean.leadoffstate = 0  // 0 导联正常 1 导联有脱落
         val data = XmlUtil.getHl7XmlMvData(
             this,
-            "1_2024-06-17 10-36-47.xml"
+            "3_2024-06-18 183827.xml"
         )  // I II III aVR aVL aVF V1 V2 V3 V4 V5 V6
         val filePath = "$PROJECT_DIR/test"
         XmlUtil.createDir(filePath)
         val fileName =
             SimpleDateFormat("yyyyMMddHHmmss").format(System.currentTimeMillis())
         val test = ArrayList<ShortArray>()
+
+        // 导联数据 12导联原始数据中取 I II V1 V2 V3 V4 V5 V6
         data.forEachIndexed { index, shorts ->
             if (index < 2 || index > 5) {
                 test.add(shorts.copyOfRange(shorts.size - 1000 * 10, shorts.size))
             }
         }
-       (0..6).forEach {
-           test.add(ShortArray(1000 * 10))  //win android linux 统一算法代码 这个地方补7导数据 默认0 一起15导数据
-       }
+        //再补7导数据 都是0
+        (0..6).forEach {
+            test.add(ShortArray(1000 * 10))  //win android linux 统一算法代码 这个地方补7导数据 默认0 一起15导数据
+        }
         val xmlPath = "${filePath}/${fileName}.xml"
-        //只需要8导联数据
+        //需要15导联数据
         val resultBean = JniTraditionalAnalysis.traditionalAnalysis(
             xmlPath,
             EcgSettingConfigEnum.LeadType.LEAD_12,
@@ -140,7 +153,6 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         imageBitmap?.let {
             EcgDataManager.instance?.exportPdf(it, "${filePath}/${fileName}.pdf")
         }
-
     }
 
     override fun onPause() {

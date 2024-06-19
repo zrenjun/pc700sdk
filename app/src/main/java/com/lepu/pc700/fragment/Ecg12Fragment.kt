@@ -9,11 +9,11 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.Carewell.OmniEcg.jni.JniTraditionalAnalysis
 import com.Carewell.OmniEcg.jni.toJson
-import com.Carewell.ecg700.EcgDataManager
-import com.Carewell.ecg700.LogUtil
-import com.Carewell.ecg700.OnECG12DataListener
-import com.Carewell.ecg700.ParseEcg12Data
-import com.Carewell.ecg700.XmlUtil
+import com.Carewell.OmniEcg.jni.EcgDataManager
+import com.Carewell.ecg700.port.LogUtil
+import com.Carewell.ecg700.port.OnECG12DataListener
+import com.Carewell.ecg700.port.ParseEcg12Data
+import com.Carewell.OmniEcg.jni.XmlUtil
 import com.Carewell.ecg700.entity.EcgSettingConfigEnum
 import com.Carewell.ecg700.entity.PatientInfoBean
 import com.Carewell.view.ecg12.*
@@ -399,6 +399,10 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
                         }
                         val temp = ecgDataArray[index]
                         data.add(temp.copyOfRange(temp.size - 1000 * 10, temp.size))
+                    }
+                    //再补7导数据 都是0
+                    (0..6).forEach {
+                        data.add(ShortArray(1000 * 10))  //win android linux 统一算法代码 这个地方补7导数据 默认0 一起15导数据
                     }
                     val filePath = "$PROJECT_DIR/test"
                     XmlUtil.createDir(filePath)

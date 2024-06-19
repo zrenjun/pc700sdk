@@ -1,9 +1,8 @@
 package com.lepu.pc700
 
 import android.app.Application
-import com.Carewell.ecg700.CommonApp
-import com.Carewell.ecg700.LogUtil
-import com.lepu.pc700.SerialViewModel
+import com.Carewell.ecg700.port.CommonApp
+import com.Carewell.ecg700.port.LogUtil
 import kotlin.properties.Delegates
 
 /**

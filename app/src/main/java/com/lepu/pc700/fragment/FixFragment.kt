@@ -10,7 +10,7 @@ import androidx.navigation.fragment.FragmentNavigator
 import java.util.ArrayDeque
 import androidx.annotation.Nullable
 import androidx.fragment.app.FragmentTransaction
-import com.Carewell.ecg700.LogUtil
+import com.Carewell.ecg700.port.LogUtil
 import java.lang.StringBuilder
 
 

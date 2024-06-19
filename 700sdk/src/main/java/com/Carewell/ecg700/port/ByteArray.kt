@@ -1,4 +1,4 @@
-package com.lepu.pc_700.ble
+package com.Carewell.ecg700.port
 
 val HEX_ARRAY = "0123456789ABCDEF".toCharArray()
 

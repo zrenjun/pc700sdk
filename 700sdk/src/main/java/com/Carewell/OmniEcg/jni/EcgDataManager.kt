@@ -1,4 +1,4 @@
-package com.Carewell.ecg700
+package com.Carewell.OmniEcg.jni
 
 import android.annotation.SuppressLint
 import android.content.Context

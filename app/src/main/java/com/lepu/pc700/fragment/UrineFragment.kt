@@ -10,7 +10,7 @@ import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.*
 import androidx.fragment.app.Fragment
-import com.Carewell.ecg700.LogUtil
+import com.Carewell.ecg700.port.LogUtil
 import com.contec.bc.code.base.ContecDevice
 import com.contec.bc.code.bean.ContecBluetoothType
 import com.contec.bc.code.callback.BluetoothSearchCallback

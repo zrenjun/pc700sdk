@@ -1,4 +1,4 @@
-package com.Carewell.ecg700
+package com.Carewell.ecg700.port
 
 /**
  * PC700,新PC600,900 的IAP固件升级回调

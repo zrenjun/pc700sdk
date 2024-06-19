@@ -10,7 +10,7 @@ import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.WindowManager;
-import com.Carewell.ecg700.Wave;
+import com.Carewell.ecg700.port.Wave;
 import com.creative.sdkpack.R;
 import java.util.ArrayList;
 import java.util.List;

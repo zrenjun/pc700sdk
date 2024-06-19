@@ -1,6 +1,6 @@
 @file:Suppress("PackageName")
 
-package com.Carewell.ecg700
+package com.Carewell.ecg700.port
 
 import android.os.Handler
 import android.os.Looper

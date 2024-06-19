@@ -1,6 +1,5 @@
-package com.Carewell.ecg700
+package com.Carewell.ecg700.port
 
-import android.graphics.BitmapFactory
 import com.zkteco.android.IDReader.IDPhotoHelper
 import com.zkteco.android.IDReader.WLTService
 import java.io.UnsupportedEncodingException

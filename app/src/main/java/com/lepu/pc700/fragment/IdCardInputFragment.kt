@@ -4,9 +4,9 @@ import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.Fragment
 import com.Carewell.OmniEcg.jni.toJson
-import com.Carewell.ecg700.GetSMAInfo
-import com.Carewell.ecg700.LogUtil
-import com.Carewell.ecg700.observeEvent
+import com.Carewell.ecg700.port.GetSMAInfo
+import com.Carewell.ecg700.port.LogUtil
+import com.Carewell.ecg700.port.observeEvent
 import com.lepu.pc700.App
 import com.lepu.pc700.MainActivity
 import com.lepu.pc700.R

@@ -5,7 +5,7 @@ import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.DialogFragment
-import com.Carewell.ecg700.ParseEcg12Data
+import com.Carewell.ecg700.port.ParseEcg12Data
 import com.lepu.pc700.R
 import com.lepu.pc700.databinding.DialogEcg12FilterSettingsBinding
 import com.lepu.pc700.singleClick

@@ -1,10 +1,9 @@
-package com.Carewell.ecg700
+package com.Carewell.ecg700.port
 
 import com.Carewell.OmniEcg.jni.ConfigBean
 import com.Carewell.OmniEcg.jni.JniFilterNew
 import com.Carewell.OmniEcg.jni.PaceClearArr.feed
 import com.Carewell.OmniEcg.jni.WaveFilter.Companion.instance
-import com.lepu.pc_700.ble.toInt
 import kotlinx.coroutines.*
 
 /**
