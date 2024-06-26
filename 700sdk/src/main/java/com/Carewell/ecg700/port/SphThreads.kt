@@ -85,6 +85,17 @@ class SphThreads(inputStream: InputStream, listener: OnSerialPortDataListener) {
                                         val length = mReceiveBuffer[3].toInt() and 0xFF//长度
                                         if (mReceiveBuffer.size >= length + 4) {
                                             end = length + 4
+                                            //验证下一包头
+                                            if (mReceiveBuffer.size > end && mReceiveBuffer[end] != head1 && mReceiveBuffer[end] == head3) {
+                                                end = -1
+                                                LogUtil.v(
+                                                    "异常队列数据---->${
+                                                        HexUtil.bytesToHexString(
+                                                            mReceiveBuffer.toByteArray()
+                                                        )
+                                                    }"
+                                                )
+                                            }
                                         }
                                     }
                                     if (mReceiveBuffer[0] == head3 && (mReceiveBuffer[1] == head4 || mReceiveBuffer[1] == head5)) {
