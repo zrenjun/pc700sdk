@@ -32,7 +32,7 @@ object XmlUtil {
         return stringBuffer.toString()
     }
 
-    fun getHl7XmlMvData(context: Context,fileName: String): List<ShortArray> {  //mv 值
+    fun getHl7XmlMvData(context: Context, fileName: String): List<ShortArray> {  //mv 值
         var inputStream: InputStream? = null
         val list = mutableListOf<ShortArray>()
         try {
@@ -50,7 +50,7 @@ object XmlUtil {
                 element = obj as Element?
                 element?.element("sequence")?.element("value")?.let {
                     // gain
-                    val scale = it.element("scale")?.attributeValue("value")?.toFloat()?:1f
+                    val scale = it.element("scale")?.attributeValue("value")?.toFloat() ?: 1f
                     it.element("digits")?.let { digits ->
                         list.add(digits.text.split(" ").map { uv -> uv.toShort() }.toShortArray())
                     }
@@ -70,7 +70,7 @@ object XmlUtil {
             try {
                 xmlWriter.close()
             } catch (e: IOException) {
-               e.printStackTrace()
+                e.printStackTrace()
             }
         }
         if (null != out) {
@@ -278,8 +278,8 @@ object XmlUtil {
                     "MDC_ECG_ANGLE_P_FRONT" -> attribute?.text = "${result.aiResultBean.pAxis}"
                     "MDC_ECG_ANGLE_QRS_FRONT" -> attribute?.text = "${result.aiResultBean.qrsAxis}"
                     "MDC_ECG_ANGLE_T_FRONT" -> attribute?.text = "${result.aiResultBean.tAxis}"
-                    "ZONCARE_ECG_RV5" -> attribute?.text = "${result.aiResultBean.rV5}"
-                    "ZONCARE_ECG_SV1" -> attribute?.text = "${result.aiResultBean.sV1}"
+                    "ZONCARE_ECG_RV5" -> attribute?.text = "${result.aiResultBean.rV5 / 1000f}"
+                    "ZONCARE_ECG_SV1" -> attribute?.text = "${result.aiResultBean.sV1 / 1000f}"
                     //结论
                     "MDC_ECG_INTERPRETATION" -> {
                         annotation.elements("component").forEachIndexed { index, any ->

@@ -84,11 +84,11 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
     override fun onResume() {
         super.onResume()
         LogUtil.e("onResume")
-        launchWhenResumed {
-            withContext(Dispatchers.IO) {
-                pdfCreate()
-            }
-        }
+//        launchWhenResumed {
+//            withContext(Dispatchers.IO) {
+//                pdfCreate()
+//            }
+//        }
     }
 
     @SuppressLint("SimpleDateFormat")
@@ -105,7 +105,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         patientInfoBean.leadoffstate = 0  // 0 导联正常 1 导联有脱落
         val data = XmlUtil.getHl7XmlMvData(
             this,
-            "3_2024-06-18 183827.xml"
+            "1_2024-06-27 152605.xml"
         )  // I II III aVR aVL aVF V1 V2 V3 V4 V5 V6
         val filePath = "$PROJECT_DIR/test"
         XmlUtil.createDir(filePath)
