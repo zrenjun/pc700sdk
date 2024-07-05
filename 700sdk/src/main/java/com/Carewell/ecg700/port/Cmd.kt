@@ -152,6 +152,42 @@ object Cmd {
         0x02.toByte(),
         0x00.toByte()
     )
+    /**
+     * ֹͣ血压命令————设置成人
+     */
+    val bNIBP_SetAdult = byteArrayOf(
+        0xAA.toByte(),
+        0x55.toByte(),
+        0x40.toByte(),
+        0x03.toByte(),
+        0x04.toByte(),
+        0x00.toByte(),
+        0xEB.toByte()
+    )
+    /**
+     * ֹͣ血压命令————设置儿童
+     */
+    val bNIBP_SetChild = byteArrayOf(
+        0xAA.toByte(),
+        0x55.toByte(),
+        0x40.toByte(),
+        0x03.toByte(),
+        0x04.toByte(),
+        0x01.toByte(),
+        0xB5.toByte()
+    )
+    /**
+     * ֹͣ血压命令————设置婴儿
+     */
+    val bNIBP_SetInfant = byteArrayOf(
+        0xAA.toByte(),
+        0x55.toByte(),
+        0x40.toByte(),
+        0x03.toByte(),
+        0x04.toByte(),
+        0x02.toByte(),
+        0x57.toByte()
+    )
 
     /**
      * 血糖命令————设置设备类型

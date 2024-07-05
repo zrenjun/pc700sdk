@@ -75,6 +75,7 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
         (activity as MainActivity).setMainTitle("常规检测")
         //0：科瑞康血压模块 ,1：景新浩血压
         App.serial.mAPI?.setPressureMode(1)  //咨询销售确认设备模块供应商
+        App.serial.mAPI?.setNIBPAdult()
         App.serial.mAPI?.setGluType(gluDeviceType + 1)
         with(binding) {
             setUnitSp()

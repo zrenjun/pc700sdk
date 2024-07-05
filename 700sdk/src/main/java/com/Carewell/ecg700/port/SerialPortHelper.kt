@@ -226,6 +226,15 @@ class SerialPortHelper : OnSerialPortDataListener {
     fun stopNIBPMeasure() {
         send(WriteData(Cmd.bNIBP_StopMeasureNIBP, method = "停止血压测量"))
     }
+    fun setNIBPAdult() {
+        send(WriteData(Cmd.bNIBP_SetAdult, method = "血压设置成人"))
+    }
+    fun setNIBPChild() {
+        send(WriteData(Cmd.bNIBP_SetChild, method = "血压设置儿童"))
+    }
+    fun setNIBPInfant() {
+        send(WriteData(Cmd.bNIBP_SetInfant, method = "血压设置婴儿"))
+    }
 
     fun startTransfer() {
         pendingQueue.removeIf { it.bytes.contentEquals(Cmd.stopECG12Measure) }
