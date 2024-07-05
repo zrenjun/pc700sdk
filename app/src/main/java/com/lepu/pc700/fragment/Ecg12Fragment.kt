@@ -364,7 +364,6 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
         super.onStop()
         isStart = false
         countDownJob?.cancel()
-        App.serial.mAPI?.stopECG12Measure()
     }
 
     override fun onDestroy() {
