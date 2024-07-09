@@ -9,6 +9,16 @@ package com.Carewell.ecg700.port
  */
 object Cmd {
 
+    /** 查询电量  */
+    val queryBattery = byteArrayOf(
+        0xAA.toByte(),
+        0x55.toByte(),
+        0xFF.toByte(),
+        0x02.toByte(),
+        0x03.toByte(),
+        0x76.toByte()
+    )
+
     /**
      * 体温模式切换
      * @param  1 表示耳温模式；2 表示成人额温模式； 3 表示儿童额温模式；4 表示物温模式
