@@ -57,6 +57,11 @@ public abstract class BaseEcgPreviewTemplate {
     float leadHeight;
     int leadLines;
     int leadColumes;
+
+    public int getLeadColumes() {
+        return leadColumes;
+    }
+
     //定标符号
     ScaleBean scaleBean;
     PreviewPageEnum previewPageEnum;
