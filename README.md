@@ -9,73 +9,28 @@
 >   Add it in your root build.gradle at the end of repositories:
 > 
 >      dependencyResolutionManagement {
-> 		repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-> 		repositories {
-> 			maven { 
->               url = uri("https://jitpack.io")
->           }
-> 		}
-> 	 }
+> 		  repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+> 		  repositories {
+> 			  maven { 
+>                 url = uri("https://jitpack.io")
+>             }
+> 		  }
+> 	   }
 > 
 > Step 2. Add the dependency     
 > 
 >      dependencies {
-> 	    implementation 'com.github.zrenjun:pc700sdk:1.0.15'
-> 	 }
+> 	       implementation 'com.github.zrenjun:pc700sdk:1.0.15'
+> 	   }
 > 
 > Step 3. Add the ndk
 >      ndk {
->             abiFilters.add("arm64-v8a")
+>           abiFilters.add("arm64-v8a")
 >      }
 > ```
 
 
-
-## 2.申请使用权限（https://developer.android.com/guide/topics/connectivity/usb/host?hl=zh-cn）
-
-> ```
-> <manifest ...>
->   <uses-feature android:name="android.hardware.usb.host" /> <!-- usb权限 -->
->   <uses-sdk android:minSdkVersion="12" />
->   ...
->   <application>
->       <!-- 适配7.0 -->
->        <provider
->             android:name="androidx.core.content.FileProvider"
->             android:authorities="${applicationId}.fileprovider"
->             android:exported="false"
->             android:grantUriPermissions="true">
->             <meta-data
->                 android:name="android.support.FILE_PROVIDER_PATHS"
->                 android:resource="@xml/provider_paths" />
->         </provider>
->    
->       <activity ...>
->          ...
->            <!-- usb连接 -->
->           <intent-filter>
->               <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
->           </intent-filter>
->    
->           <meta-data android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
->            android:resource="@xml/device_filter" />
->       </activity>
->    </application>
->    </manifest>
->   
-> ```
-
-> ```
-> <?xml version="1.0" encoding="utf-8"?>
-> 
-> <resources>
->    <usb-device vendor-id="6790" product-id="29987" /> <!-- FT230X -->
-> </resources>
-> ```
-
-
-
-## 3.设备串口通信流程提示，详例参见demo
+## 2.设备串口通信流程提示，详例参见demo
 
 > 1. 初始化      
 >
@@ -103,9 +58,7 @@
 >    }
 >    ```
 
-
-
-## 4.生成Hl7Xml文件并获取本地心电报告
+## 3.生成Hl7Xml文件并获取本地心电报告
 
 > 具体参见Ecg12Fragment
 
@@ -114,14 +67,14 @@
 3. EcgDataManager（jpg,pdf）
 
 
-## 5.切换12导波形展示
+## 4.切换12导波形展示
 
 > ```
 > MainEcgManager.getInstance().updateMainEcgShowStyle(LeadType.LEAD_6)
 > ```
 
 
-## 6.固件升级
+## 5.固件升级
 
 > ```
 > 具体参见：FirmwareUpgradeDialog
@@ -129,14 +82,14 @@
 > ```
 >
 
-## 7.日志发送
+## 6.日志发送
 
 > ```
 > 串口日志分享：StreamLogFileManager.share()
 > ```
 >
 
-## 8.OTG开关
+## 7.OTG开关
 
 > ```
 > host/device模式：sendBroadcast(Intent("android.intent.action.${if (flag) "enablehostmode" else "disablehostmode"}"))
