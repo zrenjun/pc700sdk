@@ -151,7 +151,7 @@ object ParseData {
                     val temp1 = bytes[5].toInt() and 0xff
                     val chargeStatus = temp1 shr 7 and 0x01 //充电状态
                     val ac = temp1 shr 6 and 0x01 //ac充电线插入
-                    val chargeLvl = temp1 and 0x07 //电量等级
+                    val chargeLvl = temp1 and 0x3f //电量等级 0 0 000 000 -> 00 111 111 = 3f
                     postEvent(BatteryStatusEvent(chargeLvl, chargeStatus, ac))
                 }
             }
