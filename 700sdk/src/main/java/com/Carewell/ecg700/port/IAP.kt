@@ -425,7 +425,11 @@ internal class IAPFile(input: InputStream) {
             buffer = ByteArray(length)
         }
         for (i in 0 until size) {
-            buf[offset + i] = buffer[position++].toInt() and 0xFF
+            try {
+                buf[offset + i] = buffer[position++].toInt() and 0xFF
+            }catch (e: Exception){
+                e.printStackTrace()
+            }
         }
         return size
     }
