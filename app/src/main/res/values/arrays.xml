@@ -55,66 +55,65 @@
 
 
     <string-array name="nibp_errors">
-        <item>Self-test fail</item>
-        <item>Cuff error</item>
-        <item>Air leakage</item>
-        <item>Pressure error</item>
-        <item>Signal weak</item>
-        <item>Over scope</item>
-        <item>overexercise</item>
-        <item>Overpressure protection</item>
-        <item>Signal saturation</item>
-        <item>Test air leakage</item>
-        <item>Pneumatic system error</item>
-        <item>Measure timeout</item>
-        <item>Persist</item>
-        <item>Low battery, measurement terminated</item>
-        <item>Cuff type error</item>
+        <item>血压自检测失败</item>
+        <item>袖带错误</item>
+        <item>漏气</item>
+        <item>压力错误</item>
+        <item>血压信号微弱</item>
+        <item>血压超出范围</item>
+        <item>过度运动</item>
+        <item>检测到过压</item>
+        <item>血压信号饱和</item>
+        <item>血压测试漏气</item>
+        <item>血压模块错误</item>
+        <item>血压测量超时</item>
+        <item>预留</item>
+        <item>电量过低，血压暂停使用</item>
+        <item>袖带类型错误</item>
     </string-array>
 
     <string-array name="nibp_result">
-        <item>O</item>
-        <item>N</item>
-        <item>H</item>
-        <item>G1</item>
-        <item>G2</item>
-        <item>G3</item>
+        <item>血压最佳</item>
+        <item>血压正常</item>
+        <item>血压临高</item>
+        <item>血压轻高</item>
+        <item>血压中高</item>
+        <item>血压重高</item>
     </string-array>
 
     <string-array name="ecg_result">
-        <item>No irregularity found.</item>
-        <item>Suspected a little fast beat.</item>
-        <item>Suspected fast beat.</item>
-        <item>Suspected short run of fast beat.</item>
-        <item>Suspected a little slow beat.</item>
-        <item>Suspected slow beat.</item>
-        <item>Suspected occasional short beat interval.</item>
-        <item>Suspected irregular beat interval.</item>
-        <item>Suspected fast beat with short beat interval.</item>
-        <item>Suspected slow beat with short beat interval.</item>
-        <item>Suspected slow beat with irregular beat interval.</item>
-        <item>Waveform baseline wander.Measure again.</item>
-        <item>Suspected fast beat with baseline wander.</item>
-        <item>Suspected slow beat with baseline wander.</item>
-        <item>Suspected occasional short beat interval with baseline wander.</item>
-        <item>Suspected irregular beat interval with baseline wander.</item>
-        <item>Poor signal, Measure again.</item>
-        <item>The results of the analysis error</item>
+        <item>波形未见异常</item>
+        <item>波形疑似心跳稍快，请注意休息</item>
+        <item>波形疑似心跳过快，请注意休息</item>
+        <item>波形疑似阵发性心跳过快，请咨询医生</item>
+        <item>波形疑似心跳稍缓，请注意休息</item>
+        <item>波形疑似心跳过缓，请注意休息</item>
+        <item>波形疑似偶发心跳间期缩短，请咨询医生</item>
+        <item>波形疑似心跳间期不规则，请咨询医生</item>
+        <item>波形疑似心跳稍快伴有偶发心跳间期缩短，请咨询医生</item>
+        <item>波形疑似心跳稍缓伴有偶发心跳间期缩短，请咨询医生</item>
+        <item>波形疑似心跳稍缓伴有心跳间期不规则，请咨询医生</item>
+        <item>波形有漂移请重新测量</item>
+        <item>波形疑似心跳过快伴有波形漂移，请咨询医生</item>
+        <item>波形疑似心跳过缓伴有波形漂移，请咨询医生</item>
+        <item>波形疑似偶发心跳间期缩短伴有波形漂移，请咨询医生</item>
+        <item>波形疑似心跳间期不规则伴有波形漂移，请咨询医生</item>
+        <item>信号较差请重新测量</item>  <!-- 16 -->
     </string-array>
 
     <!-- 2017-05-09 -->
     <string-array name="spo2_rank">
-        <item>normal</item>
-        <item>low,please pay attention to rest</item>
-        <item>too low,please consulting doctor</item>
+        <item>正常</item>
+        <item>偏低,请注意休息</item>
+        <item>过低,请咨询医生</item>
     </string-array>
 
     <string-array name="pr_rank">
-        <item>normal</item>
-        <item>low,please pay attention to rest</item>
-        <item>too low,please consulting doctor</item>
-        <item>hight,please pay attention to rest</item>
-        <item>too hight,please consulting doctor</item>
+        <item>正常</item>
+        <item>偏低,请注意休息</item>
+        <item>过低,请咨询医生</item>
+        <item>偏高,请注意休息</item>
+        <item>过高,请咨询医生</item>
     </string-array>
 
     <string-array name="ecgGain">

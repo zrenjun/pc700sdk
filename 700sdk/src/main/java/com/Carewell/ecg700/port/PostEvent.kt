@@ -36,7 +36,7 @@ data class GetDeviceVersionEvent(val hardwareVersion: Int, val softwareVersion: 
 
 /**
  * 电池状态
- * @param chargeLevel 电量等级 ,下位机未实现，预留
+ * @param chargeLevel 电量等级 ,1-4
  * @param chargeStatus  充电状态：1:充电中，0:充满电
  * @param ac 为1时表示AC供电接入
  */
@@ -306,7 +306,7 @@ data class GetGLUType(val type: Int)
 data class GetGLUResult(val type: Int, val data: String, val unit: String)
 
 /**
- * 尿酸
+ * 尿酸(UA)
  *
  * @param type 0结果正常 1结果偏低 2结果偏高
  * @param data 尿酸值
@@ -315,7 +315,7 @@ data class GetGLUResult(val type: Int, val data: String, val unit: String)
 data class GetUAResult(val type: Int, val data: Float, val unit: Int)
 
 /**
- * 总胆固醇(CHOL)(UA)
+ * 总胆固醇(CHOL)
  *
  * @param type 0结果正常 1结果偏低 2结果偏高
  * @param data 胆固醇值

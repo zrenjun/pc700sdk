@@ -148,10 +148,15 @@ object ParseData {
                 }
 
                 0x03 -> { //充电标识
+                    //充电|电量：   0 0 000 111
+                    //bit7：充电标志，为 1 时表示正在充电
+                    //bit6：AC 插入标志，为 1 时表示 AC 供电接入
+                    //bit5-bit3：保留
+                    //bit0-bit2：电量等级
                     val temp1 = bytes[5].toInt() and 0xff
                     val chargeStatus = temp1 shr 7 and 0x01 //充电状态
                     val ac = temp1 shr 6 and 0x01 //ac充电线插入
-                    val chargeLvl = temp1 and 0x3f //电量等级 0 0 000 000 -> 00 111 111 = 3f
+                    val chargeLvl = temp1 and 0x07 //电量等级
                     postEvent(BatteryStatusEvent(chargeLvl, chargeStatus, ac))
                 }
             }

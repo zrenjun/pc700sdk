@@ -69,7 +69,6 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
     private var gluDeviceType = 0// 0:怡成，1:百捷 ,2:爱奥乐,3:乐普
     private var tempMode = 1// 1 表示耳温模式；2 表示成人额温模式； 3 表示儿童额温模式；4 表示物温模式
 
-    @RequiresApi(Build.VERSION_CODES.M)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         (activity as MainActivity).setMainTitle("常规检测")
@@ -303,7 +302,7 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
             LogUtil.e(it.toJson())
             binding.tvSys.text = resources.getString(R.string.const_sys_text)
             if (it.error > 0) {
-                val errMsg: String = resources.getStringArray(R.array.nibp_errors)[it.error - 1]
+                val errMsg = resources.getStringArray(R.array.nibp_errors)[it.error - 1]
                 binding.tvResult.text = errMsg
             }
             binding.insView.setProgress(0, false)
@@ -871,24 +870,23 @@ fun changeNibp2kpa(mmHg: Int): Float {
 
 
 /**
- * 获取体温结果
- *
- * @param temp 摄氏度
- * @return 0:温度低于测量范围，请重新测量 <br></br>
- * 1:体温偏低 <br></br>
- * 2:体温正常 <br></br>
- * 3:体温偏高 <br></br>
- * 4:温度高于测量范围，请重新测量
- */
+* 获取体温结果
+*
+* @param temp 摄氏度
+* @return 0:温度低于测量范围，请重新测量 <br></br>
+* 1:体温偏低 <br></br>
+* 2:体温正常 <br></br>
+* 3:体温偏高 <br></br>
+* 4:温度高于测量范围，请重新测量
+*/
 fun getTempRank(temp: Float): Int {
-    //System.out.println(aa+"<35.8:"+(aa<35.8)); // true, 所以数值要加"f"
     if (temp < 32) {
         return 0
     } else if (temp >= 32 && temp < 35.8f) {
         return 1
-    } else if (temp >= 35.8f && temp <= 37.4f) {
+    } else if (temp in 35.5f..37.5f) {
         return 2
-    } else if (temp > 37.4f && temp <= 43) {
+    } else if (temp > 37.5f && temp <= 43) {
         return 3
     } else if (temp > 43) {
         return 4
@@ -910,7 +908,7 @@ fun getTempRank(temp: Float): Int {
  */
 fun getGLURank(gluMmol: Float, type: Int): Int {
     if (type == 0) { //空腹
-        if (gluMmol >= 3.9f && gluMmol <= 6.1f) {
+        if (gluMmol in 3.9f..6.1f) {
             return 0
         } else if (gluMmol > 6.1f && gluMmol < 7) {
             return 1
@@ -924,7 +922,7 @@ fun getGLURank(gluMmol: Float, type: Int): Int {
             return 5
         }
     } else if (type == 1) { //餐后2小时
-        if (gluMmol >= 3.9f && gluMmol <= 7.8f) {
+        if (gluMmol in 3.9f..7.8f) {
             return 0
         } else if (gluMmol > 7.8f && gluMmol < 11.1) { //稍高
             return 1
@@ -949,13 +947,13 @@ fun getGLURank(gluMmol: Float, type: Int): Int {
  * 3:总胆固醇高于测量范围，请重新测量
  */
 fun getCHOLRank(cholMMOL: Float): Int {
-    if (cholMMOL >= 2.59f && cholMMOL < 5.2f) {
+    if (cholMMOL in 2.8f..5.2f) {
         return 0
     } else if (cholMMOL > 10.35f) {
         return 3
-    } else if (cholMMOL >= 5.2f) {
+    } else if (cholMMOL > 5.2f) {
         return 1
-    } else if (cholMMOL < 2.59f) {
+    } else if (cholMMOL < 2.8f) {
         return 2
     }
     return 0
@@ -969,14 +967,14 @@ fun getCHOLRank(cholMMOL: Float): Int {
  * 3:血酮高于测量范围，请重新测量
  */
 fun getBKRank(bkMMOL: Float): Int {
-    if (bkMMOL < 0.2f) {
-        return 2
+    if (bkMMOL in 0.03f..0.3f) {
+        return 0
     } else if (bkMMOL > 1.0f) {
         return 3
     } else if (bkMMOL >= 0.3f) {
         return 1
-    } else if (bkMMOL < 0.3f) {
-        return 0
+    } else if (bkMMOL < 0.03f) {
+        return 2
     }
     return 0
 }
@@ -985,55 +983,32 @@ fun getBKRank(bkMMOL: Float): Int {
 /**
  * 获取尿酸等级
  *
- * @param style  测量类型 0：成人男性，1：成人女性，2：儿童6-14岁
+ * @param style  测量类型 0：成人男性，1：成人女性
  * @param uaMmol 尿酸值，单位 mmol
  * @return 0:尿酸正常<br></br>
  * 1:尿酸偏低，请咨询医生<br></br>
  * 2:尿酸偏高，请咨询医生<br></br>
- * 3:尿酸低于测量范围，请重新测量
- * 4:尿酸高于测量范围，请重新测量
  */
 fun getUARank(style: Int, uaMmol: Float): Int {
     when (style) {
         0 -> {
-            if (uaMmol in 0.2f..0.42f) {
+            if (uaMmol in 0.149f..0.42f) {
                 return 0
-            } else if (uaMmol >= 0.18f && uaMmol < 0.2f) {
+            } else if (uaMmol < 0.149f) {
                 return 1
-            } else if (uaMmol > 0.42f && uaMmol <= 1.19f) {
+            } else if (uaMmol > 0.42f) {
                 return 2
-            } else if (uaMmol < 0.18f) {
-                return 3
-            } else if (uaMmol > 1.19f) {
-                return 4
             }
         }
-
         1 -> {
-            if (uaMmol in 0.14f..0.36f) {
+            if (uaMmol in 0.089f..0.36f) {
                 return 0
-            } else if (uaMmol < 0.14f) {
+            } else if (uaMmol < 0.089f) {
                 return 1
-            } else if (uaMmol > 0.36f && uaMmol <= 1.19f) {
+            } else if (uaMmol > 0.36f) {
                 return 2
-            } else if (uaMmol > 1.19f) {
-                return 4
             }
         }
-
-        2 -> {
-            if (uaMmol in 0.12f..0.33f) {
-                return 0
-            } else if (uaMmol < 0.12f) {
-                return 1
-            } else if (uaMmol > 0.33f && uaMmol <= 1.19f) {
-                return 2
-            } else if (uaMmol > 1.19f) {
-                return 4
-            }
-        }
-
-        else -> {}
     }
     return 0
 }
