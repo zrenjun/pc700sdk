@@ -60,35 +60,14 @@ object XmlUtil {
         } catch (e: Exception) {
             e.printStackTrace()
         } finally {
-            close(null, null, inputStream)
+            try {
+                inputStream?.close()
+            } catch (e: IOException) {
+                e.printStackTrace()
+            }
         }
         return list
     }
-
-    private fun close(xmlWriter: XMLWriter?, out: OutputStream?, ipPut: InputStream?) {
-        if (null != xmlWriter) {
-            try {
-                xmlWriter.close()
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
-        }
-        if (null != out) {
-            try {
-                out.close()
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
-        }
-        if (null != ipPut) {
-            try {
-                ipPut.close()
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
-        }
-    }
-
 
     @SuppressLint("SimpleDateFormat")
     fun makeHl7Xml(
@@ -129,7 +108,7 @@ object XmlUtil {
 
         try {
             val sax = SAXReader()
-            input = context.resources.assets.open("ceshi.xml")
+            input = context.resources.assets.open("hunan_local.xml")
             doc = sax.read(input)
             // 根节点
             val root = doc.rootElement
@@ -259,95 +238,99 @@ object XmlUtil {
                 }
             }
 
-           result?.let {
-               //注释集
-               val subjectOf = series.element("subjectOf")
-               val annotationSet = subjectOf.element("annotationSet")
-               annotationSet.element("activityTime").attribute("value").text = effectiveTimeLow
-               val components = annotationSet.elements("component")
-               for (obj in components) {
-                   val element = obj as Element
-                   val annotation = element.element("annotation")
-                   val codeValue = annotation.element("code").attribute("code").value
-                   val attribute = annotation.element("value")?.attribute("value")
-                   when (codeValue) {
-                       "MDC_ECG_HEART_RATE" -> attribute?.text = "${result.aiResultBean.hr}"
-                       "MDC_ECG_TIME_PD_PR" -> attribute?.text = "${result.aiResultBean.pr}"
-                       "MDC_ECG_TIME_PD_QRS" -> attribute?.text = "${result.aiResultBean.qrs}"
-                       "MDC_ECG_TIME_PD_QT" -> attribute?.text = "${result.aiResultBean.qt}"
-                       "MDC_ECG_TIME_PD_QTc" -> attribute?.text = "${result.aiResultBean.qTc}"
-                       "MDC_ECG_ANGLE_P_FRONT" -> attribute?.text = "${result.aiResultBean.pAxis}"
-                       "MDC_ECG_ANGLE_QRS_FRONT" -> attribute?.text = "${result.aiResultBean.qrsAxis}"
-                       "MDC_ECG_ANGLE_T_FRONT" -> attribute?.text = "${result.aiResultBean.tAxis}"
-                       "ZONCARE_ECG_RV5" -> attribute?.text = "${result.aiResultBean.rV5 / 1000f}"
-                       "ZONCARE_ECG_SV1" -> attribute?.text = "${result.aiResultBean.sV1 / 1000f}"
-                       //结论
-                       "MDC_ECG_INTERPRETATION" -> {
-                           annotation.elements("component").forEachIndexed { index, any ->
-                               val diagnosis = result.aiResultBean.aiResultDiagnosisBean.diagnosis
-                               val ele = any as Element
-                               ele.element("annotation").element("value").text =
-                                   if (index < diagnosis.size) {
-                                       "${map[diagnosis[index].code]}"
-                                   } else {
-                                       ""
-                                   }
-                           }
-                       }
-                   }
-               }
-               val derivation = series.element("derivation")
-               val derivedSeries = derivation.element("derivedSeries")
-               effectiveTime = derivedSeries.element("effectiveTime")
-               effectiveTime.element("low").text = effectiveTimeLow
-               effectiveTime.element("high").text = effectiveTimeHigh
-               val sequences = derivedSeries.element("component").elements("sequenceSet")
-               for (obj in sequences) {
-                   val element = obj as Element
-                   val comp = element.element("component")
-                   val sequence = comp.element("sequence")
-                   val codeValue = sequence.element("code").attribute("code").value
-                   val value = sequence.element("value")
-                   when (codeValue) {
-                       "TIME_RELATIVE" -> value.element("increment").attribute("value").text = sample
-                       "MDC_ECG_LEAD_I" -> value.element("digits").text =
-                           "${result.aiResultBean.waveForm12[0]}"
+            result?.let {
+                //注释集
+                val subjectOf = series.element("subjectOf")
+                val annotationSet = subjectOf.element("annotationSet")
+                annotationSet.element("activityTime").attribute("value").text = effectiveTimeLow
+                val components = annotationSet.elements("component")
+                for (obj in components) {
+                    val element = obj as Element
+                    val annotation = element.element("annotation")
+                    val codeValue = annotation.element("code").attribute("code").value
+                    val attribute = annotation.element("value")?.attribute("value")
+                    when (codeValue) {
+                        "MDC_ECG_HEART_RATE" -> attribute?.text = "${result.aiResultBean.hr}"
+                        "MDC_ECG_TIME_PD_PR" -> attribute?.text = "${result.aiResultBean.pr}"
+                        "MDC_ECG_TIME_PD_QRS" -> attribute?.text = "${result.aiResultBean.qrs}"
+                        "MDC_ECG_TIME_PD_QT" -> attribute?.text = "${result.aiResultBean.qt}"
+                        "MDC_ECG_TIME_PD_QTc" -> attribute?.text = "${result.aiResultBean.qTc}"
+                        "MDC_ECG_ANGLE_P_FRONT" -> attribute?.text = "${result.aiResultBean.pAxis}"
+                        "MDC_ECG_ANGLE_QRS_FRONT" -> attribute?.text =
+                            "${result.aiResultBean.qrsAxis}"
 
-                       "MDC_ECG_LEAD_II" -> value.element("digits").text =
-                           "${result.aiResultBean.waveForm12[1]}"
+                        "MDC_ECG_ANGLE_T_FRONT" -> attribute?.text = "${result.aiResultBean.tAxis}"
+                        "ZONCARE_ECG_RV5" -> attribute?.text = "${result.aiResultBean.rV5 / 1000f}"
+                        "ZONCARE_ECG_SV1" -> attribute?.text = "${result.aiResultBean.sV1 / 1000f}"
+                        //结论
+                        "MDC_ECG_INTERPRETATION" -> {
+                            annotation.elements("component").forEachIndexed { index, any ->
+                                val diagnosis = result.aiResultBean.aiResultDiagnosisBean.diagnosis
+                                val ele = any as Element
+                                ele.element("annotation").element("value").text =
+                                    if (index < diagnosis.size) {
+                                        "${map[diagnosis[index].code]}"
+                                    } else {
+                                        ""
+                                    }
+                            }
+                        }
+                    }
+                }
+                val derivation = series.element("derivation")
+                val derivedSeries = derivation.element("derivedSeries")
+                effectiveTime = derivedSeries.element("effectiveTime")
+                effectiveTime.element("low").text = effectiveTimeLow
+                effectiveTime.element("high").text = effectiveTimeHigh
+                val sequences = derivedSeries.element("component").elements("sequenceSet")
+                for (obj in sequences) {
+                    val element = obj as Element
+                    val comp = element.element("component")
+                    val sequence = comp.element("sequence")
+                    val codeValue = sequence.element("code").attribute("code").value
+                    val value = sequence.element("value")
+                    when (codeValue) {
+                        "TIME_RELATIVE" -> value.element("increment").attribute("value").text =
+                            sample
 
-                       "MDC_ECG_LEAD_III" -> value.element("digits").text =
-                           "${result.aiResultBean.waveForm12[2]}"
+                        "MDC_ECG_LEAD_I" -> value.element("digits").text =
+                            "${result.aiResultBean.waveForm12[0]}"
 
-                       "MDC_ECG_LEAD_AVR" -> value.element("digits").text =
-                           "${result.aiResultBean.waveForm12[3]}"
+                        "MDC_ECG_LEAD_II" -> value.element("digits").text =
+                            "${result.aiResultBean.waveForm12[1]}"
 
-                       "MDC_ECG_LEAD_AVL" -> value.element("digits").text =
-                           "${result.aiResultBean.waveForm12[4]}"
+                        "MDC_ECG_LEAD_III" -> value.element("digits").text =
+                            "${result.aiResultBean.waveForm12[2]}"
 
-                       "MDC_ECG_LEAD_AVF" -> value.element("digits").text =
-                           "${result.aiResultBean.waveForm12[5]}"
+                        "MDC_ECG_LEAD_AVR" -> value.element("digits").text =
+                            "${result.aiResultBean.waveForm12[3]}"
 
-                       "MDC_ECG_LEAD_V1" -> value.element("digits").text =
-                           "${result.aiResultBean.waveForm12[6]}"
+                        "MDC_ECG_LEAD_AVL" -> value.element("digits").text =
+                            "${result.aiResultBean.waveForm12[4]}"
 
-                       "MDC_ECG_LEAD_V2" -> value.element("digits").text =
-                           "${result.aiResultBean.waveForm12[7]}"
+                        "MDC_ECG_LEAD_AVF" -> value.element("digits").text =
+                            "${result.aiResultBean.waveForm12[5]}"
 
-                       "MDC_ECG_LEAD_V3" -> value.element("digits").text =
-                           "${result.aiResultBean.waveForm12[8]}"
+                        "MDC_ECG_LEAD_V1" -> value.element("digits").text =
+                            "${result.aiResultBean.waveForm12[6]}"
 
-                       "MDC_ECG_LEAD_V4" -> value.element("digits").text =
-                           "${result.aiResultBean.waveForm12[9]}"
+                        "MDC_ECG_LEAD_V2" -> value.element("digits").text =
+                            "${result.aiResultBean.waveForm12[7]}"
 
-                       "MDC_ECG_LEAD_V5" -> value.element("digits").text =
-                           "${result.aiResultBean.waveForm12[10]}"
+                        "MDC_ECG_LEAD_V3" -> value.element("digits").text =
+                            "${result.aiResultBean.waveForm12[8]}"
 
-                       "MDC_ECG_LEAD_V6" -> value.element("digits").text =
-                           "${result.aiResultBean.waveForm12[11]}"
-                   }
-               }
-           }
+                        "MDC_ECG_LEAD_V4" -> value.element("digits").text =
+                            "${result.aiResultBean.waveForm12[9]}"
+
+                        "MDC_ECG_LEAD_V5" -> value.element("digits").text =
+                            "${result.aiResultBean.waveForm12[10]}"
+
+                        "MDC_ECG_LEAD_V6" -> value.element("digits").text =
+                            "${result.aiResultBean.waveForm12[11]}"
+                    }
+                }
+            }
 
             // 输出格式
             val outformat = OutputFormat()
@@ -378,6 +361,22 @@ object XmlUtil {
         doc?.asXML()
     }
 
+    /**
+     * 递归创建文件夹
+     */
+    @Throws(IOException::class)
+    fun createFile(path: String, fileName: String): File? {
+        val filePath = createDir(path)
+        if (filePath != null) {
+            val file = File(filePath, fileName)
+            if (file.exists()) {
+                file.delete()
+            }
+            file.createNewFile()
+            return file
+        }
+        return null
+    }
 
     /**
      * 递归创建文件夹
@@ -529,7 +528,193 @@ object XmlUtil {
         put("110", "窦性心律")
         put("101", "正常范围内")
     }
+
+
+    @SuppressLint("SimpleDateFormat")
+    fun makeHl7Xml(
+        context: Context,
+        ecgDataArray: Array<ShortArray>,
+        leadType: LeadType,
+        filePath: String,
+        fileName: String,
+        startTime: Long,
+        endTime: Long,
+    ): String? {
+        //   V6 I II V1 V2 V3 V4 V5 III aVR aVL aVF
+        val leadV6String = getStringByShortArray(ecgDataArray[0])
+        val lead1String = getStringByShortArray(ecgDataArray[1])
+        val lead2String = getStringByShortArray(ecgDataArray[2])
+        val leadV1String = getStringByShortArray(ecgDataArray[3])
+        val leadV2String = getStringByShortArray(ecgDataArray[4])
+        val leadV3String = getStringByShortArray(ecgDataArray[5])
+        val leadV4String = getStringByShortArray(ecgDataArray[6])
+        val leadV5String = getStringByShortArray(ecgDataArray[7])
+        val lead3String = getStringByShortArray(ecgDataArray[8])
+        val leadaVRString = getStringByShortArray(ecgDataArray[9])
+        val leadaVLString = getStringByShortArray(ecgDataArray[10])
+        val leadaVFString = getStringByShortArray(ecgDataArray[11])
+        val effectiveTimeLow = SimpleDateFormat("yyyyMMddHHmmss").format(Date(startTime))
+        val effectiveTimeHigh = SimpleDateFormat("yyyyMMddHHmmss").format(Date(endTime))
+        val sample = "0.001" // 采样率
+        val gain = " 0.9536"
+        // 修改xml中的节点内容
+        var `is`: InputStream? = null
+        var out: OutputStream? = null
+        var xmlwriter: XMLWriter? = null
+        var doc: Document? = null
+        try {
+            val sax = SAXReader()
+            `is` = context.resources.assets.open("ai_ecg_data.xml")
+            doc = sax.read(`is`)
+            // 根节点
+            val root = doc.rootElement
+            // 取得某节点下名为"effectiveTime"的字节点
+            var effectiveTimeElement = root.element("effectiveTime")
+            /** 修改addAttribute的value值 <low value=“修改值”> text </low>  */
+            effectiveTimeElement.element("low").addAttribute("value", effectiveTimeLow)
+            effectiveTimeElement.element("high").addAttribute("value", effectiveTimeHigh)
+            /** 修改 <low value=“修改值”> text </low> 中text 的值  */
+            effectiveTimeElement.element("low").text = effectiveTimeLow
+            effectiveTimeElement.element("high").text = effectiveTimeHigh
+            // =====================
+            // 取得某节点下名为"componentOf/timepointEvent/effectiveTime"的所有字节点
+            val componentOfElement = root.element("componentOf")
+            val timepointEventElement = componentOfElement.element("timepointEvent")
+            effectiveTimeElement = timepointEventElement.element("effectiveTime")
+            //设置attribute值,分析中心要求此字段必填
+            effectiveTimeElement.element("low").addAttribute("value", effectiveTimeLow)
+            effectiveTimeElement.element("high").addAttribute("value", effectiveTimeHigh)
+            effectiveTimeElement.element("low").text = effectiveTimeLow
+            effectiveTimeElement.element("high").text = effectiveTimeHigh
+            // =====================
+            // 取得某节点下名为"component/series/effectiveTime"的所有字节点
+            var componentElement = root.element("component")
+            val seriesElement = componentElement.element("series")
+            effectiveTimeElement = seriesElement.element("effectiveTime")
+            effectiveTimeElement.element("low").addAttribute("value", effectiveTimeLow)
+            effectiveTimeElement.element("high").addAttribute("value", effectiveTimeHigh)
+            effectiveTimeElement.element("low").text = effectiveTimeLow
+            effectiveTimeElement.element("high").text = effectiveTimeHigh
+            // =====================
+            // 取得某节点下名为"component/series/component/sequenceSet"的所有字节点
+            componentElement = seriesElement.element("component")
+            val sequenceSetElement = componentElement.element("sequenceSet")
+            val nodesComponent = sequenceSetElement.elements("component")
+            var element: Element?
+            for (obj in nodesComponent) {
+                element = obj as Element?
+                val sequenceElement = element!!.element("sequence")
+                val codeElement = sequenceElement.element("code")
+                val codeValue = codeElement.attribute("code").value
+                if ("TIME_ABSOLUTE" == codeValue) {
+                    // sample
+                    val valueElement = sequenceElement.element("value")
+                    val incrementElement = valueElement.element("increment")
+                    incrementElement.attribute("value").text = sample
+                } else if ("MDC_ECG_LEAD_I" == codeValue || "MDC_ECG_LEAD_II" == codeValue
+                    || "MDC_ECG_LEAD_III" == codeValue || "MDC_ECG_LEAD_AVR" == codeValue
+                    || "MDC_ECG_LEAD_AVL" == codeValue || "MDC_ECG_LEAD_AVF" == codeValue
+                    || "MDC_ECG_LEAD_V1" == codeValue || "MDC_ECG_LEAD_V2" == codeValue
+                    || "MDC_ECG_LEAD_V3" == codeValue || "MDC_ECG_LEAD_V4" == codeValue
+                    || "MDC_ECG_LEAD_V5" == codeValue || "MDC_ECG_LEAD_V6" == codeValue
+                ) {
+                    val valueElement = sequenceElement.element("value")
+                    // gain
+                    val scaleElement = valueElement.element("scale")
+                    scaleElement.attribute("value").text = gain
+                    // data
+                    val digitsElement = valueElement.element("digits")
+                    when (codeValue) {
+                        "MDC_ECG_LEAD_I" -> digitsElement.text = lead1String
+                        "MDC_ECG_LEAD_II" -> digitsElement.text = lead2String
+                        "MDC_ECG_LEAD_III" -> digitsElement.text = lead3String
+                        "MDC_ECG_LEAD_AVR" -> digitsElement.text = leadaVRString
+                        "MDC_ECG_LEAD_AVL" -> digitsElement.text = leadaVLString
+                        "MDC_ECG_LEAD_AVF" -> digitsElement.text = leadaVFString
+                        "MDC_ECG_LEAD_V1" -> digitsElement.text = leadV1String
+                        "MDC_ECG_LEAD_V2" -> digitsElement.text = leadV2String
+                        "MDC_ECG_LEAD_V3" -> digitsElement.text = leadV3String
+                        "MDC_ECG_LEAD_V4" -> digitsElement.text = leadV4String
+                        "MDC_ECG_LEAD_V5" -> digitsElement.text = leadV5String
+                        "MDC_ECG_LEAD_V6" -> digitsElement.text = leadV6String
+                    }
+                }
+            }
+            //删除没用的节点
+            for (obj in nodesComponent) {
+                element = obj as Element?
+                val sequenceElement = element!!.element("sequence")
+                val codeElement = sequenceElement.element("code")
+                val codeValue = codeElement.attribute("code").value
+                if ("MDC_ECG_LEAD_I" == codeValue || "MDC_ECG_LEAD_II" == codeValue
+                    || "MDC_ECG_LEAD_III" == codeValue || "MDC_ECG_LEAD_AVR" == codeValue
+                    || "MDC_ECG_LEAD_AVL" == codeValue || "MDC_ECG_LEAD_AVF" == codeValue
+                    || "MDC_ECG_LEAD_V1" == codeValue || "MDC_ECG_LEAD_V2" == codeValue
+                    || "MDC_ECG_LEAD_V3" == codeValue || "MDC_ECG_LEAD_V4" == codeValue
+                    || "MDC_ECG_LEAD_V5" == codeValue || "MDC_ECG_LEAD_V6" == codeValue
+                ) {
+                    when (leadType) {
+                        LeadType.LEAD_6 -> if ("MDC_ECG_LEAD_V1" == codeValue || "MDC_ECG_LEAD_V2" == codeValue
+                            || "MDC_ECG_LEAD_V3" == codeValue || "MDC_ECG_LEAD_V4" == codeValue
+                            || "MDC_ECG_LEAD_V5" == codeValue || "MDC_ECG_LEAD_V6" == codeValue
+                        ) {
+                            element.detach()
+                        }
+
+                        LeadType.LEAD_I -> if ("MDC_ECG_LEAD_II" == codeValue || "MDC_ECG_LEAD_III" == codeValue
+                            || "MDC_ECG_LEAD_AVR" == codeValue || "MDC_ECG_LEAD_AVL" == codeValue
+                            || "MDC_ECG_LEAD_AVF" == codeValue || "MDC_ECG_LEAD_V1" == codeValue
+                            || "MDC_ECG_LEAD_V2" == codeValue || "MDC_ECG_LEAD_V3" == codeValue
+                            || "MDC_ECG_LEAD_V4" == codeValue || "MDC_ECG_LEAD_V5" == codeValue
+                            || "MDC_ECG_LEAD_V6" == codeValue
+                        ) {
+                            element.detach()
+                        }
+
+                        LeadType.LEAD_II -> if ("MDC_ECG_LEAD_I" == codeValue || "MDC_ECG_LEAD_III" == codeValue
+                            || "MDC_ECG_LEAD_AVR" == codeValue || "MDC_ECG_LEAD_AVL" == codeValue
+                            || "MDC_ECG_LEAD_AVF" == codeValue || "MDC_ECG_LEAD_V1" == codeValue
+                            || "MDC_ECG_LEAD_V2" == codeValue || "MDC_ECG_LEAD_V3" == codeValue
+                            || "MDC_ECG_LEAD_V4" == codeValue || "MDC_ECG_LEAD_V5" == codeValue
+                            || "MDC_ECG_LEAD_V6" == codeValue
+                        ) {
+                            element.detach()
+                        }
+
+                        else -> {}
+                    }
+                }
+            }
+            // 输出格式
+            val outformat = OutputFormat()
+            // 指定XML编码
+            outformat.encoding = "UTF-8"
+            outformat.isNewlines = true
+            outformat.setIndent(true)
+            outformat.isTrimText = true
+            //保存到本地
+            var file = createDir(filePath)
+            LogUtil.v("file" + file!!.path + "/" + fileName + ".xml")
+            file = File(file.path + "/" + fileName + ".xml")
+            out = FileOutputStream(file)
+            xmlwriter = XMLWriter(out, outformat)
+            xmlwriter.write(doc)
+            scamFile(context, file)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            try {
+                xmlwriter?.close()
+                out?.close()
+                `is`?.close()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+        return doc?.asXML()
+    }
 }
+
 
 //{
 //    "aiResultBean": {

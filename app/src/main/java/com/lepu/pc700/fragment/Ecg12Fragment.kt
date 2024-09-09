@@ -3,6 +3,7 @@ package com.lepu.pc700.fragment
 import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.view.WindowManager
 import androidx.fragment.app.Fragment
@@ -25,6 +26,11 @@ import com.lepu.pc700.databinding.FragmentEcg12Binding
 import com.lepu.pc700.delayOnLifecycle
 import com.lepu.pc700.dialog.Ecg12FilterSettingDialog
 import com.lepu.pc700.dialog.PROJECT_DIR
+import com.lepu.pc700.net.bean.Device
+import com.lepu.pc700.net.bean.Ecg
+import com.lepu.pc700.net.bean.EcgInfo
+import com.lepu.pc700.net.bean.User
+import com.lepu.pc700.net.vm.GetPDFViewModel
 import com.lepu.pc700.onItemSelectedListener
 import com.lepu.pc700.singleClick
 import com.lepu.pc700.toast
@@ -40,6 +46,10 @@ import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import kotlin.properties.Delegates
+import org.koin.androidx.viewmodel.ext.android.viewModel
+import java.util.Date
+import java.util.Locale
+
 
 class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
     private var checkTimeStamp = 0L
@@ -63,8 +73,9 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
     private var hpHz = 0.67f
     private var acHz = 50
 
+    private val viewModel: GetPDFViewModel by viewModel()
 
-        override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         (activity as MainActivity).setMainTitle("12导心电")
         if (!App.serialStart) {
@@ -182,7 +193,8 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
             binding.spinnerTime.isEnabled = true
             subscript = 0
             //测量完成分析
-            getLocalXML(saveDataList)
+//            getLocalXML(saveDataList)
+            getAiPdf(saveDataList)
         }, onStart = {
 
         })
@@ -406,7 +418,7 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
                     val filePath = "$PROJECT_DIR/test"
                     XmlUtil.createDir(filePath)
                     val fileName =
-                        SimpleDateFormat("yyyyMMddHHmmss").format(System.currentTimeMillis())
+                        SimpleDateFormat("yyyyMMddHHmmss").format(checkTimeStamp)
                     //本地算法分析，分析出来数据
                     val xmlPath = "${filePath}/${fileName}.xml"
                     //只需要8导联数据
@@ -426,7 +438,7 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
                         requireContext(),
                         "610423198612206399",
                         resultBean,
-                        saveDataList,
+                        ecgDataArray,
                         LeadType.LEAD_12,
                         filePath,
                         fileName,
@@ -441,7 +453,7 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
                         requireContext(),
                         patientInfoBean,
                         resultBean,
-                        saveDataList,
+                        ecgDataArray,
                         checkTimeStamp,
                         "$lowPassHz",
                         "$hpHz",
@@ -461,6 +473,36 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
                     e.printStackTrace()
                 }
             }
+        }
+    }
+
+    private fun getAiPdf(ecgDataArray: Array<ShortArray>) {
+        viewModel.getAIPdf(
+            requireContext(),
+            ecgDataArray,
+            EcgInfo().apply {
+                ecg = Ecg().apply {
+                    duration = time
+                    measure_time = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.CHINA).format(Date(checkTimeStamp))
+                }
+                user = User().apply {
+                    name = "test"
+                    phone = "18627222014"
+                    gender = "1"
+                    birthday = "1986-12-06"
+                    id_number = "421023198902223431"
+                }
+                device = Device().apply {
+                    sn = "519d9ccb40a0d478"
+                }
+            },
+            checkTimeStamp,
+            checkTimeStamp + time * 1000L,
+        )
+
+        viewModel.mECGPdf.observe(viewLifecycleOwner){
+            if (it != null)
+               LogUtil.e("pdf $it")
         }
     }
 }

@@ -3,6 +3,11 @@ package com.lepu.pc700
 import android.app.Application
 import com.Carewell.ecg700.port.CommonApp
 import com.Carewell.ecg700.port.LogUtil
+import com.lepu.pc700.net.appModule
+import org.koin.android.ext.koin.androidContext
+import org.koin.android.logger.AndroidLogger
+import org.koin.core.context.GlobalContext.startKoin
+import org.koin.core.logger.Level
 import kotlin.properties.Delegates
 
 /**
@@ -27,5 +32,11 @@ class App : Application() {
         //初始化串口
         serial = SerialViewModel(this)
         serial.start()
+
+        startKoin {
+            AndroidLogger(Level.DEBUG)
+            androidContext(this@App)
+            modules(appModule)
+        }
     }
 }
