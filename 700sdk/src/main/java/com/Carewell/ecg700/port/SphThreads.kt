@@ -1,5 +1,6 @@
 package com.Carewell.ecg700.port
 
+import com.Carewell.ecg700.ParseData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel

@@ -93,6 +93,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
 
     @SuppressLint("SimpleDateFormat")
     private fun pdfCreate() {
+
         val patientInfoBean = PatientInfoBean()
         patientInfoBean.archivesName = "moArchivesName"
         patientInfoBean.firstName = "moFirstName"

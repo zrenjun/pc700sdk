@@ -11,7 +11,7 @@ import com.Carewell.ecg700.port.ECGData
 import com.Carewell.ecg700.port.GetSingleECGRealTime
 import com.Carewell.ecg700.port.GetSingleECGResult
 import com.Carewell.ecg700.port.LogUtil
-import com.Carewell.ecg700.port.ParseData
+import com.Carewell.ecg700.ParseData
 import com.Carewell.ecg700.port.observeEvent
 import com.lepu.pc700.App
 import com.lepu.pc700.MainActivity
