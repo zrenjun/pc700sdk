@@ -6,7 +6,7 @@ plugins {
 //    Strongly consider using FLAG_IMMUTABLE, only use FLAG_MUTABLE if some functionality depends on the PendingIntent being mutable, e.g. if it needs to be used with inline replies or bubbles.
 android {
     compileSdk 34
-
+    namespace 'com.lepu.pc700'
     defaultConfig {
         applicationId "com.lepu.pc700"
         minSdk 24
@@ -39,22 +39,20 @@ android {
             signingConfig signingConfigs.app
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            buildConfigField "boolean", 'IS_DEBUG', 'true'
         }
         release {
             signingConfig signingConfigs.app
             minifyEnabled false
 
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            buildConfigField "boolean", 'IS_DEBUG', 'false'
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = '17'
     }
 
     configurations.all {

@@ -96,7 +96,7 @@ class SerialPortHelper : OnSerialPortDataListener {
                     }
                     writeData = pendingQueue.poll()
                     retry = writeData?.retry ?: 0
-                    LogUtil.v("新命令 ----> ${writeData?.method}")
+
                     sendData()
                 }
             }
@@ -147,7 +147,7 @@ class SerialPortHelper : OnSerialPortDataListener {
                     mTimeoutHandler.postDelayed(mCommandTimeoutRunnable, it.commandTimeoutMill)
                 }
                 try {
-                    LogUtil.v("---->  " + HexUtil.bytesToHexString(it.bytes))
+                    LogUtil.v("新命令 ----> ${writeData?.method}  "  + HexUtil.bytesToHexString(it.bytes))
                     serialPort.outputStream.write(it.bytes)
                     serialPort.outputStream.flush()
                 } catch (e: IOException) {
@@ -249,7 +249,7 @@ class SerialPortHelper : OnSerialPortDataListener {
                 method = "开始12导透传",
                 priority = Priority.DEFAULT,
                 isCRC = false,
-                commandTimeoutMill = 2000L
+                commandTimeoutMill = 3000L
             )
         )
     }

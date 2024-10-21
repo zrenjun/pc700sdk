@@ -84,7 +84,7 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
         }
         //屏幕常亮
         requireActivity().window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        MainEcgManager.getInstance().init(requireContext())
+        MainEcgManager.getInstance().init()
         //默认增益
         val gain = "10"
         updateGain(gain, true)
@@ -193,8 +193,8 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
             binding.spinnerTime.isEnabled = true
             subscript = 0
             //测量完成分析
-//            getLocalXML(saveDataList)
-            getAiPdf(saveDataList)
+            getLocalXML(saveDataList)
+//            getAiPdf(saveDataList)
         }, onStart = {
 
         })
@@ -290,68 +290,69 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
     private var isInit = true
     private var timeDelay = 0L
 
+    private var ecg12DataListener= object : OnECG12DataListener {
+        override fun onECG12DataReceived(ecg12Data: IntArray) {
+            val ecgDataArray = Array(12) { ShortArray(1) }
+            ecg12Data.forEachIndexed { index, i ->
+                ecgDataArray[index][0] = i.toShort()
+                if (isStart && subscript < saveDataList[0].size) {
+                    saveDataList[index][subscript] = i.toShort()
+                }
+            }
+            if (isStart) {
+                subscript++
+            }
+
+            if (isInit) {
+                timeDelay = System.currentTimeMillis()
+                isInit = false
+            }
+            if (System.currentTimeMillis() - timeDelay < 2000L) {
+                return
+            }
+            if (loading.isShow) {
+                activity?.runOnUiThread { loading.dismiss() }
+            }
+
+            MainEcgManager.getInstance().addEcgData(ecgDataArray)
+        }
+
+        override fun onHrReceived(hr: Int) {
+            if (loading.isShow || hr == -1) return
+
+            val now = System.currentTimeMillis()
+            if (now - preHrTime > 500) {//心电刷新率  500毫秒刷新一次。
+                preHrTime = now
+                if (!isPause) {
+                    binding.tvHr.delayOnLifecycle {
+                        val preHr = binding.tvHr.text.toString()
+                        if (preHr != "--" && preHr.toInt() != hr) {
+                            LogUtil.v("心率  ---->  $hr")
+                        }
+                        binding.tvHr.text = if (hr == 0) "--" else "$hr"
+                    }
+                }
+            }
+        }
+
+        override fun onLeadFailReceived(leadFail: String, fall: Boolean) {
+            val now = System.currentTimeMillis()
+            if (now - preLeadTime > 100) {
+                preLeadTime = now
+                if (!isPause) {
+                    //联导脱落
+                    binding.tvLeadFall.delayOnLifecycle {
+                        binding.tvLeadFall.text = getStrByLeadFall(
+                            leadFail + getString(if (fall) R.string.fall else R.string.lead_normal),
+                            fall
+                        )
+                    }
+                }
+            }
+        }
+    }
     private fun initData() {
-        App.serial.mAPI?.setEcgListener(object : OnECG12DataListener {
-            override fun onECG12DataReceived(ecg12Data: IntArray) {
-                val ecgDataArray = Array(12) { ShortArray(1) }
-                ecg12Data.forEachIndexed { index, i ->
-                    ecgDataArray[index][0] = i.toShort()
-                    if (isStart && subscript < saveDataList[0].size) {
-                        saveDataList[index][subscript] = i.toShort()
-                    }
-                }
-                if (isStart) {
-                    subscript++
-                }
-
-                if (isInit) {
-                    timeDelay = System.currentTimeMillis()
-                    isInit = false
-                }
-                if (System.currentTimeMillis() - timeDelay < 2000L) {
-                    return
-                }
-                if (loading.isShow) {
-                    activity?.runOnUiThread { loading.dismiss() }
-                }
-
-                MainEcgManager.getInstance().addEcgData(ecgDataArray)
-            }
-
-            override fun onHrReceived(hr: Int) {
-                if (loading.isShow || hr == -1) return
-
-                val now = System.currentTimeMillis()
-                if (now - preHrTime > 500) {//心电刷新率  500毫秒刷新一次。
-                    preHrTime = now
-                    if (!isPause) {
-                        binding.tvHr.delayOnLifecycle {
-                            val preHr = binding.tvHr.text.toString()
-                            if (preHr != "--" && preHr.toInt() != hr) {
-                                LogUtil.v("心率  ---->  $hr")
-                            }
-                            binding.tvHr.text = if (hr == 0) "--" else "$hr"
-                        }
-                    }
-                }
-            }
-
-            override fun onLeadFailReceived(leadFail: String, fall: Boolean) {
-                val now = System.currentTimeMillis()
-                if (now - preLeadTime > 100) {
-                    preLeadTime = now
-                    if (!isPause) {
-                        //联导脱落
-                        binding.tvLeadFall.delayOnLifecycle {
-                            binding.tvLeadFall.text = getStrByLeadFall(
-                                leadFail + getString(if (fall) R.string.fall else R.string.lead_normal),
-                                fall
-                            )
-                        }
-                    }
-                }
-            }
-        })
+        App.serial.mAPI?.setEcgListener(ecg12DataListener)
 
         ParseEcg12Data.setFilterParam(hpHz, lowPassHz, acHz.toFloat())
         App.serial.mAPI?.apply {
@@ -380,6 +381,8 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
 
     override fun onDestroy() {
         super.onDestroy()
+        MainEcgManager.getInstance().drawEcgRealView = null
+        App.serial.mAPI?.setEcgListener(null)
         App.serial.mAPI?.stopTransfer()
         MainEcgManager.getInstance().clearEcgData()
     }

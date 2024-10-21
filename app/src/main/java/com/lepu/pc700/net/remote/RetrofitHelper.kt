@@ -1,6 +1,5 @@
 package com.lepu.pc700.net.remote
 
-import com.lepu.pc700.BuildConfig
 import com.lepu.pc700.net.remote.gson.GsonUtil
 import com.lepu.pc700.net.util.Constant
 import io.nerdythings.okhttp.profiler.OkHttpProfilerInterceptor
@@ -9,6 +8,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 import okhttp3.Protocol
+import org.koin.android.BuildConfig
 import java.util.*
 
 

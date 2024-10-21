@@ -33,7 +33,7 @@ public class MainEcgManager {
     }
 
     //=================================
-    public void init(Context context) {
+    public void init() {
         gainArray = updateGain();
     }
 

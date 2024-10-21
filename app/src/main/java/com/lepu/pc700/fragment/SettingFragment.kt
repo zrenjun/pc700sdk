@@ -38,9 +38,14 @@ class SettingFragment : Fragment(R.layout.fragment_setting) {
         }
         binding.tv3.singleClick {
             StreamLogFileManager.share()
-            File("${requireContext().getExternalFilesDir(null)?.path}").listFiles()?.last()?.absolutePath?.let {
-                LogUtil.sendDsl("本地日志","", it)
+            try {
+                File("${requireContext().getExternalFilesDir(null)?.path}").listFiles()?.last()?.absolutePath?.let {
+                    LogUtil.sendDsl("本地日志","", it)
+                }
+            }catch (e: Exception){
+                e.printStackTrace()
             }
+
         }
     }
 }
