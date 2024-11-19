@@ -2,11 +2,9 @@ plugins {
     id 'com.android.application'
     id 'kotlin-android'
 }
-//Targeting S+ (version 31 and above) requires that one of FLAG_IMMUTABLE or FLAG_MUTABLE be specified when creating a PendingIntent.
-//    Strongly consider using FLAG_IMMUTABLE, only use FLAG_MUTABLE if some functionality depends on the PendingIntent being mutable, e.g. if it needs to be used with inline replies or bubbles.
 android {
     compileSdk 34
-    namespace 'com.lepu.pc700'
+//    namespace 'com.lepu.pc700'
     defaultConfig {
         applicationId "com.lepu.pc700"
         minSdk 24
@@ -48,11 +46,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
     kotlinOptions {
-        jvmTarget = '17'
+        jvmTarget = '1.8'
     }
 
     configurations.all {
