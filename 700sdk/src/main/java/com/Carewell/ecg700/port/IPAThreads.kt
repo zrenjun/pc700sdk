@@ -83,22 +83,36 @@ class IPAThreads(inputStream: InputStream, outputStream: OutputStream) {
                 //aa, 55, f0, 07, 01, 12, 00, 00, 13, 20, c9,
                 val state = bytes[5].toInt() and 0xFF
                 if (len > 3 && type == 1) {
+                    val response: Byte = (state and 0x0f).toByte() //低4位
+                    if (response.toInt() == 0x01) { //下位机已经准备好  aa, 55, f0, 07, 01, 01, 00, 00, 13, 17, c6,
+                        startUpgradeStatus()
+                    }
                     var temp1: Int
                     var temp2: Int
-                    //软件版本
-                    val s1 = bytes[8]
-                    val s2 = bytes[9]
+                    //主软件版本
+                    var s1 = bytes[8]
+                    var s2 = bytes[9]
                     temp1 = ParseData.getH4(s1)
                     temp2 = ParseData.getL4(s1)
                     var verSoft = temp1 * 1000 + temp2 * 100
                     temp1 = ParseData.getH4(s2)
                     temp2 = ParseData.getL4(s2)
                     verSoft += temp1 * 10 + temp2
-                    val response: Byte = (state and 0x0f).toByte() //低4位
-                    if (response.toInt() == 0x01) { //下位机已经准备好  aa, 55, f0, 07, 01, 01, 00, 00, 13, 17, c6,
-                        startUpgradeStatus()
-                    }
-                    postEvent(IAPVersionEvent(0, verSoft, bytes[5]))
+
+
+                    //下位机新修改子固件版本
+                    s1 = bytes[6]
+                    s2 = bytes[7]
+                    temp1 = ParseData.getH4(s1)
+                    temp2 = ParseData.getL4(s1)
+                    var verSoft2 = temp1 * 1000 + temp2 * 100
+                    temp1 = ParseData.getH4(s2)
+                    temp2 = ParseData.getL4(s2)
+                    verSoft2 += temp1 * 10 + temp2
+
+
+
+                    postEvent(IAPVersionEvent(verSoft2, verSoft, bytes[5]))
                 }
                 //aa, 55, f0, 03, 02, 00, d0
                 if (len == 3 && type == 2) {  //开始升级

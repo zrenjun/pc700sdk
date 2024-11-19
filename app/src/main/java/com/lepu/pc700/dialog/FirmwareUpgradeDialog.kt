@@ -153,6 +153,15 @@ class FirmwareUpgradeDialog : DialogFragment(R.layout.dialog_upgrade) {
                 if (it.softwareVersion != 0) {
                     systemMainVer = it.softwareVersion
                     binding.tvMcuMainVer.text = systemMainVer.toString()
+
+                    if (it.hardwareVersion==0){
+                        App.serial.mAPI?.serialPort?.let {
+                            mIAPTh?.getIAPVer(false) //获取子固件版本
+                        }
+                    }else{
+                        systemSubVer = it.hardwareVersion
+                        binding.tvMcuSubVer.text = systemSubVer.toString()
+                    }
                 }
             }
             if (it.response.toInt() == 18) {
@@ -168,7 +177,9 @@ class FirmwareUpgradeDialog : DialogFragment(R.layout.dialog_upgrade) {
                 delay(4000)
                 mIAPTh?.wakeUp()
                 delay(4000)
-                getIAPVersion()
+                App.serial.mAPI?.serialPort?.let {
+                    mIAPTh?.getIAPVer(true) //获取主固件版本
+                }
             }
         }
 
@@ -221,16 +232,13 @@ class FirmwareUpgradeDialog : DialogFragment(R.layout.dialog_upgrade) {
                 mIAPTh = null
             }
             mIAPTh = IPAThreads(it.inputStream, it.outputStream)
-            getIAPVersion()
+            mIAPTh?.getIAPVer(true) //获取主固件版本
         }
     }
 
 
     private fun getIAPVersion() {
-        App.serial.mAPI?.serialPort?.let {
-            mIAPTh?.getIAPVer(true) //获取主固件版本
-            mIAPTh?.getIAPVer(false) //获取子固件版本
-        }
+
     }
 
     override fun onStop() {
