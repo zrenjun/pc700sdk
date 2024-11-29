@@ -332,7 +332,7 @@ object ParseData {
                         }
                     } else if (type == 0x02) {
                         if (filterCallBackCnt(ua_type)) {
-                            postEvent(GetUAResult(0, 0f, 0))
+                            postEvent(GetUAResult(a, 0f, 0))
                         }
                     } else if (type == 0x03) {//血酮回调
                         if (filterCallBackCnt(chol_type)) {
