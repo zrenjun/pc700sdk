@@ -13,7 +13,7 @@ android {
         minSdk 24
         targetSdk 32
         versionCode 1
-        versionName "1.0.25"
+        versionName "1.0.26"
     }
     sourceSets {
         main {
@@ -27,8 +27,8 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
     namespace 'com.creative.sdkpack'
 }
