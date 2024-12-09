@@ -44,4 +44,9 @@
         android:name="com.lepu.pc700.fragment.IdCardInputFragment"
         tools:layout="@layout/fragment_idcardinput" />
 
+    <keep_state_fragment
+        android:id="@+id/bodyFatFragment"
+        android:name="com.lepu.pc700.fragment.BodyFatFragment"
+        tools:layout="@layout/fragment_bodyfat" />
+
 </navigation>

@@ -5,6 +5,7 @@ import com.lepu.pc700.net.remote.Repository
 import com.lepu.pc700.net.remote.createWebService
 import com.lepu.pc700.net.remote.getOkHttpClient
 import com.lepu.pc700.net.util.Constant
+import com.lepu.pc700.net.vm.BodyFatViewModel
 import com.lepu.pc700.net.vm.GetPDFViewModel
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
@@ -18,6 +19,7 @@ import org.koin.dsl.module
 
 val viewModelModule = module {
     viewModel { GetPDFViewModel(get()) }
+    viewModel { BodyFatViewModel(get()) }
 }
 
 

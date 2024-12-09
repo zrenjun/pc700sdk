@@ -19,7 +19,6 @@ android {
     buildFeatures {
         viewBinding = true
     }
-
     signingConfigs {
         app {
             keyAlias 'platform'
@@ -58,11 +57,13 @@ android {
             force("androidx.core:core-ktx:1.9.0")
         }
     }
+
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation files('F:\\pc700sdk\\app\\libs\\ICDeviceManager.aar')
     def nav_version = "2.3.5"//不能升级
     implementation "androidx.navigation:navigation-fragment-ktx:$nav_version"
     implementation "androidx.navigation:navigation-ui-ktx:$nav_version"
@@ -85,5 +86,4 @@ dependencies {
     implementation "io.insert-koin:koin-android-compat:$koin_version"
 
     implementation 'io.nerdythings:okhttp-profiler:1.1.1'
-
 }

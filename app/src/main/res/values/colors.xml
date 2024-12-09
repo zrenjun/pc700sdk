@@ -11,4 +11,10 @@
     <color name="color666666">#666666</color>
     <color name="colorcacaca">#cacaca</color>
     <color name="colore1e1e1">#e1e1e1</color>
+
+    <color name="text_333">#000000</color>
+    <color name="text_666">#666666</color>
+    <color name="color_preview_seek_thumb">#3a9cff</color>
+    <color name="red">#FF0000</color>
+    <color name="color178AFE">#178AFE</color>
 </resources>

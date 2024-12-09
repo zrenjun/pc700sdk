@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="CommonTvAndEtView2">
+        <attr name="textView_text" format="string"/>
+        <attr name="et2_maxLength" format="integer"/>
+        <attr name="et2_focusable" format="boolean"/>
+        <attr name="android:inputType"/>
+    </declare-styleable>
+</resources>

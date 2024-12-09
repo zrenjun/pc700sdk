@@ -20,11 +20,15 @@ class App : Application() {
         var serial: SerialViewModel by Delegates.notNull()
             private set
         var serialStart = false
+
+        var context: App by Delegates.notNull()
+            private set
     }
 
 
     override fun onCreate() {
         super.onCreate()
+        context = this
         //初始化日志
         LogUtil.isSaveLog(applicationContext)
         //初始化bus
