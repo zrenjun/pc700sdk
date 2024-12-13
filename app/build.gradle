@@ -4,7 +4,7 @@ plugins {
 }
 android {
     compileSdk 34
-    namespace 'com.lepu.pc700'
+//    namespace 'com.lepu.pc700'
     defaultConfig {
         applicationId "com.lepu.pc700"
         minSdk 24
@@ -45,11 +45,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_21
-        targetCompatibility JavaVersion.VERSION_21
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
     kotlinOptions {
-        jvmTarget = '21'
+        jvmTarget = '1.8'
     }
 
     configurations.all {
@@ -62,7 +62,7 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    implementation files('F:\\pc700sdk\\app\\libs\\ICDeviceManager.aar')
+    implementation files('libs\\ICDeviceManager.aar')
     def nav_version = "2.3.5"//不能升级
     implementation "androidx.navigation:navigation-fragment-ktx:$nav_version"
     implementation "androidx.navigation:navigation-ui-ktx:$nav_version"
