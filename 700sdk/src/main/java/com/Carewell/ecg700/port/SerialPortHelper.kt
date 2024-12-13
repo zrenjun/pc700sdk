@@ -297,12 +297,25 @@ class SerialPortHelper : OnSerialPortDataListener {
         )
     }
 
+    fun startStaticAdjusting() {
+        send(WriteData(Cmd.bNIBP_StaticAdjustingStart, method = "开始静态压校验"))
+    }
+    fun stopStaticAdjusting() {
+        send(WriteData(Cmd.bNIBP_StaticAdjustingStop, method = "停止静态压校验"))
+    }
+
     fun startDynamicAdjusting() {
         send(WriteData(Cmd.bNIBP_DynamicAdjustingStart, method = "开始动态压校验"))
     }
-
     fun stopDynamicAdjusting() {
         send(WriteData(Cmd.bNIBP_DynamicAdjustingStop, method = "停止动态压校验"))
+    }
+
+    fun startCheckLeakage() {
+        send(WriteData(Cmd.bNIBP_CheckLeakageStart, method = "开始漏气检测"))
+    }
+    fun stopCheckLeakage() {
+        send(WriteData(Cmd.bNIBP_CheckLeakageStop, method = "停止漏气检测"))
     }
 }
 

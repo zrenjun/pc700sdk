@@ -114,6 +114,29 @@ object Cmd {
         0x00.toByte(),
         0x00.toByte()
     )
+    /**
+     * 血压命令————静态压校准开始
+     */
+    val bNIBP_StaticAdjustingStart = byteArrayOf(
+        0xAA.toByte(),
+        0x55.toByte(),
+        0x40.toByte(),
+        0x02.toByte(),
+        0x11.toByte(),
+        0x00.toByte()
+    )
+
+    /**
+     * 血压命令————静态压校准停止
+     */
+    val bNIBP_StaticAdjustingStop = byteArrayOf(
+        0xAA.toByte(),
+        0x55.toByte(),
+        0x40.toByte(),
+        0x02.toByte(),
+        0x12.toByte(),
+        0x00.toByte()
+    )
 
     /**
      * 血压命令————动态压(实时袖带压力值)校准开始
@@ -136,6 +159,30 @@ object Cmd {
         0x40.toByte(),
         0x02.toByte(),
         0x14.toByte(),
+        0x00.toByte()
+    )
+
+    /**
+     * 血压命令————漏气检测开始
+     */
+    val bNIBP_CheckLeakageStart = byteArrayOf(
+        0xAA.toByte(),
+        0x55.toByte(),
+        0x40.toByte(),
+        0x02.toByte(),
+        0x15.toByte(),
+        0x00.toByte()
+    )
+
+    /**
+     * 血压命令————漏气检测停止
+     */
+    val bNIBP_CheckLeakageStop = byteArrayOf(
+        0xAA.toByte(),
+        0x55.toByte(),
+        0x40.toByte(),
+        0x02.toByte(),
+        0x16.toByte(),
         0x00.toByte()
     )
 
