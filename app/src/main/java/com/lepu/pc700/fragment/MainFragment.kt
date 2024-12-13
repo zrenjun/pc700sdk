@@ -34,6 +34,7 @@ class MainFragment : Fragment(R.layout.fragment_main) {
         binding.tv3.singleClick { findNavController().navigate(R.id.eCGSingleFragment) }
         binding.tv4.singleClick { findNavController().navigate(R.id.idCardInputFragment) }
         binding.tv5.singleClick { findNavController().navigate(R.id.settingFragment) }
+        binding.tv7.singleClick { findNavController().navigate(R.id.bodyFatFragment) }
         //是否充电
         observeEvent<BatteryStatusEvent> {  //没有百分比 只有1-4的分割 0 - 25% 25% - 50% 50% - 75% 75% - 100%
             LogUtil.e(it.toJson())

@@ -2,8 +2,6 @@ plugins {
     id 'com.android.application'
     id 'kotlin-android'
 }
-//Targeting S+ (version 31 and above) requires that one of FLAG_IMMUTABLE or FLAG_MUTABLE be specified when creating a PendingIntent.
-//    Strongly consider using FLAG_IMMUTABLE, only use FLAG_MUTABLE if some functionality depends on the PendingIntent being mutable, e.g. if it needs to be used with inline replies or bubbles.
 android {
     compileSdk 34
     namespace 'com.lepu.pc700'
@@ -21,7 +19,6 @@ android {
     buildFeatures {
         viewBinding = true
     }
-
     signingConfigs {
         app {
             keyAlias 'platform'
@@ -65,6 +62,7 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation files('F:\\pc700sdk\\app\\libs\\ICDeviceManager.aar')
     def nav_version = "2.3.5"//不能升级
     implementation "androidx.navigation:navigation-fragment-ktx:$nav_version"
     implementation "androidx.navigation:navigation-ui-ktx:$nav_version"
@@ -87,5 +85,4 @@ dependencies {
     implementation "io.insert-koin:koin-android-compat:$koin_version"
 
     implementation 'io.nerdythings:okhttp-profiler:1.1.1'
-
 }
