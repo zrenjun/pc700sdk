@@ -17,6 +17,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.Carewell.OmniEcg.jni.toJson
+import com.Carewell.ecg700.port.GetBKResult
 import com.Carewell.ecg700.port.GetCHOLResult
 import com.Carewell.ecg700.port.GetGLUResult
 import com.Carewell.ecg700.port.GetTMPResult
@@ -369,16 +370,16 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
             val arrGluRank = resources.getStringArray(R.array.glu_rank)
             when (gluNormalType) {
                 0 -> {
-                    strGLU = it.data  //mmol/L
-                    gluMgdl = it.unit  //mg/dl
-                    binding.realplayPc300TvGlu.text = if (gluUnit) it.data else it.unit
-                    val gluRank = getGLURank(it.data.toFloat(), gluType)
+                    strGLU = it.mmol  //mmol/L
+                    gluMgdl = it.mgdl  //mg/dl
+                    binding.realplayPc300TvGlu.text = if (gluUnit) it.mmol else it.mgdl
+                    val gluRank = getGLURank(it.mmol.toFloat(), gluType)
                     speechMsg = "${getString(R.string.measure_over)}, ${arrGluRank[gluRank]}"
                     when (gluRank) {
                         3 -> binding.realplayPc300TvGlu.text = "L" //血糖过低，超出测量范围
                         4 -> binding.realplayPc300TvGlu.text = "H"  //血糖过高，超出测量范围
                         else -> speechMsg =
-                            "${getString(R.string.measure_over)}, ${getString(R.string.gluname)}: ${if (gluUnit) it.data else it.unit}${
+                            "${getString(R.string.measure_over)}, ${getString(R.string.gluname)}: ${if (gluUnit) it.mmol else it.mgdl}${
                                 getString(if (gluUnit) R.string.const_mmol_speech else R.string.const_mgdl_speech)
                             }, ${arrGluRank[gluRank]}"
                     }
@@ -400,14 +401,14 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
         observeEvent<GetUAResult> {
             LogUtil.e(it.toJson())
             val arrUARank = resources.getStringArray(R.array.ua_rank)
-            var valuef = it.data
-            var unit = it.unit
-            if (gluDeviceType == 3) { //乐普诊断 umol/L
-                valuef = it.data / 10 // 通用解析已经除了2次10
-                unit = 0
-            }
-            strUA = String.format(Locale.US, "%.2f", valuef / if (unit == 0) 1f else 16.81f)
-            uaMgdl = String.format(Locale.US, "%.2f", valuef * if (unit == 0) 16.81f else 1f)
+//            var valuef = it.data
+//            var unit = it.unit
+//            if (gluDeviceType == 3) { //乐普诊断 umol/L
+//                valuef = it.data / 10 // 通用解析已经除了2次10
+//                unit = 0
+//            }
+            strUA = it.mmol
+            uaMgdl = it.mgdl
             if (gluUnit) {
                 binding.realplayPc300TvUa.text = strUA
             } else {
@@ -436,81 +437,58 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
         //总胆固醇
         observeEvent<GetCHOLResult> {
             LogUtil.e(it.toJson())
-            when (gluDeviceType) {
-                1, 2 -> {
-                    val arrCholRank = resources.getStringArray(R.array.chol_rank)
-                    //存储
-                    when (it.unit) {
-                        0 -> { // mmol/L
-                            strCHOL = it.data.toString()
-                            cholMgdl = String.format(Locale.US, "%.2f", it.data * 38.67f)
-                        }
-
-                        1 -> { // mg/dL
-                            strCHOL = String.format(Locale.US, "%.2f", it.data / 38.67f)
-                            cholMgdl = it.data.toString()
-                        }
-
-                        else -> {
-                            binding.tvResult.text =
-                                getString(R.string.the_measurement_result_is_wrong_please_try_again)
-                            return@observeEvent
-                        }
-                    }
-                    if (gluUnit) {
-                        binding.realplayPc300TvChol.text = strCHOL
-                    } else {
-                        binding.realplayPc300TvChol.text = cholMgdl
-                    }
-                    val cholrank = getCHOLRank(strCHOL?.toFloat() ?: 0f)
-                    if (cholrank == 2) { //过低，超出测量范围
-                        binding.realplayPc300TvChol.text = "L"
-                    } else if (cholrank == 3) { //过高，超出测量范围
-                        binding.realplayPc300TvChol.text = "H"
-                    }
-                    speechMsg = when (cholrank) {
-                        0, 1 -> if (gluUnit) {
-                            (getString(R.string.measure_over) + ", " + getString(R.string.totalcholesterol) + ": " + strCHOL + getString(
-                                R.string.const_mmol_speech
-                            ) + ", " + arrCholRank[cholrank])
-                        } else {
-                            (getString(R.string.measure_over) + ", " + getString(R.string.totalcholesterol) + ": " + cholMgdl + getString(
-                                R.string.const_mgdl_speech
-                            ) + ", " + arrCholRank[cholrank])
-                        }
-
-                        2 -> getString(R.string.measure_over) + ", " + arrCholRank[2]
-                        else -> getString(R.string.measure_over) + ", " + arrCholRank[3]
-                    }
+            val arrCholRank = resources.getStringArray(R.array.chol_rank)
+            //存储
+            strCHOL = it.mmol
+            cholMgdl = it.mgdl
+            if (gluUnit) {
+                binding.realplayPc300TvChol.text = strCHOL
+            } else {
+                binding.realplayPc300TvChol.text = cholMgdl
+            }
+            val cholrank = getCHOLRank(strCHOL?.toFloat() ?: 0f)
+            if (cholrank == 2) { //过低，超出测量范围
+                binding.realplayPc300TvChol.text = "L"
+            } else if (cholrank == 3) { //过高，超出测量范围
+                binding.realplayPc300TvChol.text = "H"
+            }
+            speechMsg = when (cholrank) {
+                0, 1 -> if (gluUnit) {
+                    (getString(R.string.measure_over) + ", " + getString(R.string.totalcholesterol) + ": " + strCHOL + getString(
+                        R.string.const_mmol_speech
+                    ) + ", " + arrCholRank[cholrank])
+                } else {
+                    (getString(R.string.measure_over) + ", " + getString(R.string.totalcholesterol) + ": " + cholMgdl + getString(
+                        R.string.const_mgdl_speech
+                    ) + ", " + arrCholRank[cholrank])
                 }
-                //血酮
-                3 -> {
-                    //乐普诊断时为血酮
-                    if (it.unit == 0) { // mmol/L
-                        strBK = it.data.toString()
-                        bkMgdl = String.format(Locale.US, "%.2f", it.data * 10.04f) //保留2位小数
 
-                    } else {
-                        bkMgdl = it.data.toString()
-                        strBK = String.format(Locale.US, "%.2f", it.data / 10.04f)
-                    }
-                    if (gluUnit) {
-                        binding.realplayPc300TvBloodKetones.text = strBK
-                    } else {
-                        binding.realplayPc300TvBloodKetones.text = bkMgdl
-                    }
+                2 -> getString(R.string.measure_over) + ", " + arrCholRank[2]
+                else -> getString(R.string.measure_over) + ", " + arrCholRank[3]
+            }
+            binding.tvResult.text = getString(R.string.measure_result) + speechMsg
+        }
+        //血酮
+        observeEvent<GetBKResult> {
+            LogUtil.e(it.toJson())
+            //乐普诊断时为血酮
+            bkMgdl = it.mgdl
+            strBK = it.mmol
+            if (gluUnit) {
+                binding.realplayPc300TvBloodKetones.text = strBK
+            } else {
+                binding.realplayPc300TvBloodKetones.text = bkMgdl
+            }
 
-                    if (!TextUtils.isEmpty(strBK)) {
-                        val arrBKRank = resources.getStringArray(R.array.bk_rank)
-                        val bkRank = getBKRank(strBK?.toFloat() ?: 0f)
-                        speechMsg =
-                            (getString(R.string.measure_over) + ", 血酮: " + arrBKRank[bkRank])
-                        if (bkRank == 2) { //过低，超出测量范围
-                            binding.realplayPc300TvBloodKetones.text = "L"
-                        } else if (bkRank == 3) { //过高，超出测量范围
-                            binding.realplayPc300TvBloodKetones.text = "H"
-                        }
-                    }
+            if (!TextUtils.isEmpty(strBK)) {
+                val arrBKRank = resources.getStringArray(R.array.bk_rank)
+                val bkRank = getBKRank(strBK?.toFloat() ?: 0f)
+                speechMsg =
+                    (getString(R.string.measure_over) + ", 血酮: " + arrBKRank[bkRank])
+                if (bkRank == 2) { //过低，超出测量范围
+                    binding.realplayPc300TvBloodKetones.text = "L"
+                } else if (bkRank == 3) { //过高，超出测量范围
+                    binding.realplayPc300TvBloodKetones.text = "H"
                 }
             }
             binding.tvResult.text = getString(R.string.measure_result) + speechMsg

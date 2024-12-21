@@ -3,6 +3,7 @@ package com.Carewell.ecg700
 import com.Carewell.ecg700.port.BatteryStatusEvent
 import com.Carewell.ecg700.port.ECGData
 import com.Carewell.ecg700.port.EcgStopTransferEvent
+import com.Carewell.ecg700.port.GetBKResult
 import com.Carewell.ecg700.port.GetCHOLResult
 import com.Carewell.ecg700.port.GetDeviceVersionEvent
 import com.Carewell.ecg700.port.GetGLUResult
@@ -43,7 +44,9 @@ import com.zkteco.android.IDReader.IDPhotoHelper
 import com.zkteco.android.IDReader.WLTService
 import java.io.UnsupportedEncodingException
 import java.math.BigDecimal
+import java.math.RoundingMode
 import java.nio.charset.Charset
+import java.text.DecimalFormat
 import java.util.Locale
 
 
@@ -82,6 +85,8 @@ object ParseData {
     }
 
 
+    private var gluType = 2 //下位机初始默认为百捷血糖仪器
+
     private var isOldMachine = false //默认新机器
 
     private const val head2 = 0xaa.toByte()
@@ -104,12 +109,14 @@ object ParseData {
     private const val glu_type: Byte = 0x03
     private const val chol_type: Byte = 0x04
     private const val ua_type: Byte = 0x05
+    private const val bk_type: Byte = 0x06
     private var preNibpTime = 0L
     private var preTempTime = 0L
     private var preEcgTime = 0L
     private var preGluTime = 0L
     private var preCholTime = 0L
     private var preUaTime = 0L
+    private var preBkTime = 0L
     private var nowTemp = 0.0
     private var preTemp = 0.0
 
@@ -152,6 +159,11 @@ object ParseData {
             ua_type -> {
                 bFlag = System.currentTimeMillis() - preUaTime > 3000
                 preUaTime = System.currentTimeMillis()
+            }
+
+            bk_type -> {
+                bFlag = System.currentTimeMillis() - preBkTime > 3000
+                preBkTime = System.currentTimeMillis()
             }
         }
         return bFlag
@@ -307,10 +319,13 @@ object ParseData {
                 )
             }
             // 血糖仪器类别
-            (0xE0).toByte() -> postEvent(GetGLUType(bytes[5].toInt() and 0x0F))
-            // 仪成和百捷--血糖结果
+            (0xE0).toByte() ->{
+                gluType = bytes[5].toInt() and 0x0F
+                LogUtil.e("============血糖类型 $gluType")
+                postEvent(GetGLUType(gluType))
+            }
+            // 仪成和百捷 乐普--血糖等结果
             (0xE2).toByte() -> {
-                LogUtil.json("============仪成和百捷--血糖结果")
                 //测量结果包含3 个字节。Result Data_Hi Data_Lo。数据解析时，应先判定 Result的最高位
                 //bit7，是否检测到有效的存储记录。当标记没有存储记录时，则后面参数均无实际意义；当有存
                 //储记录时，再判定血糖测量结果正常、偏高还是偏低，当正常时，则依据单位，解析后面的数据。
@@ -318,67 +333,127 @@ object ParseData {
                 val result = bytes[5].toInt() and 0xFF
                 val temp1 = bytes[6].toInt() and 0xFF
                 val temp2 = bytes[7].toInt() and 0xFF
-                LogUtil.v("temp1  ---->  " + temp1 + "  temp2---->  " + temp2)
+                val unit = result and 0x01  //Bit0：血糖值的单位  0：mmol/L  1-mg/dL
                 //aa 55 e2 05 01   c2 00 93 96 ,怡成 c2>>7 ==1
                 //Bit7:  Bit7=0：表示设备有存储记录；  =1表示设备中无有效存储
                 if (result ushr 7 and 0x01 == 1) { // 结果无效
                     return
                 }
-                val a = result ushr 4 and 0x03
+                var dataMgdl = 0f
+                var dataMmol = 0f
+                val a = result ushr 4 and 0x03  //Bit5-4：血糖结果
                 if (a != 0) { // 测量错误，结果低/高 数据无效
                     if (type == 0x01) {
                         if (filterCallBackCnt(glu_type)) {
-                            setGlU(a, 0f, 0)
+                            LogUtil.e("============血糖类型 $gluType")
+                            LogUtil.e("============血糖结果 $a  $dataMmol  $dataMgdl  $unit")
+                            postEvent(GetGLUResult(a, "$dataMmol", "$dataMgdl", unit))
                         }
                     } else if (type == 0x02) {
                         if (filterCallBackCnt(ua_type)) {
-                            postEvent(GetUAResult(a, 0f, 0))
+                            if(gluType == 0x02){
+                                LogUtil.e("============百捷 尿酸结果 $a  $dataMmol  $dataMgdl  $unit")
+                            }
+                            if(gluType == 0x04){
+                                LogUtil.e("============乐普 尿酸结果 $a  $dataMmol  $dataMgdl  $unit")
+                            }
+                            postEvent(GetUAResult(a, "$dataMmol", "$dataMgdl", unit))
                         }
-                    } else if (type == 0x03) {//血酮回调
-                        if (filterCallBackCnt(chol_type)) {
-                            postEvent(GetCHOLResult(0, 0f, 0))
+                    } else if (type == 0x03) {
+                        if(gluType == 0x02){  //百捷
+                            if (filterCallBackCnt(chol_type)) {
+                                LogUtil.e("============百捷 胆固醇结果 $a  $dataMmol  $dataMgdl  $unit")
+                                postEvent(GetCHOLResult(a, "$dataMmol", "$dataMgdl", unit))
+                            }
+                        }
+                        if(gluType == 0x04){  //乐普
+                            if (filterCallBackCnt(bk_type)) {
+                                LogUtil.e("============乐普 血酮结果 $a  $dataMmol  $dataMgdl  $unit")
+                                postEvent(GetBKResult(a, "$dataMmol", "$dataMgdl", unit))
+                            }
                         }
                     }
                     return
                 }
-                val unit = result and 0x01  //Bit0：血糖值的单位  0：mmol/L  1-mg/dL
-                var data = 0f
+                //怡成—主动上传测量结果：单位固定为 mmol/L
+                //百捷—主动上传测量结果：单位均为 mg/dL
+                //乐普—主动上传测量结果：单位均为 mmol/L
+                //血糖 GLUC: 1mmol/L = 18mg/dL
+                //尿酸 UA: 1mmol/L = 16.81mg/dL
+                //总胆固醇 CHOL: 1mmol/L = 38.66mg/dL
+                //血酮 BK: 1mmol/L =  10.04mg/dL
+
                 //血糖值，两个字节，高字节在前。血糖值单位不同，计算方法不同。
                 if (unit == 0) { // mmol/L
                     //血糖值单位为mmol/L时（Byte1的 bit0为 0）：使用 BCD码的格式，高字节在前，低字节在后，测量值精度为0.1，即测量结果的 10 进制数除以 10即为所得结果，
                     // 例如血糖值0x00, 0x82，则测量值为8.2， 血糖值 0x01，0x08，则测量值为10.8
-                    data =
+                    dataMmol =
                         ((temp1 shr 4 and 0x0F) * 1000 + (temp1 and 0x0F) * 100 + (temp2 shr 4 and 0x0F) * 10 + (temp2 and 0x0F)) / 10f
                 }
                 if (unit == 1) { // mg/dL
                     //血糖值单位为mg/dL时（Byte1的bit0 为 1）：血糖值=(high<<8) + low。例如：0x00，0x82，则表示为130mg/dL。
-                    // 【备注：因血糖、总胆固醇的值较大，而尿酸参数值偏小，当为尿酸结果时，上传的结果值为扩大 10倍的数据。血糖，总胆固醇参数未放大处理】
-                    data = (temp1 shl 8) + temp2 + 0f
+                    dataMgdl = (temp1 shl 8) + temp2 + 0f
                 }
                 if (type == 0x01) {
                     if (filterCallBackCnt(glu_type)) {
-                        setGlU(a, data, unit)
+                        if(gluType == 0x01){
+                            LogUtil.e("============怡成 血糖结果 $a  $dataMmol  $dataMgdl  $unit")
+                            postEvent(GetGLUResult(a, "$dataMmol", "${(dataMmol * 18).toInt()}", unit))
+                        }else{
+
+                            if(gluType == 0x02){
+                                LogUtil.e("============百捷 血糖结果 $a  $dataMmol  $dataMgdl  $unit")  //设备显示L 直接给0值 aa, 55, e2, 05, 01, 01, 00, 00, d2,
+                                dataMmol = "%.1f".format(dataMgdl / 18f).toFloat()
+                                postEvent(GetGLUResult(a, "$dataMmol", "$dataMgdl", unit))
+                            }
+                            if(gluType == 0x04){  //aa, 55, e2, 05, 01, 00, 00, 20, 5a,  == glu---->  2.0   gluMgdl---->  36.0
+                                LogUtil.e("============乐普 血糖结果 $a  $dataMmol  $dataMgdl  $unit")
+                                dataMgdl = "%.1f".format(dataMgdl * 18f).toFloat()
+                                postEvent(GetGLUResult(a, "$dataMmol", "$dataMgdl", unit))
+                            }
+
+                        }
                     }
-                } else if (type == 0x02) {
+                } else if (type == 0x02) { //尿酸下位机没有高低返回，是具体值
                     if (filterCallBackCnt(ua_type)) {
-                        postEvent(GetUAResult(0, data / 10, unit))
-                        LogUtil.json("============尿酸结果==" + (data / 10))
+                        if(gluType == 0x02){
+                            dataMgdl /= 10f // 当为尿酸结果时，上传的结果值为扩大 10倍的数据  保留1位小数
+                            dataMmol = "%.2f".format(dataMgdl / 16.81f).toFloat()
+                            LogUtil.e("============百捷 尿酸结果 $a  $dataMmol  $dataMgdl  $unit")
+                            postEvent(GetUAResult(a, "$dataMmol","$dataMgdl", unit))
+                        }
+                        if(gluType == 0x04){
+                            dataMmol = "%.2f".format(dataMmol / 10f).toFloat()  // 设备展示的umol 通用解析已经除了2次10
+                            dataMgdl = "%.2f".format(dataMmol * 16.81f).toFloat()
+                            LogUtil.e("============乐普 尿酸结果 $a  $dataMmol  $dataMgdl   $unit")
+                            postEvent(GetUAResult(a, "$dataMmol","$dataMgdl", unit))
+                        }
                     }
-                } else if (type == 0x03) {//血酮回调
-                    if (filterCallBackCnt(chol_type)) {
-                        LogUtil.json("============胆固醇结果==" + data)
-                        postEvent(GetCHOLResult(0, data, unit))
+                } else if (type == 0x03) {
+                    if(gluType == 0x02){  //百捷
+                        if (filterCallBackCnt(chol_type)) {
+                            dataMmol = "%.2f".format(dataMgdl / 38.66f).toFloat()
+                            //百捷 胆固醇结果 0  2.79  108.0  1  == aa, 55, e2, 05, 03, 01, 00, 6c, 13,
+                            LogUtil.e("============百捷 胆固醇结果 $a  $dataMmol  $dataMgdl  $unit")
+                            postEvent(GetCHOLResult(a, "$dataMmol", "$dataMgdl", unit))
+                        }
+                    }
+                    if(gluType == 0x04){  //乐普
+                        if (filterCallBackCnt(bk_type)) {   //aa, 55, e2, 05, 03, 00, 00, 02, c2,   ==0.2
+                            dataMgdl = "%.2f".format(dataMgdl * 10.04f).toFloat()
+                            LogUtil.e("============乐普 血酮结果 $a  $dataMmol  $dataMgdl  $unit")
+                            postEvent(GetBKResult(a, "$dataMmol", "$dataMgdl", unit))
+                        }
                     }
                 }
             }
-            //爱奥乐--血糖结果
+            //爱奥乐--血糖结果  主动上传测量结果：单位均为 mg/dL
             (0xE3).toByte() -> {
-                LogUtil.json("============爱奥乐血糖结果")
                 val result = bytes[5].toInt() and 0xFF
                 val temp1 = bytes[6].toInt() and 0xFF //H
                 val temp2 = bytes[7].toInt() and 0xFF //L
                 val h4 = result ushr 4 and 0x0f
-                val l4 = result and 0x0f
+                val l4 = result and 0x0f  //if (l4 == 1) { //mg/dL ,当前设备显示的单位
                 var resultType = 0
                 var dataMgdl = 0f
                 var dataMmol = 0f
@@ -387,29 +462,24 @@ object ParseData {
                     6 -> resultType = 2 //偏高
                     else -> { //正常
                         dataMgdl = temp1 * 256f + temp2 // mg/dL
-                        val strMmol = String.format(Locale.US, "%.1f", dataMgdl / 18f)
-                        dataMmol = strMmol.toFloat()
+                        dataMmol = "%.1f".format(dataMgdl / 18f).toFloat()
                     }
                 }
-                val data = if (l4 == 1) { //mg/dL ,当前设备显示的单位
-                    dataMgdl
-                } else { //mmol/L
-                    dataMmol
-                }
-                setGlU(resultType, data, l4)
+                LogUtil.e("============爱奥乐血糖结果 $resultType  $dataMmol  $dataMgdl  $l4")
+                postEvent(GetGLUResult(resultType, "$dataMmol", "$dataMgdl", l4))
             }
             // 体温结果
             (0x74).toByte() -> {
                 val result = bytes[5].toInt() and 0xFF
                 val temp1 = bytes[6].toInt() and 0xFF
                 val temp2 = bytes[7].toInt() and 0xFF
-                if (result ushr 1 and 0x03 != 0) {
+                val unit = result and 0x01
+                if (result ushr 1 and 0x03 != 0) {  //Bit2-bit1:测试结果
                     if (filterCallBackCnt(temp_type)) {
-                        postEvent(GetTMPResult(result ushr 1 and 0x03, "0", "0", 0))
+                        postEvent(GetTMPResult(result ushr 1 and 0x03, "0", "0", unit))
                     }
                     return
                 }
-                val unit = result and 0x01
                 val data = if (isOldMachine) { //老机器
                     ((temp1 shl 8) + temp2) / 10f
                 } else { //新机器
@@ -418,25 +488,24 @@ object ParseData {
                 //不四舍五入，保留1位小数
 //                var dd = floor((data * 10).toDouble())
 //                dd /= 10
-                val dd =
+                nowTemp =
                     BigDecimal(data.toString()).setScale(1, BigDecimal.ROUND_HALF_UP).toDouble()
-                nowTemp = dd
                 if (filterCallBackCnt(temp_type)) {
                     val strC: String
                     val strF: String
                     if (unit == 0) { // 摄氏度
                         strC = "$data"
-                        val temp = data * 1.8f + 32
-                        //不四舍五入，保留1位小数
-                        val t = BigDecimal(temp.toString()).setScale(1, BigDecimal.ROUND_HALF_UP)
-                            .toDouble()
-//                        var t = floor((temp * 10).toDouble())
-//                        t /= 10
-                        strF = "$t"
-                    } else { //华氏度
+                        strF =
+                            BigDecimal("${data * 1.8f + 32}").setScale(1, BigDecimal.ROUND_HALF_UP)
+                                .toFloat().toString()
+                    } else { // 1 华氏度
                         strF = "$data"
-                        strC = "${(data - 32) / 1.8f}"
+                        strC = BigDecimal("${(data - 32) / 1.8f}").setScale(
+                            1,
+                            BigDecimal.ROUND_HALF_UP
+                        ).toFloat().toString()
                     }
+                    LogUtil.e("============体温结果 $strC  $strF  $unit")
                     postEvent(GetTMPResult(0, strC, strF, unit))
                 }
             }
@@ -581,8 +650,7 @@ object ParseData {
             sys in 130..139 -> 3 //正常高值
             sys in 140..159 -> 4 //1级高血压
             sys in 160..179 -> 5 //2级高血压
-            sys >= 180 -> 6 //3级高血压
-            else -> 2
+            else -> 6 //3级高血压
         }
     }
 
@@ -594,8 +662,7 @@ object ParseData {
             dia in 85..89 -> 3 //正常高值
             dia in 90..99 -> 4 //1级高血压
             dia in 100..109 -> 5 //2级高血压
-            dia >= 110 -> 6 //3级高血压
-            else -> 2
+            else -> 6 //3级高血压
         }
     }
 
@@ -659,24 +726,6 @@ object ParseData {
         }
         return null
     }
-
-    private fun setGlU(type: Int, data: Float, unit: Int) {
-        var glu = ""
-        var gluMgdl = ""
-        if (type == 0) {
-            //正常
-            if (unit == 0 || unit == 2) { //mmol/L , unit == 0  百捷，怡成; unit == 2 爱奥乐
-                glu = "$data"
-                gluMgdl = String.format(Locale.US, "%.1f", data * 18f)
-            } else { //mg/dl
-                gluMgdl = "$data"
-                glu = String.format(Locale.US, "%.1f", data / 18f)
-            }
-        }
-        postEvent(GetGLUResult(type, glu, gluMgdl))
-        LogUtil.v("type  ---->  " + type + "  glu---->  " + glu + "   gluMgdl---->  " + gluMgdl)
-    }
-
 }
 
 

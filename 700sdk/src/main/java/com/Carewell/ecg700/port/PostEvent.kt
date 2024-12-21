@@ -303,7 +303,7 @@ data class GetGLUType(val type: Int)
  * @param data 血糖值
  * @param unit 单位 0: mmol/L , 1: mg/dL
  */
-data class GetGLUResult(val type: Int, val data: String, val unit: String)
+data class GetGLUResult(val type: Int, val mmol: String, val mgdl: String, val unit: Int)
 
 /**
  * 尿酸(UA)
@@ -312,7 +312,7 @@ data class GetGLUResult(val type: Int, val data: String, val unit: String)
  * @param data 尿酸值
  * @param unit 单位 0 mmol/L  1 mg/dL
  */
-data class GetUAResult(val type: Int, val data: Float, val unit: Int)
+data class GetUAResult(val type: Int, val mmol: String, val mgdl: String, val unit: Int)
 
 /**
  * 总胆固醇(CHOL)
@@ -321,7 +321,16 @@ data class GetUAResult(val type: Int, val data: Float, val unit: Int)
  * @param data 胆固醇值
  * @param unit 单位 0 mmol/L  1 mg/dL
  */
-data class GetCHOLResult(val type: Int, val data: Float, val unit: Int)
+data class GetCHOLResult(val type: Int,val mmol: String, val mgdl: String, val unit: Int)
+
+/**
+ * 血酮(BK)
+ *
+ * @param type 0结果正常 1结果偏低 2结果偏高
+ * @param data 胆固醇值
+ * @param unit 单位 0 mmol/L  1 mg/dL
+ */
+data class GetBKResult(val type: Int, val mmol: String, val mgdl: String, val unit: Int)
 
 
 /**

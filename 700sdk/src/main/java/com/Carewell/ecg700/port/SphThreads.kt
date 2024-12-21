@@ -18,8 +18,9 @@ import java.util.Vector
  *  zrj 2022/3/25 15:03
  *
  */
-class SphThreads(private var inputStream: InputStream,
-                 private var listener: OnSerialPortDataListener
+class SphThreads(
+    private var inputStream: InputStream,
+    private var listener: OnSerialPortDataListener
 ) {
     private var scope = CoroutineScope(Dispatchers.IO)
     private val buffer = ByteArray(4400) //22倍数  多缓存一点，以防万一 好像最大4095
@@ -173,10 +174,19 @@ class SphThreads(private var inputStream: InputStream,
         }
     }
 
+    private var sum = 0
+
     private fun handleReceivedData(len: Int) {
         if (len < 22) {
             LogUtil.v("队列数据----> ${HexUtil.bytesToHexString(mReceiveBuffer.toByteArray())}")
             LogUtil.v("读取--> ${HexUtil.bytesToHexString(buffer.copyOfRange(0, len))}")
+            sum = 0
+        } else {
+            sum += len
+            if (sum / 22 / 1000 > 1) {
+                sum = 0
+                LogUtil.v("心电数据--2s-->")
+            }
         }
 
         if (len == buffer.size) {
