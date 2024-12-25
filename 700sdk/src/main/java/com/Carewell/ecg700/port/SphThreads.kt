@@ -7,6 +7,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.InputStream
 import java.util.Arrays
 import java.util.Vector
@@ -52,98 +53,9 @@ class SphThreads(
     //单导
     //aa, 55, 32, 37, 01, 00, 88, 00, 88, 00, 88, 00, 88, 00, 88, 00, 88, 00, 88, 00, 88, 00, 88, 00, 88, 00, 88, 00, 88, 00, 88, 00, 88, 00, 88, 00, 88, 00, 88, 00, 88, 00, 88, 00, 88, 00, 88, 00, 88, 00, 88, 00, 88, 00, 88, 00, 00, 01, 78,
 
-
     @Volatile
     private var flag = true
     private var time = 0
-
-//    init {
-//        scope.launch(Dispatchers.IO) {
-//            while (scope.isActive) {
-//                if (flag) {
-//                    try {
-//                        if (inputStream.available() > 0) {
-//                            time = 0
-//                            val len = inputStream.read(buffer) // 读取数据
-//                            if (len < 22) {
-//                                LogUtil.v("队列数据---->${HexUtil.bytesToHexString(mReceiveBuffer.toByteArray())}")
-//                                LogUtil.v(
-//                                    "读取-->${
-//                                        HexUtil.bytesToHexString(
-//                                            buffer.copyOfRange(
-//                                                0,
-//                                                len
-//                                            )
-//                                        )
-//                                    }"
-//                                )
-//                            }
-//                            if (len == buffer.size) {
-//                                Arrays.fill(buffer, 0.toByte())
-//                            } else {
-//                                for (i in 0 until len) {
-//                                    mReceiveBuffer.add(buffer[i])
-//                                }
-//                                while (mReceiveBuffer.size > 5) {
-//                                    // 数据尾
-//                                    var end = -1
-//                                    if (mReceiveBuffer[0] == routineHead1 && mReceiveBuffer[1] == routineHead2) {
-//                                        val length = mReceiveBuffer[3].toInt() and 0xFF//长度
-//                                        if (mReceiveBuffer.size >= length + 4) {
-//                                            end = length + 4
-//                                            //验证下一包头
-//                                            if (mReceiveBuffer.size > end && mReceiveBuffer[end] != routineHead1 && mReceiveBuffer[end] == ecg12Head1) {
-//                                                end = -1
-//                                                LogUtil.v(
-//                                                    "异常队列数据---->${
-//                                                        HexUtil.bytesToHexString(
-//                                                            mReceiveBuffer.toByteArray()
-//                                                        )
-//                                                    }"
-//                                                )
-//                                            }
-//                                        }
-//                                    }
-//                                    if (mReceiveBuffer[0] == ecg12Head1 && (mReceiveBuffer[1] == ecg12DataHead2 || mReceiveBuffer[1] == ecg12CmdHead2)) {
-//                                        if (mReceiveBuffer.size >= 22) {
-//                                            end = 22
-//                                        }
-//                                    }
-//                                    if (end > 0) {
-//                                        val data = ByteArray(end)
-//                                        for (i in 0 until end) {
-//                                            val curByte = mReceiveBuffer.removeAt(0)
-//                                            data[i] = curByte
-//                                            if (end == 22 && mReceiveBuffer.size > 1 && mReceiveBuffer[0] == routineHead1 && mReceiveBuffer[1] == routineHead2) {  //异常数据且不能拼接了
-//                                                break
-//                                            }
-//                                        }
-//                                        if (data[0] == ecg12Head1) {
-//                                            ParseEcg12Data.addData(data)
-//                                        } else {
-//                                            listener.onDataReceived(data) //发送下一个命令
-//                                            ParseData.processingOrdinaryData(data)
-//                                        }
-//                                    } else {
-//                                        mReceiveBuffer.removeAt(0)
-//                                    }
-//                                }
-//                            }
-//                        } else {
-//                            delay(3)
-//                            time += 3
-//                            if (time  > 1000 * 60) {
-//                                LogUtil.v("已经一分钟未读到数据了")
-//                                time = 0
-//                            }
-//                        }
-//                    } catch (e: Exception) {
-//                        e.printStackTrace()
-//                    }
-//                }
-//            }
-//        }
-//    }
 
     init {
         scope.launch(Dispatchers.IO) {
@@ -156,21 +68,23 @@ class SphThreads(
     }
 
     private suspend fun processInputStream() {
-        try {
-            if (inputStream.available() > 0) {
-                time = 0
-                val len = inputStream.read(buffer)
-                handleReceivedData(len)
-            } else {
-                delay(3)
-                time += 3
-                if (time > 60000) { // 60 seconds in milliseconds
-                    LogUtil.v("已经一分钟未读到数据了")
+        withContext(Dispatchers.IO) {
+            try {
+                if (inputStream.available() > 0) {
                     time = 0
+                    val len = inputStream.read(buffer)
+                    handleReceivedData(len)
+                } else {
+                    delay(3)
+                    time += 3
+                    if (time > 60000) { // 60 seconds in milliseconds
+                        LogUtil.v("已经一分钟未读到数据了")
+                        time = 0
+                    }
                 }
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
         }
     }
 
@@ -188,7 +102,6 @@ class SphThreads(
                 LogUtil.v("心电数据--2s-->")
             }
         }
-
         if (len == buffer.size) {
             Arrays.fill(buffer, 0.toByte())
         } else {
@@ -244,7 +157,14 @@ class SphThreads(
 
     private fun handleParsedData(data: ByteArray) {
         if (data[0] == ecg12Head1) {
-            ParseEcg12Data.addData(data)
+            if (data[1] == ecg12CmdHead2) {
+                LogUtil.v("心电回复帧----> ${HexUtil.bytesToHexString(data)}")
+                if (data[3] == 0x01.toByte() || data[3] == 0x02.toByte()) {
+                    listener.onDataReceived(data)//发送下一个命令
+                }
+            }else{
+                ParseEcg12Data.addData(data)
+            }
         } else {
             listener.onDataReceived(data)//发送下一个命令
             ParseData.processingOrdinaryData(data)

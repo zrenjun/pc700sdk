@@ -241,8 +241,6 @@ class SerialPortHelper : OnSerialPortDataListener {
     }
 
     fun startTransfer() {
-        pendingQueue.removeIf { it.bytes.contentEquals(Cmd.stopECG12Measure) }
-        pendingQueue.removeIf { it.bytes.contentEquals(Cmd.stopTransfer) }
         send(
             WriteData(
                 Cmd.startTransfer,
@@ -255,44 +253,35 @@ class SerialPortHelper : OnSerialPortDataListener {
     }
 
     fun startECG12Measure() {
-        pendingQueue.removeIf { it.bytes.contentEquals(Cmd.stopECG12Measure) }
-        pendingQueue.removeIf { it.bytes.contentEquals(Cmd.stopTransfer) }
         send(
             WriteData(
                 Cmd.startECG12Measure,
                 method = "开始12导测量",
-                delay = 2000L,
                 priority = Priority.IMMEDIATELY,
                 isCRC = false,
-                commandTimeoutMill = 2000L
             )
         )
     }
 
     fun stopECG12Measure() {
-        pendingQueue.removeIf { it.bytes.contentEquals(Cmd.startTransfer) }
-        pendingQueue.removeIf { it.bytes.contentEquals(Cmd.startECG12Measure) }
         send(
             WriteData(
                 Cmd.stopECG12Measure,
                 method = "停止12导测量",
                 priority = Priority.HIGH,
                 isCRC = false,
-                commandTimeoutMill = 3000L
             )
         )
     }
 
     fun stopTransfer() {
-        pendingQueue.removeIf { it.bytes.contentEquals(Cmd.startTransfer) }
-        pendingQueue.removeIf { it.bytes.contentEquals(Cmd.startECG12Measure) }
         send(
             WriteData(
                 Cmd.stopTransfer,
                 method = "停止12导透传",
                 priority = Priority.HIGH,
                 isCRC = false,
-                commandTimeoutMill = 3000L
+                commandTimeoutMill = 2000L
             )
         )
     }

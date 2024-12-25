@@ -300,7 +300,7 @@ class IPAThreads(inputStream: InputStream, outputStream: OutputStream) {
             )
         )
         //发送握手包,激活下位机
-        send(WriteData(Cmd.handShake, method = "握手", delay = 1000, priority = Priority.HIGH))
+        send(WriteData(Cmd.handShake, method = "握手", delay = 1500, priority = Priority.HIGH, commandTimeoutMill = 1000))
     }
 
 
