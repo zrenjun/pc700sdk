@@ -19,8 +19,9 @@
 > 
 > Step 2. Add the dependency     
 > 
+>      // https://jitpack.io/com/github/zrenjun/pc700sdk/1.1.4/pc700sdk-1.1.4.aar
 >      dependencies {
-> 	       implementation 'com.github.zrenjun:pc700sdk:1.0.15'
+> 	       implementation 'com.github.zrenjun:pc700sdk:1.1.14'
 > 	   }
 > 
 > Step 3. Add the ndk
