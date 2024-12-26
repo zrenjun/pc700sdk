@@ -306,6 +306,18 @@ class SerialPortHelper : OnSerialPortDataListener {
     fun stopCheckLeakage() {
         send(WriteData(Cmd.bNIBP_CheckLeakageStop, method = "停止漏气检测"))
     }
+
+    /**
+     * 获取固件版本号
+     */
+    fun getVer(isMain: Boolean) {
+        send(
+            WriteData(
+                if (isMain) Cmd.getMainVer else Cmd.getSubVer,
+                method = if (isMain) "获取主固件版本" else "获取子固件版本"
+            )
+        )
+    }
 }
 
 
