@@ -175,25 +175,32 @@ class SerialPortHelper : OnSerialPortDataListener {
         )
         //发送握手包,激活下位机
         pendingQueue.removeIf { it.bytes.contentEquals(Cmd.sleepMachine) }
-        send(WriteData(Cmd.handShake, method = "握手", delay = 1000, priority = Priority.HIGH))
+        send(WriteData(Cmd.handShake, method = "握手", delay = 1000, priority = Priority.HIGH, isCRC = false))
     }
 
     fun sleep() {
-        send(WriteData(Cmd.sleepMachine, method = "休眠下位机", retry = 0))
+        send(WriteData(Cmd.sleepMachine, method = "休眠下位机", retry = 0, isCRC = false))
     }
 
     fun queryBattery() {
-        send(WriteData(Cmd.queryBattery, method = "查询电量", retry = 0))
+        send(WriteData(Cmd.queryBattery, method = "查询电量", retry = 0, isCRC = false))
     }
 
     fun setPressureMode(mode: Int) {
         Cmd.bNIBP_SetPressureMode[5] = mode.toByte()
-        send(WriteData(Cmd.bNIBP_SetPressureMode, method = "设置血压模块"))
+        send(WriteData(Cmd.bNIBP_SetPressureMode, method = "设置血压模块类型"))
+    }
+    fun getPressureMode() {
+        send(WriteData(Cmd.bNIBP_GetPressureMode, method = "获取血压模块类型"))
     }
 
     fun setGluType(mode: Int) {
         Cmd.bGLU_SetType[5] = mode.toByte()
         send(WriteData(Cmd.bGLU_SetType, method = "设置血糖设备类型"))
+    }
+
+    fun getGluType() {
+        send(WriteData(Cmd.bGLU_GetType, method = "获取血糖设备类型", isCRC = false))
     }
 
     /**
@@ -216,11 +223,11 @@ class SerialPortHelper : OnSerialPortDataListener {
     }
 
     fun startSingleEcgMeasure() {
-        send(WriteData(Cmd.bStartECG, method = "开始单导测量"))
+        send(WriteData(Cmd.bStartECG, method = "开始单导测量", isCRC = false))
     }
 
     fun stopSingleEcgMeasure() {
-        send(WriteData(Cmd.bStopECG, method = "停止单导测量"))
+        send(WriteData(Cmd.bStopECG, method = "停止单导测量", isCRC = false))
     }
 
     fun startNIBPMeasure() {
@@ -231,13 +238,13 @@ class SerialPortHelper : OnSerialPortDataListener {
         send(WriteData(Cmd.bNIBP_StopMeasureNIBP, method = "停止血压测量"))
     }
     fun setNIBPAdult() {
-        send(WriteData(Cmd.bNIBP_SetAdult, method = "血压设置成人"))
+        send(WriteData(Cmd.bNIBP_SetAdult, method = "血压设置成人", isCRC = false))
     }
     fun setNIBPChild() {
-        send(WriteData(Cmd.bNIBP_SetChild, method = "血压设置儿童"))
+        send(WriteData(Cmd.bNIBP_SetChild, method = "血压设置儿童", isCRC = false))
     }
     fun setNIBPInfant() {
-        send(WriteData(Cmd.bNIBP_SetInfant, method = "血压设置婴儿"))
+        send(WriteData(Cmd.bNIBP_SetInfant, method = "血压设置婴儿", isCRC = false))
     }
 
     fun startTransfer() {
@@ -314,7 +321,8 @@ class SerialPortHelper : OnSerialPortDataListener {
         send(
             WriteData(
                 if (isMain) Cmd.getMainVer else Cmd.getSubVer,
-                method = if (isMain) "获取主固件版本" else "获取子固件版本"
+                method = if (isMain) "获取主固件版本" else "获取子固件版本",
+                isCRC = false
             )
         )
     }

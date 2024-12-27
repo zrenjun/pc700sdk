@@ -23,6 +23,9 @@ class App : Application() {
 
         var context: App by Delegates.notNull()
             private set
+
+        var isSetGluType = false
+        var mcuMainVer = 0
     }
 
 

@@ -357,14 +357,14 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
         ParseEcg12Data.setFilterParam(hpHz, lowPassHz, acHz.toFloat())
         App.serial.mAPI?.apply {
             startTransfer() // 透传
-            startECG12Measure() // 启动心电线程并发开始命令
+            if (App.mcuMainVer < 1324) {
+                startECG12Measure() // 启动心电线程并发开始命令
+            }
         }
     }
 
     override fun onResume() {
         super.onResume()
-        // 启动心电线程并发开始命令
-        App.serial.mAPI?.startECG12Measure()
         isPause = false
     }
 

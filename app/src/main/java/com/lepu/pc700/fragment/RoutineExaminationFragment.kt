@@ -73,10 +73,9 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         (activity as MainActivity).setMainTitle("常规检测")
-        //0：科瑞康血压模块 ,1：景新浩血压
-        App.serial.mAPI?.setPressureMode(1)  //咨询销售确认设备模块供应商
-        App.serial.mAPI?.setNIBPAdult()
-        App.serial.mAPI?.setGluType(gluDeviceType + 1)
+        if (App.mcuMainVer < 1324 || !App.isSetGluType) {
+            App.serial.mAPI?.setGluType(gluDeviceType + 1)  // 1324以后每次启动只需设置一次
+        }
         with(binding) {
             setUnitSp()
             spoView.setScope(150, 0)

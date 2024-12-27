@@ -24,7 +24,15 @@ object Cmd {
      * @param  1 表示耳温模式；2 表示成人额温模式； 3 表示儿童额温模式；4 表示物温模式
      * @param  1.摄氏度 , 2:华氏度
      */
-    val switchTemperature = byteArrayOf(0xaa.toByte(), 0x55, 0x72, 0x03, 0x03, 0, 0)
+    val switchTemperature = byteArrayOf(
+        0xAA.toByte(),
+        0x55.toByte(),
+        0x72.toByte(),
+        0x03.toByte(),
+        0x03.toByte(),
+        0x00.toByte(),
+        0x00.toByte()
+    )
 
     /** 新12心电---开始透传  */
     val startTransfer = byteArrayOf(
@@ -114,6 +122,18 @@ object Cmd {
         0x00.toByte(),
         0x00.toByte()
     )
+    /**
+     * 血压命令————获取血压模块
+     */
+    val bNIBP_GetPressureMode = byteArrayOf(
+        0xAA.toByte(),
+        0x55.toByte(),
+        0x41.toByte(),
+        0x02.toByte(),
+        0x02.toByte(),
+        0x00.toByte()
+    )
+
     /**
      * 血压命令————静态压校准开始
      */
@@ -209,6 +229,7 @@ object Cmd {
         0x02.toByte(),
         0x00.toByte()
     )
+
     /**
      * ֹͣ血压命令————设置成人
      */
@@ -221,6 +242,7 @@ object Cmd {
         0x00.toByte(),
         0xEB.toByte()
     )
+
     /**
      * ֹͣ血压命令————设置儿童
      */
@@ -233,6 +255,7 @@ object Cmd {
         0x01.toByte(),
         0xB5.toByte()
     )
+
     /**
      * ֹͣ血压命令————设置婴儿
      */
@@ -257,6 +280,18 @@ object Cmd {
         0x01.toByte(),
         0x00.toByte(),
         0x00.toByte()
+    )
+
+    /**
+     * 血糖命令————获取设备类型
+     */
+    val bGLU_GetType = byteArrayOf(
+        0xAA.toByte(),
+        0x55.toByte(),
+        0xE0.toByte(),
+        0x02.toByte(),
+        0x02.toByte(),
+        0x3D.toByte()
     )
 
     /**
@@ -330,6 +365,7 @@ object Cmd {
         0x12.toByte(),
         0xa4.toByte()
     )
+
     //主固件进入升级状态
     val enterUpgradeStatusMain = byteArrayOf(
         0xaa.toByte(),
@@ -340,6 +376,7 @@ object Cmd {
         0x01.toByte(),
         0xdb.toByte()
     )
+
     //子固件进入升级状态
     val enterUpgradeStatusSub = byteArrayOf(
         0xaa.toByte(),

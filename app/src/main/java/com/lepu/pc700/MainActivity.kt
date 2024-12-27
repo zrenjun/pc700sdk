@@ -15,6 +15,8 @@ import com.Carewell.ecg700.port.LogUtil
 import com.Carewell.OmniEcg.jni.XmlUtil
 import com.Carewell.ecg700.entity.EcgSettingConfigEnum
 import com.Carewell.ecg700.entity.PatientInfoBean
+import com.Carewell.ecg700.port.IAPVersionEvent
+import com.Carewell.ecg700.port.observeEvent
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
 import com.lepu.pc700.databinding.ActivityMainBinding
@@ -22,6 +24,7 @@ import com.lepu.pc700.dialog.PROJECT_DIR
 import com.lepu.pc700.fragment.KeepStateNavigator
 import com.lepu.pc700.fragment.launchWhenResumed
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
@@ -38,6 +41,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
     private var title = mutableListOf<String>()
     private val binding by viewBinding(ActivityMainBinding::bind)
 
+    @OptIn(InternalCoroutinesApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         //屏幕常亮
@@ -70,6 +74,16 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
                 } else {
                     tvMiddle.text = "Demo"
                     tvLeft.isVisible = false
+                }
+            }
+        }
+
+        App.serial.mAPI?.getVer(true)
+        observeEvent<IAPVersionEvent> {
+            LogUtil.v(it.toJson())
+            if (it.response.toInt() == 2) {
+                if (it.softwareVersion != 0) {
+                    App.mcuMainVer = it.softwareVersion
                 }
             }
         }
