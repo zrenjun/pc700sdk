@@ -122,10 +122,13 @@
         <item>10 mm/mV</item>
         <item>20 mm/mV</item>
         <item>40 mm/mV</item>
+        <item>auto</item>
     </string-array>
 
     <string-array name="ecgSpeed">
+        <item>5 mm/s</item>
         <item>6.25 mm/s</item>
+        <item>10 mm/s</item>
         <item>12.5 mm/s</item>
         <item>25 mm/s</item>
         <item>50 mm/s</item>

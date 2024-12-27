@@ -332,9 +332,10 @@ class ParseEcg12Data {
         }
 
         private val configBean = ConfigBean()
-        fun setFilterParam(highPassSmooth: Float, lowPassSmooth: Int, acSmooth: Float) {
+        fun setFilterParam(highPassSmooth: Float, lowPassSmooth: Int, emgSmooth: Int, acSmooth: Float) {
             configBean.highPassSmooth = highPassSmooth
             configBean.lowPassSmooth = lowPassSmooth
+            configBean.emgSmooth = emgSmooth
             configBean.aCSmooth = acSmooth
         }
 

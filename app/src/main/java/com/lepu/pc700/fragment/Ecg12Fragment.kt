@@ -86,8 +86,8 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
         requireActivity().window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         MainEcgManager.getInstance().init()
         //默认增益
-        val gain = "10"
-        updateGain(gain, true)
+        val gain = "auto"
+//        updateGain(gain, true)
         //默认走速
         val speed = 25.0f
         updateSpeed(speed, true)
@@ -118,7 +118,7 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
                 return@singleClick
             }
             Ecg12FilterSettingDialog().setOnAdoptListener { lowPassHz, hpHz, acHz, isAddPaceMaker ->
-                ParseEcg12Data.setFilterParam(hpHz, lowPassHz, acHz.toFloat())
+                ParseEcg12Data.setFilterParam(hpHz, lowPassHz, 45,acHz.toFloat())
                 ParseEcg12Data.setIsAddPacemaker(isAddPaceMaker)
                 this.lowPassHz = lowPassHz
                 this.hpHz = hpHz
@@ -142,23 +142,28 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
                 1 -> LeadGainType.GAIN_5.value.toString()
                 2 -> LeadGainType.GAIN_10.value.toString()
                 3 -> LeadGainType.GAIN_20.value.toString()
-                else -> LeadGainType.GAIN_40.value.toString()
+                4 -> LeadGainType.GAIN_40.value.toString()
+                else -> LeadGainType.GAIN_AUTO.value.toString()
             }
             updateGain(value, false)
         }
         binding.spinnerSpeed.setSelection(
             when (speed) {
-                LeadSpeedType.FORMFEED_6_P_25.value -> 0
-                LeadSpeedType.FORMFEED_12_P_5.value -> 1
-                LeadSpeedType.FORMFEED_25.value -> 2
-                else -> 3
+                LeadSpeedType.FORMFEED_5.value -> 0
+                LeadSpeedType.FORMFEED_6_P_25.value -> 1
+                LeadSpeedType.FORMFEED_10.value -> 2
+                LeadSpeedType.FORMFEED_12_P_5.value -> 3
+                LeadSpeedType.FORMFEED_25.value -> 4
+                else -> 5
             }
         )
         binding.spinnerSpeed.onItemSelectedListener {
             val value = when (it) {
-                0 -> LeadSpeedType.FORMFEED_6_P_25.value
-                1 -> LeadSpeedType.FORMFEED_12_P_5.value
-                2 -> LeadSpeedType.FORMFEED_25.value
+                0 -> LeadSpeedType.FORMFEED_5.value
+                1 -> LeadSpeedType.FORMFEED_6_P_25.value
+                2 -> LeadSpeedType.FORMFEED_10.value
+                3 -> LeadSpeedType.FORMFEED_12_P_5.value
+                4 -> LeadSpeedType.FORMFEED_25.value
                 else -> LeadSpeedType.FORMFEED_50.value
             }
             updateSpeed(value, false)
@@ -354,7 +359,7 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
     private fun initData() {
         App.serial.mAPI?.setEcgListener(ecg12DataListener)
 
-        ParseEcg12Data.setFilterParam(hpHz, lowPassHz, acHz.toFloat())
+        ParseEcg12Data.setFilterParam(hpHz, lowPassHz,45, acHz.toFloat())
         App.serial.mAPI?.apply {
             startTransfer() // 透传
             if (App.mcuMainVer < 1324) {

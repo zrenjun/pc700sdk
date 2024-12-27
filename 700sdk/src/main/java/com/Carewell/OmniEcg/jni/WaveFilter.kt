@@ -87,10 +87,10 @@ class WaveFilter {
                 }
             }
         }
-        //肌电 、低通
-        val filterLowPass = configBean.lowPassSmooth
-        if (filterLowPass != Const.FILTER_LOWPASS_CLOSE) {
-            when (filterLowPass) {
+        //肌电
+        val emgSmooth = configBean.emgSmooth
+        if (emgSmooth != Const.FILTER_LOWPASS_CLOSE) {
+            when (emgSmooth) {
                 Const.FILTER_EMG_25 -> {
                     jniFilter.electromyography25(
                         tmpDataArray,
@@ -120,7 +120,12 @@ class WaveFilter {
                     )
                     tmpDataArray = notifyFilterBean.intDataArray
                 }
-
+            }
+        }
+        //低通
+        val filterLowPass = configBean.lowPassSmooth
+        if (filterLowPass != Const.FILTER_LOWPASS_CLOSE) {
+            when (filterLowPass) {
                 Const.FILTER_LOWPASS_75 -> { //低通滤波
                     jniFilter.lowPass75(
                         tmpDataArray,

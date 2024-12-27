@@ -2,6 +2,8 @@ package com.Carewell.view.ecg12;
 
 import android.content.Context;
 
+import com.Carewell.ecg700.port.LogUtil;
+
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -151,7 +153,7 @@ public class MainEcgManager {
     /**
      * 添加数据
      */
-    public void addEcgData(short[][] ecgDataArray) {
+    public void addEcgData(short[][] ecgDataArray) {  //12 x 1
         if (drawEcgRealView == null) {
             return;
         } else {
@@ -159,7 +161,7 @@ public class MainEcgManager {
         }
 
         if (drawEcgRealView.getBaseEcgPreviewTemplate() == null
-                ||drawEcgRealView.getBaseEcgPreviewTemplate().getLeadManager() == null
+                || drawEcgRealView.getBaseEcgPreviewTemplate().getLeadManager() == null
                 || drawEcgRealView.getBaseEcgPreviewTemplate().getLeadManager().getLeadList().size() <= 0) {
             return;
         }
@@ -169,6 +171,21 @@ public class MainEcgManager {
         }
 
         drawEcgRealView.getBaseEcgPreviewTemplate().addEcgData(ecgDataArray);
+
+        for (int i = 0; i < ecgDataArray.length; i++) {
+            float tempValue = Math.abs(ecgDataArray[i][0] * Const.SHORT_MV_GAIN);
+            if (i < 2) {
+                //I II
+                if (tempValue > bodyMaxValue) {
+                    bodyMaxValue = tempValue;
+                }
+            } else {
+                //v1-v6
+                if (tempValue > chestMaxValue) {
+                    chestMaxValue = tempValue;
+                }
+            }
+        }
     }
 
     /**
@@ -216,8 +233,7 @@ public class MainEcgManager {
      * 更新增益
      */
     public void updateMainGain(int enumType) {
-        leadGainType = LeadGainType.values()[enumType];
-        gainArray = updateGain();
+        updateMainGainOnlyData(enumType);
         resetDrawEcg();
     }
 
@@ -225,5 +241,55 @@ public class MainEcgManager {
     public void updateMainGainOnlyData(int enumType) {
         leadGainType = LeadGainType.values()[enumType];
         gainArray = updateGain();
+    }
+
+    /**
+     *实时计算自动增益
+     */
+    public void realCalculateAutoSensitivity(){
+        if (drawEcgRealView != null) {
+            float[] newGain = calculateAutoSensitivity( 12);
+            if (newGain[0] != gainArray[0] || newGain[1] != gainArray[1]) {
+                gainArray = newGain;
+                resetDrawEcg();
+            }
+        }
+    }
+
+    //肢体
+    private float bodyMaxValue = 0F;
+    //胸导联
+    private float chestMaxValue = 0F;
+
+    /**
+     * 计算自动增益
+     */
+    public float[] calculateAutoSensitivity( int leadLines) {
+        float[] gainArrayTemp = new float[]{1.0F, 1.0F};
+        if (bodyMaxValue == 0f && chestMaxValue == 0f) {
+            return gainArrayTemp;
+        }
+        //计算自动增益  有22个大格，每2个格子 1mv
+        float maxShowMv = (22f / leadLines / 2f) * 0.5f;  //1.83
+        if (bodyMaxValue > maxShowMv) {
+            if (bodyMaxValue / 2 > maxShowMv) {
+                gainArrayTemp[0] = 0.25f;
+            } else {
+                gainArrayTemp[0] = 0.5f;
+            }
+        }
+        if (chestMaxValue > maxShowMv) {
+            if (chestMaxValue / 2 > maxShowMv) {
+                gainArrayTemp[1] = 0.25F;
+            } else {
+                gainArrayTemp[1] = 0.5F;
+            }
+        }
+        LogUtil.INSTANCE.e(""+bodyMaxValue,"bodyMaxValue");
+        LogUtil.INSTANCE.e(""+chestMaxValue,"chestMaxValue");
+        LogUtil.INSTANCE.e("gainArrayTemp[0]:"+gainArrayTemp[0],"gainArrayTemp[1]:"+gainArrayTemp[1]);
+        bodyMaxValue = 0F;
+        chestMaxValue = 0F;
+        return gainArrayTemp;
     }
 }

@@ -5,7 +5,8 @@ public enum LeadGainType {
     GAIN_5 ("5mm/mV","5"),
     GAIN_10 ("10mm/mV","10"),
     GAIN_20 ("20mm/mV","20"),
-    GAIN_40 ("40mm/mV","40");
+    GAIN_40 ("40mm/mV","40"),
+    GAIN_AUTO  ("自动","auto");
 
     private String name;
     private Object value;
