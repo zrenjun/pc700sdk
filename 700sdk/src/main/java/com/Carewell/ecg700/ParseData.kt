@@ -418,13 +418,13 @@ object ParseData {
                     if (filterCallBackCnt(ua_type)) {
                         if(gluType == 0x02){
                             dataMgdl /= 10f // 当为尿酸结果时，上传的结果值为扩大 10倍的数据  保留1位小数
-                            dataMmol = "%.2f".format(dataMgdl / 16.81f).toFloat()
+                            dataMmol = "%.3f".format(dataMgdl / 16.81f).toFloat()
                             LogUtil.e("============百捷 尿酸结果 $a  $dataMmol  $dataMgdl  $unit")
                             postEvent(GetUAResult(a, "$dataMmol","$dataMgdl", unit))
                         }
                         if(gluType == 0x04){
-                            dataMmol = "%.2f".format(dataMmol / 10f).toFloat()  // 设备展示的umol 通用解析已经除了2次10
-                            dataMgdl = "%.2f".format(dataMmol * 16.81f).toFloat()
+                            dataMmol = "%.3f".format(dataMmol / 10f).toFloat()  // 设备展示的umol 通用解析已经除了2次10
+                            dataMgdl = "%.3f".format(dataMmol * 16.81f).toFloat()
                             LogUtil.e("============乐普 尿酸结果 $a  $dataMmol  $dataMgdl   $unit")
                             postEvent(GetUAResult(a, "$dataMmol","$dataMgdl", unit))
                         }
