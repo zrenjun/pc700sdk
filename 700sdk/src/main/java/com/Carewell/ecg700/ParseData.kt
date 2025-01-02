@@ -440,7 +440,7 @@ object ParseData {
                     }
                     if(gluType == 0x04){  //乐普
                         if (filterCallBackCnt(bk_type)) {   //aa, 55, e2, 05, 03, 00, 00, 02, c2,   ==0.2
-                            dataMgdl = "%.2f".format(dataMgdl * 10.04f).toFloat()
+                            dataMgdl = "%.2f".format(dataMmol * 10.04f).toFloat()
                             LogUtil.e("============乐普 血酮结果 $a  $dataMmol  $dataMgdl  $unit")
                             postEvent(GetBKResult(a, "$dataMmol", "$dataMgdl", unit))
                         }
