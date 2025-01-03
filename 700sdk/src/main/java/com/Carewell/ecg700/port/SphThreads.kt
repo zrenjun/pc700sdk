@@ -97,9 +97,9 @@ class SphThreads(
             sum = 0
         } else {
             sum += len
-            if (sum / 22 / 1000 > 1) {
+            if (sum / 22 / 1000 > 4) {
                 sum = 0
-                LogUtil.v("心电数据--2s-->")
+                LogUtil.v("心电数据读取--5s-->")
             }
         }
         if (len == buffer.size) {
@@ -137,7 +137,7 @@ class SphThreads(
                 val potentialEnd = length + 4
                 if (mReceiveBuffer.size > potentialEnd &&
                     mReceiveBuffer[potentialEnd] != routineHead1 &&
-                    mReceiveBuffer[potentialEnd] == ecg12Head1
+                    mReceiveBuffer[potentialEnd] != ecg12Head1
                 ) {
                     LogUtil.v("异常队列数据---->${HexUtil.bytesToHexString(mReceiveBuffer.toByteArray())}")
                     return -1
@@ -162,12 +162,12 @@ class SphThreads(
                 if (data[3] == 0x01.toByte() || data[3] == 0x02.toByte()) {
                     listener.onDataReceived(data)//发送下一个命令
                 }
-            }else{
-                ParseEcg12Data.addData(data)
             }
+            ParseEcg12Data.addData(data)
         } else {
             listener.onDataReceived(data)//发送下一个命令
             ParseData.processingOrdinaryData(data)
+            ParseEcg12Data.clear()
         }
     }
 

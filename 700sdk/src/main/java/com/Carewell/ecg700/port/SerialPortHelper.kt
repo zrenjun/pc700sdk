@@ -121,6 +121,7 @@ class SerialPortHelper : OnSerialPortDataListener {
         serialPort.inputStream.close()
         serialPort.outputStream.close()
         serialPort.close()
+        LogUtil.v("关闭串口")
     }
 
 
@@ -223,11 +224,11 @@ class SerialPortHelper : OnSerialPortDataListener {
     }
 
     fun startSingleEcgMeasure() {
-        send(WriteData(Cmd.bStartECG, method = "开始单导测量", isCRC = false))
+        send(WriteData(Cmd.bStartECG, method = "开始单导测量"))
     }
 
     fun stopSingleEcgMeasure() {
-        send(WriteData(Cmd.bStopECG, method = "停止单导测量", isCRC = false))
+        send(WriteData(Cmd.bStopECG, method = "停止单导测量"))
     }
 
     fun startNIBPMeasure() {
@@ -288,7 +289,7 @@ class SerialPortHelper : OnSerialPortDataListener {
                 method = "停止12导透传",
                 priority = Priority.HIGH,
                 isCRC = false,
-                commandTimeoutMill = 2000L
+                commandTimeoutMill = 3000L
             )
         )
     }

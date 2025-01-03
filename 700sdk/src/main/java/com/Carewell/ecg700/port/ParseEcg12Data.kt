@@ -19,10 +19,6 @@ class ParseEcg12Data {
     }
 
     private var scope = CoroutineScope(Dispatchers.IO)
-//    private var LeadDetachment_normal_or_not = true
-    var points_at_a_time = 100//一次放100个点进去计算心率
-    var hrWave = ShortArray(points_at_a_time)
-    var hrWaveindex = 0
 
     fun start() {
         queue.clear()
@@ -31,6 +27,7 @@ class ParseEcg12Data {
                 try {
                     queue.dequeue()?.let { checkPack(it) }
                 } catch (e: Exception) {
+                    LogUtil.e(e.message?:"")
                     e.printStackTrace()
                 }
             }
@@ -53,9 +50,6 @@ class ParseEcg12Data {
 
     @Volatile
     private var count = 2
-    private fun getShort(arg1: Byte, arg2: Byte): Short {
-        return ((arg1.toInt() and 0xff) + (arg2.toInt() and 0xff shl 8)).toShort()
-    }
 
 
     private fun checkPack(curByteBuffer: ByteArray) {
@@ -166,6 +160,11 @@ class ParseEcg12Data {
                             ecgData[11] = filterWave[7][k].toInt() //
                             k++
                         }
+                        sum++
+                        if (sum / 1000 > 4) {
+                            sum = 0
+                            LogUtil.v("心电数据处理--5s-->")
+                        }
                         onECGDataListener?.onECG12DataReceived(ecgData)
                     }
 
@@ -175,6 +174,7 @@ class ParseEcg12Data {
                         val version = ByteArray(8)
                         System.arraycopy(replyData, 6, version, 0, 8)
                         val versionStr = String(version)
+                        LogUtil.v("回复帧版 本号:$versionStr")
                         //1 old version;0 new version
                         var versionFlag = 0
                         if ("V1.0.0.0" == versionStr) versionFlag = 1
@@ -182,6 +182,8 @@ class ParseEcg12Data {
                         JniFilterNew.getInstance().InitDCRecover(versionFlag)
                     }
                 }
+            }else{
+                LogUtil.v("数据校验失败")
             }
         }
     }
@@ -292,33 +294,21 @@ class ParseEcg12Data {
         stringBuffer.append(strLA).append(strLL).append(strRA).append(strRL).append(strV1)
             .append(strV2).append(strV3).append(strV4).append(strV5).append(strV6)
         onECGDataListener?.onLeadFailReceived(stringBuffer.toString(), bFall)
-
-//        if (bFall && iFall && iiFall && v1Fall && v2Fall && v3Fall && v4Fall && v5Fall && v6Fall) {
-//            if (LeadDetachment_normal_or_not) {
-//                LeadDetachment_normal_or_not = false
-//                scope.launch(Dispatchers.IO) {
-//                    instance?.closeHeartRateDetect()
-//                    delay(300)
-//                    instance?.initHeartRateDetect()
-//                }
-//            }
-//        } else {
-//            LeadDetachment_normal_or_not = true
-//        }
-
-
     }
 
     companion object {
-        private var queue = ArrayQueue<ByteArray>(10000)
+        private var queue = ArrayQueue<ByteArray>(20000)
+
+
         fun addData(bytes: ByteArray) {
             queue.enqueue(bytes)
-//            if (queue.isEmpty()) {
-//                LogUtil.v("receive  ---->  " + HexUtil.bytesToHexString(bytes))
-//            }
+            if (queue.getSize() > 1000) {
+                LogUtil.v("receive  ---->  " + HexUtil.bytesToHexString(bytes))
+            }
         }
-
+        var sum = 0
         fun clear() {
+            sum = 0
             queue.clear()
         }
 
@@ -326,9 +316,8 @@ class ParseEcg12Data {
         private const val TYPE2 = 0xc2 //回复帧
         private const val PACE_MAKER_VALUE: Short = 1000
         private var isLeadII = true
-        fun setLeadHrMode(LeadII: Boolean) {
-            isLeadII = LeadII
-//            println("LeadII================"+LeadII)
+        fun setLeadHrMode(leadII: Boolean) {
+            isLeadII = leadII
         }
 
         private val configBean = ConfigBean()
@@ -344,8 +333,6 @@ class ParseEcg12Data {
             isAddPacemaker = isAddPaceMaker
         }
     }
-
-
 }
 
 interface Queue<E> {

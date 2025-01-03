@@ -319,7 +319,7 @@ object ParseData {
                 )
             }
             // 血糖仪器类别
-            (0xE0).toByte() ->{
+            (0xE0).toByte() -> {
                 gluType = bytes[5].toInt() and 0x0F
                 LogUtil.e("============血糖类型 $gluType")
                 postEvent(GetGLUType(gluType))
@@ -351,25 +351,16 @@ object ParseData {
                         }
                     } else if (type == 0x02) {
                         if (filterCallBackCnt(ua_type)) {
-                            if(gluType == 0x02){
+                            if (gluType == 0x02) {
                                 LogUtil.e("============百捷 尿酸结果 $a  $dataMmol  $dataMgdl  $unit")
+                                postEvent(GetUAResult(a, "$dataMmol", "$dataMgdl", unit))
                             }
-                            if(gluType == 0x04){
-                                LogUtil.e("============乐普 尿酸结果 $a  $dataMmol  $dataMgdl  $unit")
-                            }
-                            postEvent(GetUAResult(a, "$dataMmol", "$dataMgdl", unit))
                         }
                     } else if (type == 0x03) {
-                        if(gluType == 0x02){  //百捷
+                        if (gluType == 0x02) {  //百捷
                             if (filterCallBackCnt(chol_type)) {
                                 LogUtil.e("============百捷 胆固醇结果 $a  $dataMmol  $dataMgdl  $unit")
                                 postEvent(GetCHOLResult(a, "$dataMmol", "$dataMgdl", unit))
-                            }
-                        }
-                        if(gluType == 0x04){  //乐普
-                            if (filterCallBackCnt(bk_type)) {
-                                LogUtil.e("============乐普 血酮结果 $a  $dataMmol  $dataMgdl  $unit")
-                                postEvent(GetBKResult(a, "$dataMmol", "$dataMgdl", unit))
                             }
                         }
                     }
@@ -396,41 +387,38 @@ object ParseData {
                 }
                 if (type == 0x01) {
                     if (filterCallBackCnt(glu_type)) {
-                        if(gluType == 0x01){
+                        if (gluType == 0x01) {
                             LogUtil.e("============怡成 血糖结果 $a  $dataMmol  $dataMgdl  $unit")
                             postEvent(GetGLUResult(a, "$dataMmol", "${(dataMmol * 18).toInt()}", unit))
-                        }else{
-
-                            if(gluType == 0x02){
-                                LogUtil.e("============百捷 血糖结果 $a  $dataMmol  $dataMgdl  $unit")  //设备显示L 直接给0值 aa, 55, e2, 05, 01, 01, 00, 00, d2,
-                                dataMmol = "%.1f".format(dataMgdl / 18f).toFloat()
-                                postEvent(GetGLUResult(a, "$dataMmol", "$dataMgdl", unit))
-                            }
-                            if(gluType == 0x04){  //aa, 55, e2, 05, 01, 00, 00, 20, 5a,  == glu---->  2.0   gluMgdl---->  36.0
-                                LogUtil.e("============乐普 血糖结果 $a  $dataMmol  $dataMgdl  $unit")
-                                dataMgdl = "%.1f".format(dataMgdl * 18f).toFloat()
-                                postEvent(GetGLUResult(a, "$dataMmol", "$dataMgdl", unit))
-                            }
-
+                        }
+                        if (gluType == 0x02) {
+                            LogUtil.e("============百捷 血糖结果 $a  $dataMmol  $dataMgdl  $unit")  //设备显示L 直接给0值 aa, 55, e2, 05, 01, 01, 00, 00, d2,
+                            dataMmol = "%.1f".format(dataMgdl / 18f).toFloat()
+                            postEvent(GetGLUResult(a, "$dataMmol", "$dataMgdl", unit))
+                        }
+                        if (gluType == 0x04) {  //aa, 55, e2, 05, 01, 00, 00, 20, 5a,  == glu---->  2.0   gluMgdl---->  36.0
+                            LogUtil.e("============乐普 血糖结果 $a  $dataMmol  $dataMgdl  $unit")
+                            dataMgdl = "%.1f".format(dataMgdl * 18f).toFloat()
+                            postEvent(GetGLUResult(a, "$dataMmol", "$dataMgdl", unit))
                         }
                     }
                 } else if (type == 0x02) { //尿酸下位机没有高低返回，是具体值
                     if (filterCallBackCnt(ua_type)) {
-                        if(gluType == 0x02){
+                        if (gluType == 0x02) {
                             dataMgdl /= 10f // 当为尿酸结果时，上传的结果值为扩大 10倍的数据  保留1位小数
                             dataMmol = "%.3f".format(dataMgdl / 16.81f).toFloat()
                             LogUtil.e("============百捷 尿酸结果 $a  $dataMmol  $dataMgdl  $unit")
-                            postEvent(GetUAResult(a, "$dataMmol","$dataMgdl", unit))
+                            postEvent(GetUAResult(a, "$dataMmol", "$dataMgdl", unit))
                         }
-                        if(gluType == 0x04){
-                            dataMmol = "%.3f".format(dataMmol / 10f).toFloat()  // 设备展示的umol 通用解析已经除了2次10
+                        if (gluType == 0x04) {
+                            dataMmol = "%.3f".format(dataMmol / 100f).toFloat()  // 设备展示的umol 通用解析已经除了1次10
                             dataMgdl = "%.3f".format(dataMmol * 16.81f).toFloat()
                             LogUtil.e("============乐普 尿酸结果 $a  $dataMmol  $dataMgdl   $unit")
-                            postEvent(GetUAResult(a, "$dataMmol","$dataMgdl", unit))
+                            postEvent(GetUAResult(a, "$dataMmol", "$dataMgdl", unit))
                         }
                     }
                 } else if (type == 0x03) {
-                    if(gluType == 0x02){  //百捷
+                    if (gluType == 0x02) {  //百捷
                         if (filterCallBackCnt(chol_type)) {
                             dataMmol = "%.2f".format(dataMgdl / 38.66f).toFloat()
                             //百捷 胆固醇结果 0  2.79  108.0  1  == aa, 55, e2, 05, 03, 01, 00, 6c, 13,
@@ -438,7 +426,7 @@ object ParseData {
                             postEvent(GetCHOLResult(a, "$dataMmol", "$dataMgdl", unit))
                         }
                     }
-                    if(gluType == 0x04){  //乐普
+                    if (gluType == 0x04) {  //乐普
                         if (filterCallBackCnt(bk_type)) {   //aa, 55, e2, 05, 03, 00, 00, 02, c2,   ==0.2
                             dataMgdl = "%.2f".format(dataMmol * 10.04f).toFloat()
                             LogUtil.e("============乐普 血酮结果 $a  $dataMmol  $dataMgdl  $unit")

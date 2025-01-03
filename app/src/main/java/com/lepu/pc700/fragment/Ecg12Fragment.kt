@@ -17,6 +17,7 @@ import com.Carewell.ecg700.port.ParseEcg12Data
 import com.Carewell.OmniEcg.jni.XmlUtil
 import com.Carewell.ecg700.entity.EcgSettingConfigEnum
 import com.Carewell.ecg700.entity.PatientInfoBean
+import com.Carewell.ecg700.port.ParseEcg12Data.Companion.sum
 import com.Carewell.view.ecg12.*
 import com.Carewell.view.other.LoadingForView
 import com.lepu.pc700.App
@@ -118,7 +119,7 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
                 return@singleClick
             }
             Ecg12FilterSettingDialog().setOnAdoptListener { lowPassHz, hpHz, acHz, isAddPaceMaker ->
-                ParseEcg12Data.setFilterParam(hpHz, lowPassHz, 45,acHz.toFloat())
+                ParseEcg12Data.setFilterParam(hpHz, lowPassHz, 45, acHz.toFloat())
                 ParseEcg12Data.setIsAddPacemaker(isAddPaceMaker)
                 this.lowPassHz = lowPassHz
                 this.hpHz = hpHz
@@ -294,8 +295,9 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
     private var subscript = 0
     private var isInit = true
     private var timeDelay = 0L
+    private var sum = 0
 
-    private var ecg12DataListener= object : OnECG12DataListener {
+    private var ecg12DataListener = object : OnECG12DataListener {
         override fun onECG12DataReceived(ecg12Data: IntArray) {
             val ecgDataArray = Array(12) { ShortArray(1) }
             ecg12Data.forEachIndexed { index, i ->
@@ -318,7 +320,11 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
             if (loading.isShow) {
                 activity?.runOnUiThread { loading.dismiss() }
             }
-
+            sum++
+            if (sum / 1000 > 9) {
+                sum = 0
+                LogUtil.v("心电数据接收--10s-->")
+            }
             MainEcgManager.getInstance().addEcgData(ecgDataArray)
         }
 
@@ -356,10 +362,11 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
             }
         }
     }
+
     private fun initData() {
         App.serial.mAPI?.setEcgListener(ecg12DataListener)
 
-        ParseEcg12Data.setFilterParam(hpHz, lowPassHz,45, acHz.toFloat())
+        ParseEcg12Data.setFilterParam(hpHz, lowPassHz, 45, acHz.toFloat())
         App.serial.mAPI?.apply {
             startTransfer() // 透传
             if (App.mcuMainVer < 1324) {
@@ -491,7 +498,9 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
             EcgInfo().apply {
                 ecg = Ecg().apply {
                     duration = time
-                    measure_time = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.CHINA).format(Date(checkTimeStamp))
+                    measure_time = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.CHINA).format(
+                        Date(checkTimeStamp)
+                    )
                 }
                 user = User().apply {
                     name = "test"
@@ -508,9 +517,9 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
             checkTimeStamp + time * 1000L,
         )
 
-        viewModel.mECGPdf.observe(viewLifecycleOwner){
+        viewModel.mECGPdf.observe(viewLifecycleOwner) {
             if (it != null)
-               LogUtil.e("pdf $it")
+                LogUtil.e("pdf $it")
         }
     }
 }
