@@ -88,19 +88,11 @@ class SphThreads(
         }
     }
 
-    private var sum = 0
 
     private fun handleReceivedData(len: Int) {
         if (len < 22) {
             LogUtil.v("队列数据----> ${HexUtil.bytesToHexString(mReceiveBuffer.toByteArray())}")
             LogUtil.v("读取--> ${HexUtil.bytesToHexString(buffer.copyOfRange(0, len))}")
-            sum = 0
-        } else {
-            sum += len
-            if (sum / 22 / 1000 > 4) {
-                sum = 0
-                LogUtil.v("心电数据读取--5s-->")
-            }
         }
         if (len == buffer.size) {
             Arrays.fill(buffer, 0.toByte())

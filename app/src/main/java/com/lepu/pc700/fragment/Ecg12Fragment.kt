@@ -3,7 +3,6 @@ package com.lepu.pc700.fragment
 import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.view.WindowManager
 import androidx.fragment.app.Fragment
@@ -17,7 +16,6 @@ import com.Carewell.ecg700.port.ParseEcg12Data
 import com.Carewell.OmniEcg.jni.XmlUtil
 import com.Carewell.ecg700.entity.EcgSettingConfigEnum
 import com.Carewell.ecg700.entity.PatientInfoBean
-import com.Carewell.ecg700.port.ParseEcg12Data.Companion.sum
 import com.Carewell.view.ecg12.*
 import com.Carewell.view.other.LoadingForView
 import com.lepu.pc700.App

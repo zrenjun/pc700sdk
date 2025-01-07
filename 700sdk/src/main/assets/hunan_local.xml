@@ -571,6 +571,20 @@
                             </component>
                             <component>
                                 <sequence>
+                                    <code code="MDC_ECG_LEAD_V4" codeSystem="2.16.840.1.113883.6.24"
+                                        codeSystemName="MDC" />
+                                    <value xsi:type="SLIST_PQ">
+                                        <origin unit="uV" value="0" />
+                                        <scale unit="uV" value="1" />
+                                        <digits>-167 -168 -168 -169 -171 -172 -173 -174 -176 -177
+                                            -179 -180 -182 -184 -186 -188 -190 -193 -195 -198 -200
+                                            -203 -206 -210 -213 -217
+                                        </digits>
+                                    </value>
+                                </sequence>
+                            </component>
+                            <component>
+                                <sequence>
                                     <code code="MDC_ECG_LEAD_V5" codeSystem="2.16.840.1.113883.6.24"
                                         codeSystemName="MDC" />
                                     <value xsi:type="SLIST_PQ">

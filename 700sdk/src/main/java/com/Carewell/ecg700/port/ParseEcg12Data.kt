@@ -160,11 +160,6 @@ class ParseEcg12Data {
                             ecgData[11] = filterWave[7][k].toInt() //
                             k++
                         }
-                        sum++
-                        if (sum / 1000 > 4) {
-                            sum = 0
-                            LogUtil.v("心电数据处理--5s-->")
-                        }
                         onECGDataListener?.onECG12DataReceived(ecgData)
                     }
 
@@ -306,9 +301,7 @@ class ParseEcg12Data {
                 LogUtil.v("receive  ---->  " + HexUtil.bytesToHexString(bytes))
             }
         }
-        var sum = 0
         fun clear() {
-            sum = 0
             queue.clear()
         }
 
