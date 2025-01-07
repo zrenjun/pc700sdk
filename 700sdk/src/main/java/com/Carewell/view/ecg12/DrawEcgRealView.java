@@ -82,8 +82,11 @@ public class DrawEcgRealView extends SurfaceView implements SurfaceHolder.Callba
     /**
      * 停止绘制波形
      */
-    private void stopDrawEcg() {
-        stopDrawWaveThread();
+    public void stopDrawEcg() {
+        if (drawWaveThread != null) {
+            drawWaveThread.isRunning = false;
+            drawWaveThread = null;
+        }
         if (baseEcgPreviewTemplate != null) {
             baseEcgPreviewTemplate.clearData();
         }
@@ -111,16 +114,6 @@ public class DrawEcgRealView extends SurfaceView implements SurfaceHolder.Callba
             drawWaveThread = new DrawWaveThread();
             drawWaveThread.isRunning = true;
             drawWaveThread.start();
-        }
-    }
-
-    /**
-     * 停止绘制线程
-     */
-    private void stopDrawWaveThread() {
-        if (drawWaveThread != null) {
-            drawWaveThread.isRunning = false;
-            drawWaveThread = null;
         }
     }
 
