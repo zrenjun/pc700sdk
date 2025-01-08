@@ -267,6 +267,7 @@ class SerialPortHelper : OnSerialPortDataListener {
                 method = "开始12导测量",
                 priority = Priority.IMMEDIATELY,
                 isCRC = false,
+                commandTimeoutMill = 2000L
             )
         )
     }
@@ -278,6 +279,7 @@ class SerialPortHelper : OnSerialPortDataListener {
                 method = "停止12导测量",
                 priority = Priority.HIGH,
                 isCRC = false,
+                commandTimeoutMill = 2000L
             )
         )
     }

@@ -156,13 +156,11 @@ public class MainEcgManager {
     public void addEcgData(short[][] ecgDataArray) {  //12 x 1
         if (drawEcgRealView == null) {
             return;
-        } else {
-            drawEcgRealView.getBaseEcgPreviewTemplate();
         }
 
         if (drawEcgRealView.getBaseEcgPreviewTemplate() == null
                 || drawEcgRealView.getBaseEcgPreviewTemplate().getLeadManager() == null
-                || drawEcgRealView.getBaseEcgPreviewTemplate().getLeadManager().getLeadList().size() <= 0) {
+                || drawEcgRealView.getBaseEcgPreviewTemplate().getLeadManager().getLeadList().isEmpty()) {
             return;
         }
 
@@ -208,7 +206,7 @@ public class MainEcgManager {
         if (drawEcgRealView == null || drawEcgRealView.getBaseEcgPreviewTemplate() == null) {
             return;
         }
-        drawEcgRealView.getBaseEcgPreviewTemplate();
+        drawEcgRealView.resetDrawEcg();
     }
 
     /**

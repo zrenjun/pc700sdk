@@ -257,7 +257,6 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
             ParseEcg12Data.setLeadHrMode(false)
         }
         MainEcgManager.getInstance().updateMainEcgShowStyle(leadType)
-        MainEcgManager.getInstance().resetDrawEcg()
     }
 
     private fun getStrByLeadFall(str: String, fall: Boolean): String {

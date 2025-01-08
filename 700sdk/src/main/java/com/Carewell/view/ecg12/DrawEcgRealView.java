@@ -145,7 +145,7 @@ public class DrawEcgRealView extends SurfaceView implements SurfaceHolder.Callba
                 }
                 try {
                     Thread.sleep(2);
-                } catch (InterruptedException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }

@@ -398,7 +398,7 @@ object ParseData {
                         }
                         if (gluType == 0x04) {  //aa, 55, e2, 05, 01, 00, 00, 20, 5a,  == glu---->  2.0   gluMgdl---->  36.0
                             LogUtil.e("============乐普 血糖结果 $a  $dataMmol  $dataMgdl  $unit")
-                            dataMgdl = "%.1f".format(dataMgdl * 18f).toFloat()
+                            dataMgdl = "%.1f".format(dataMmol * 18f).toFloat()
                             postEvent(GetGLUResult(a, "$dataMmol", "$dataMgdl", unit))
                         }
                     }
