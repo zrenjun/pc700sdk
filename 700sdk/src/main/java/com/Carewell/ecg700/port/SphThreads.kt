@@ -159,7 +159,6 @@ class SphThreads(
         } else {
             listener.onDataReceived(data)//发送下一个命令
             ParseData.processingOrdinaryData(data)
-            ParseEcg12Data.clear()
         }
     }
 

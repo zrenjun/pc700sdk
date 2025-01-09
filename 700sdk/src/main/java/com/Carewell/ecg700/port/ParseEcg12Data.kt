@@ -301,9 +301,6 @@ class ParseEcg12Data {
                 LogUtil.v("receive  ---->  " + HexUtil.bytesToHexString(bytes))
             }
         }
-        fun clear() {
-            queue.clear()
-        }
 
         private const val TYPE1 = 0x81 //12导联数据帧
         private const val TYPE2 = 0xc2 //回复帧

@@ -410,7 +410,7 @@ object ParseData {
                             LogUtil.e("============百捷 尿酸结果 $a  $dataMmol  $dataMgdl  $unit")
                             postEvent(GetUAResult(a, "$dataMmol", "$dataMgdl", unit))
                         }
-                        if (gluType == 0x04) {
+                        if (gluType == 0x04) { //aa, 55, e2, 05, 02, 00, 06, 76, 7e    0.676  11.364
                             dataMmol = "%.3f".format(dataMmol / 100f).toFloat()  // 设备展示的umol 通用解析已经除了1次10
                             dataMgdl = "%.3f".format(dataMmol * 16.81f).toFloat()
                             LogUtil.e("============乐普 尿酸结果 $a  $dataMmol  $dataMgdl   $unit")
