@@ -32,9 +32,9 @@ public class PreviewManager {
     /**
      * 重新绘图
      */
-    public void resetDrawEcg(Context context, int imageWidth, int imageHeight) {
+    public void resetDrawEcg( int imageWidth, int imageHeight) {
         float smallGridSpace = EcgConfig.SMALL_GRID_SPACE_FLOAT;
-        baseEcgPreviewTemplate = MainEcgManager.getBaseEcgPreviewTemplate(context, PreviewPageEnum.PAGE_PREVIEW, smallGridSpace,
+        baseEcgPreviewTemplate = MainEcgManager.getBaseEcgPreviewTemplate(PreviewPageEnum.PAGE_PREVIEW, smallGridSpace,
                 imageWidth, imageHeight, MainEcgManager.getInstance().getLeadSpeedType(), MainEcgManager.getInstance().getGainArray(), true, MainEcgManager.getInstance().getRecordOrderType());
         baseEcgPreviewTemplate.initParams();
         baseEcgPreviewTemplate.setEcgMode(EcgShowModeEnum.MODE_SCROLL);

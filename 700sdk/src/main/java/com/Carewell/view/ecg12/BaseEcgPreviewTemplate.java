@@ -14,8 +14,6 @@ import android.text.Layout;
 import android.text.StaticLayout;
 import android.text.TextPaint;
 
-import com.creative.sdkpack.R;
-
 import java.util.List;
 
 public abstract class BaseEcgPreviewTemplate {
@@ -105,7 +103,7 @@ public abstract class BaseEcgPreviewTemplate {
         fontPaint = new Paint();
         fontPaint.setStyle(Paint.Style.FILL);
 
-        leadManager = new LeadManager(context);
+        leadManager = new LeadManager();
         leadManager.setRangeLen(gridSpace);
         leadManager.setGridSpace(gridSpace);
         leadManager.setEcgMode(EcgShowModeEnum.MODE_SWEEP);
@@ -454,7 +452,7 @@ public abstract class BaseEcgPreviewTemplate {
     /**
      * 绘制时间标尺
      */
-    public void drawTimeRuler(Context context, float timeLen, float speed, float startTime) {
+    public void drawTimeRuler(float timeLen, float speed, float startTime) {
         if (timeRulerHeight == 0)
             return;
 
@@ -500,19 +498,19 @@ public abstract class BaseEcgPreviewTemplate {
         timeRulerPaint.setStyle(Paint.Style.FILL);
         timeRulerPaint.setTextAlign(Paint.Align.LEFT);
         String formatStr = previewPageEnum == PreviewPageEnum.PAGE_REPORT ? "%.1f" : "%.2f";
-        canvas.drawText(String.format(formatStr + context.getString(R.string.print_time_second), 0 + startTime), baseX + 3, horizontalLineY + verticalLineHeight - 15, timeRulerPaint);
+        canvas.drawText(String.format(formatStr + "秒", 0 + startTime), baseX + 3, horizontalLineY + verticalLineHeight - 15, timeRulerPaint);
         if (leadColumes == 1) {
             timeRulerPaint.setTextAlign(Paint.Align.RIGHT);
-            canvas.drawText(String.format(formatStr + context.getString(R.string.print_time_second), startTime + timeLen / leadColumes), baseX + nTimeScaleBitmapW / leadColumes + 2, horizontalLineY + verticalLineHeight - 15, timeRulerPaint);
+            canvas.drawText(String.format(formatStr + "秒", startTime + timeLen / leadColumes), baseX + nTimeScaleBitmapW / leadColumes + 2, horizontalLineY + verticalLineHeight - 15, timeRulerPaint);
         } else {
             for (int i = 1; i < leadColumes; i++) {
-                canvas.drawText(String.format(formatStr + context.getString(R.string.print_time_second), startTime), baseX + nTimeScaleBitmapW / leadColumes * i + 2, horizontalLineY + verticalLineHeight - 15, timeRulerPaint);
+                canvas.drawText(String.format(formatStr + "秒", startTime), baseX + nTimeScaleBitmapW / leadColumes * i + 2, horizontalLineY + verticalLineHeight - 15, timeRulerPaint);
             }
             timeRulerPaint.setTextAlign(Paint.Align.RIGHT);
             if (timeLen % leadColumes == 0) {
-                canvas.drawText(String.format(formatStr + context.getString(R.string.print_time_second), startTime + timeLen / leadColumes), baseX + nTimeScaleBitmapW, horizontalLineY + verticalLineHeight - 15, timeRulerPaint);
+                canvas.drawText(String.format(formatStr + "秒", startTime + timeLen / leadColumes), baseX + nTimeScaleBitmapW, horizontalLineY + verticalLineHeight - 15, timeRulerPaint);
             } else {
-                canvas.drawText(String.format(formatStr + context.getString(R.string.print_time_second), startTime + timeLen / leadColumes), baseX + nTimeScaleBitmapW, horizontalLineY + verticalLineHeight - 15, timeRulerPaint);
+                canvas.drawText(String.format(formatStr + "秒", startTime + timeLen / leadColumes), baseX + nTimeScaleBitmapW, horizontalLineY + verticalLineHeight - 15, timeRulerPaint);
             }
         }
     }

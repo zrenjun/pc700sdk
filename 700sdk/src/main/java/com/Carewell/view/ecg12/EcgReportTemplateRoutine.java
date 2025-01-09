@@ -162,14 +162,14 @@ public class EcgReportTemplateRoutine extends BaseEcgReportTemplate {
         int bottom = rect.bottom - bottomInfoHeight;
         int gridWidth = (right - left);
         int gridHeight = (bottom - top) + smartGrid * 3;
-        BaseEcgPreviewTemplate baseEcgPreviewTemplate = getBaseEcgPreviewTemplate(context, PreviewPageEnum.PAGE_REPORT, smartGrid, gridWidth, gridHeight,
+        BaseEcgPreviewTemplate baseEcgPreviewTemplate = getBaseEcgPreviewTemplate(PreviewPageEnum.PAGE_REPORT, smartGrid, gridWidth, gridHeight,
                 gainArray, drawGridBg);
 
         baseEcgPreviewTemplate.initParams();
         baseEcgPreviewTemplate.setEcgMode(EcgShowModeEnum.MODE_SCROLL);
         baseEcgPreviewTemplate.addEcgData(ecgDataArray);
         baseEcgPreviewTemplate.drawEcgReport();
-        baseEcgPreviewTemplate.drawTimeRuler(context,ecgDataArray[0].length / 1000f, 25f, 0);
+        baseEcgPreviewTemplate.drawTimeRuler(ecgDataArray[0].length / 1000f, 25f, 0);
 
         ecgCanvas.drawBitmap(baseEcgPreviewTemplate.getBgBitmap(), left, top, ptLine);
     }
@@ -188,7 +188,7 @@ public class EcgReportTemplateRoutine extends BaseEcgReportTemplate {
     /**
      * 获取画图模板
      */
-    public static BaseEcgPreviewTemplate getBaseEcgPreviewTemplate(Context context, PreviewPageEnum previewPageEnum, float smallGridSpace, int drawWidth, int drawHeight,
+    public static BaseEcgPreviewTemplate getBaseEcgPreviewTemplate(PreviewPageEnum previewPageEnum, float smallGridSpace, int drawWidth, int drawHeight,
                                                                    float[] gainArray, boolean drawReportGridBg) {
         List<String> leadNameList = new ArrayList<>();
         leadNameList.add("I");
@@ -203,7 +203,7 @@ public class EcgReportTemplateRoutine extends BaseEcgReportTemplate {
         leadNameList.add("V4");
         leadNameList.add("V5");
         leadNameList.add("V6");
-        BaseEcgPreviewTemplate baseEcgPreviewTemplate = new EcgPreviewTemplate12Lead12X1(context, drawWidth, drawHeight, drawReportGridBg, leadNameList, gainArray, LeadSpeedType.FORMFEED_25);
+        BaseEcgPreviewTemplate baseEcgPreviewTemplate = new EcgPreviewTemplate12Lead12X1(drawWidth, drawHeight, drawReportGridBg, leadNameList, gainArray, LeadSpeedType.FORMFEED_25);
         baseEcgPreviewTemplate.init(previewPageEnum, smallGridSpace, RecordOrderType.ORDER_SYNC);
         return baseEcgPreviewTemplate;
     }

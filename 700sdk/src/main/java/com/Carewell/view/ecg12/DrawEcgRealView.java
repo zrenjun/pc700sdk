@@ -67,7 +67,7 @@ public class DrawEcgRealView extends SurfaceView implements SurfaceHolder.Callba
      * 重新排布局
      */
     private void resetInitParams() {
-        baseEcgPreviewTemplate = MainEcgManager.getBaseEcgPreviewTemplate(getContext(), PreviewPageEnum.PAGE_REAL_DRAW, EcgConfig.SMALL_GRID_SPACE_FLOAT, drawWidth, drawHeight,
+        baseEcgPreviewTemplate = MainEcgManager.getBaseEcgPreviewTemplate( PreviewPageEnum.PAGE_REAL_DRAW, EcgConfig.SMALL_GRID_SPACE_FLOAT, drawWidth, drawHeight,
                 MainEcgManager.getInstance().getLeadSpeedType(), MainEcgManager.getInstance().getGainArray(), true, MainEcgManager.getInstance().getRecordOrderType());
         baseEcgPreviewTemplate.initParams();
     }

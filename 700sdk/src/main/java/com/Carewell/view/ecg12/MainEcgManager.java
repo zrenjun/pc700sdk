@@ -114,7 +114,7 @@ public class MainEcgManager {
     /**
      * 获取画图模板
      */
-    public static BaseEcgPreviewTemplate getBaseEcgPreviewTemplate(Context context, PreviewPageEnum previewPageEnum,
+    public static BaseEcgPreviewTemplate getBaseEcgPreviewTemplate( PreviewPageEnum previewPageEnum,
                                                                    float smallGridSpace, int drawWidth, int drawHeight,
                                                                    LeadSpeedType leadSpeedType, float[] gainArray,
                                                                    boolean drawReportGridBg, RecordOrderType recordOrderType) {
@@ -123,22 +123,22 @@ public class MainEcgManager {
         BaseEcgPreviewTemplate baseEcgPreviewTemplate = null;
         switch (leadType) {
             case LEAD_12: {//6*2
-                baseEcgPreviewTemplate = new EcgPreviewTemplate12Lead6X2(context, drawWidth, drawHeight, drawReportGridBg,
+                baseEcgPreviewTemplate = new EcgPreviewTemplate12Lead6X2(drawWidth, drawHeight, drawReportGridBg,
                         leadNameList, gainArray, leadSpeedType);
             }
             break;
             case LEAD_6: {//6*1
-                baseEcgPreviewTemplate = new EcgPreviewTemplate12Lead6X1(context, drawWidth, drawHeight, drawReportGridBg,
+                baseEcgPreviewTemplate = new EcgPreviewTemplate12Lead6X1(drawWidth, drawHeight, drawReportGridBg,
                         leadNameList, gainArray, leadSpeedType);
             }
             break;
             case LEAD_I: {//L*1
-                baseEcgPreviewTemplate = new EcgPreviewTemplate1leadL(context, drawWidth, drawHeight, drawReportGridBg,
+                baseEcgPreviewTemplate = new EcgPreviewTemplate1leadL(drawWidth, drawHeight, drawReportGridBg,
                         leadNameList, gainArray, leadSpeedType);
             }
             break;
             case LEAD_II: {//F*1
-                baseEcgPreviewTemplate = new EcgPreviewTemplate1leadF(context, drawWidth, drawHeight, drawReportGridBg,
+                baseEcgPreviewTemplate = new EcgPreviewTemplate1leadF(drawWidth, drawHeight, drawReportGridBg,
                         leadNameList, gainArray, leadSpeedType);
             }
             break;

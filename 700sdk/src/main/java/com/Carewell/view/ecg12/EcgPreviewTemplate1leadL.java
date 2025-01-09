@@ -1,16 +1,14 @@
 package com.Carewell.view.ecg12;
 
-import android.content.Context;
 import android.graphics.RectF;
 
 import java.util.List;
 
 public class EcgPreviewTemplate1leadL extends BaseEcgPreviewTemplate {
 
-    public EcgPreviewTemplate1leadL(Context context, int width, int height,
+    public EcgPreviewTemplate1leadL(int width, int height,
                                     boolean isDrawGrid, List<String> leadNameList,
                                     float[] gainArray, LeadSpeedType leadSpeedType) {
-        this.context = context;
         this.drawWidth = width;
         this.drawHeight = height;
         this.gainArray = gainArray;

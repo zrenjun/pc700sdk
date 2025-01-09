@@ -297,7 +297,7 @@ public class LeadManager {
 
     private EcgScrollDirection mDirection=EcgScrollDirection.LEFT;
 
-    public LeadManager(Context context) {
+    public LeadManager() {
         this.leadList = new ArrayList<>();
     }
 
