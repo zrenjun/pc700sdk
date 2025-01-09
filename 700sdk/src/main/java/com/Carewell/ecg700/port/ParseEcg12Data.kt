@@ -297,9 +297,9 @@ class ParseEcg12Data {
 
         fun addData(bytes: ByteArray) {
             queue.enqueue(bytes)
-            if (queue.getSize() > 1000) {
-                LogUtil.v("receive  ---->  " + HexUtil.bytesToHexString(bytes))
-            }
+//            if (queue.getSize() > 1000) {
+//                LogUtil.v("receive  ---->  " + HexUtil.bytesToHexString(bytes))
+//            }
         }
 
         private const val TYPE1 = 0x81 //12导联数据帧
