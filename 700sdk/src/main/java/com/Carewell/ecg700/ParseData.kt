@@ -353,14 +353,23 @@ object ParseData {
                         if (filterCallBackCnt(ua_type)) {
                             if (gluType == 0x02) {
                                 LogUtil.e("============百捷 尿酸结果 $a  $dataMmol  $dataMgdl  $unit")
-                                postEvent(GetUAResult(a, "$dataMmol", "$dataMgdl", unit))
                             }
+                            if (gluType == 0x04) {
+                                LogUtil.e("============乐普 尿酸结果 $a  $dataMmol  $dataMgdl  $unit")
+                            }
+                            postEvent(GetUAResult(a, "$dataMmol", "$dataMgdl", unit))
                         }
                     } else if (type == 0x03) {
                         if (gluType == 0x02) {  //百捷
                             if (filterCallBackCnt(chol_type)) {
                                 LogUtil.e("============百捷 胆固醇结果 $a  $dataMmol  $dataMgdl  $unit")
                                 postEvent(GetCHOLResult(a, "$dataMmol", "$dataMgdl", unit))
+                            }
+                        }
+                        if (gluType == 0x04) {  //乐普
+                            if (filterCallBackCnt(bk_type)) {
+                                LogUtil.e("============乐普 血酮结果 $a  $dataMmol  $dataMgdl  $unit")
+                                postEvent(GetBKResult(a, "$dataMmol", "$dataMgdl", unit))
                             }
                         }
                     }
@@ -389,7 +398,14 @@ object ParseData {
                     if (filterCallBackCnt(glu_type)) {
                         if (gluType == 0x01) {
                             LogUtil.e("============怡成 血糖结果 $a  $dataMmol  $dataMgdl  $unit")
-                            postEvent(GetGLUResult(a, "$dataMmol", "${(dataMmol * 18).toInt()}", unit))
+                            postEvent(
+                                GetGLUResult(
+                                    a,
+                                    "$dataMmol",
+                                    "${(dataMmol * 18).toInt()}",
+                                    unit
+                                )
+                            )
                         }
                         if (gluType == 0x02) {
                             LogUtil.e("============百捷 血糖结果 $a  $dataMmol  $dataMgdl  $unit")  //设备显示L 直接给0值 aa, 55, e2, 05, 01, 01, 00, 00, d2,
@@ -411,7 +427,8 @@ object ParseData {
                             postEvent(GetUAResult(a, "$dataMmol", "$dataMgdl", unit))
                         }
                         if (gluType == 0x04) { //aa, 55, e2, 05, 02, 00, 06, 76, 7e    0.676  11.364
-                            dataMmol = "%.3f".format(dataMmol / 100f).toFloat()  // 设备展示的umol 通用解析已经除了1次10
+                            dataMmol =
+                                "%.3f".format(dataMmol / 100f).toFloat()  // 设备展示的umol 通用解析已经除了1次10
                             dataMgdl = "%.3f".format(dataMmol * 16.81f).toFloat()
                             LogUtil.e("============乐普 尿酸结果 $a  $dataMmol  $dataMgdl   $unit")
                             postEvent(GetUAResult(a, "$dataMmol", "$dataMgdl", unit))

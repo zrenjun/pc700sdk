@@ -127,6 +127,17 @@ class SerialPortHelper : OnSerialPortDataListener {
 
     override fun onDataReceived(bytes: ByteArray) {
         LogUtil.v("receive  ---->  " + HexUtil.bytesToHexString(bytes))
+
+
+
+//        var flag = true
+//        writeData?.let {
+//            //开始12导测量
+//            if (it.method == "开始12导测量" && bytes[1] != 0xc1.toByte() && bytes[3] != 0x01.toByte()) {
+//                flag = false
+//            }
+//        }
+
         mTimeoutHandler.removeCallbacksAndMessages(null)
         canSend = true
     }
