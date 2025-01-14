@@ -6,6 +6,7 @@ import android.os.Handler
 import android.os.Looper
 import android_serialport_api.SerialPort
 import androidx.annotation.IntDef
+import com.Carewell.OmniEcg.jni.JniFilterNew
 import kotlinx.coroutines.*
 import java.io.File
 import java.io.IOException
@@ -41,6 +42,7 @@ class SerialPortHelper : OnSerialPortDataListener {
         sphThreads = SphThreads(serialPort.inputStream, this)
         parseEcg12Data.start()
         wakeUp()
+        JniFilterNew.getInstance().InitDCRecover(0)
     }
 
     fun pause() {
@@ -260,6 +262,7 @@ class SerialPortHelper : OnSerialPortDataListener {
     }
 
     fun startTransfer() {
+        JniFilterNew.getInstance().resetFilter()
         send(
             WriteData(
                 Cmd.startTransfer,

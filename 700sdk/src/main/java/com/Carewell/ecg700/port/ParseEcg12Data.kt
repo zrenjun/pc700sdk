@@ -1,7 +1,6 @@
 package com.Carewell.ecg700.port
 
 import com.Carewell.OmniEcg.jni.ConfigBean
-import com.Carewell.OmniEcg.jni.JniFilterNew
 import com.Carewell.OmniEcg.jni.PaceClearArr.feed
 import com.Carewell.OmniEcg.jni.WaveFilter.Companion.instance
 import kotlinx.coroutines.*
@@ -175,7 +174,7 @@ class ParseEcg12Data {
 //                        var versionFlag = 0
 //                        if ("V1.0.0.0" == versionStr) versionFlag = 1
                         //解决基线跳变问题必须在开始滤波器之前
-                        JniFilterNew.getInstance().InitDCRecover(0)
+//                        JniFilterNew.getInstance().InitDCRecover(0)
                     }
                 }
             }

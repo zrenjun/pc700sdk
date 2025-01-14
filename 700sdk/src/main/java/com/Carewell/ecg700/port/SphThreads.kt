@@ -1,6 +1,5 @@
 package com.Carewell.ecg700.port
 
-import com.Carewell.OmniEcg.jni.JniFilterNew
 import com.Carewell.ecg700.ParseData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -73,12 +72,11 @@ class SphThreads(
             try {
                 if (inputStream.available() > 0) {
                     time = 0
-                    val len = inputStream.read(buffer)
-                    handleReceivedData(len)
+                    handleReceivedData(inputStream.read(buffer))
                 } else {
                     delay(3)
                     time += 3
-                    if (time > 60000) { // 60 seconds in milliseconds
+                    if (time > 60000) {
                         LogUtil.v("已经一分钟未读到数据了")
                         time = 0
                     }
@@ -98,6 +96,7 @@ class SphThreads(
         if (len == buffer.size) {
             Arrays.fill(buffer, 0.toByte())
         } else {
+//            LogUtil.v("读取--> ${HexUtil.bytesToHexString(buffer.copyOfRange(0, len))}")
             mReceiveBuffer.addAll(buffer.copyOfRange(0, len).toList())
             processReceiveBuffer()
         }
@@ -113,12 +112,13 @@ class SphThreads(
                     if (end == 22 && mReceiveBuffer.size > 1 &&
                         mReceiveBuffer[0] == routineHead1 && mReceiveBuffer[1] == routineHead2
                     ) {//异常数据且不能拼接了
+                        LogUtil.v("异常数据且不能拼接了---->${HexUtil.bytesToHexString(mReceiveBuffer.toByteArray())}")
                         break
                     }
                 }
                 handleParsedData(data)
             } else {
-                mReceiveBuffer.removeFirst()
+                mReceiveBuffer.removeFirst()//异常队列数据 移除第一个
             }
         }
     }
@@ -151,7 +151,7 @@ class SphThreads(
     private fun handleParsedData(data: ByteArray) {
         if (data[0] == ecg12Head1) {
             if (data[1] == ecg12CmdHead2) {
-                LogUtil.v("心电回复帧----> ${HexUtil.bytesToHexString(data)}")
+//                LogUtil.v("心电回复帧----> ${HexUtil.bytesToHexString(data)}")
                 if (data[3] == 0x01.toByte() || data[3] == 0x02.toByte()) {
                     listener.onDataReceived(data)//发送下一个命令
                 }
