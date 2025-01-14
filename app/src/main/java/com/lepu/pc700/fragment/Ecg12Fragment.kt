@@ -290,8 +290,6 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
     private var preHrTime = 0L
     private var preLeadTime = 0L
     private var subscript = 0
-    private var isInit = true
-    private var timeDelay = 0L
     private var sum = 0
 
     private var ecg12DataListener = object : OnECG12DataListener {
@@ -307,13 +305,6 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
                 subscript++
             }
 
-            if (isInit) {
-                timeDelay = System.currentTimeMillis()
-                isInit = false
-            }
-            if (System.currentTimeMillis() - timeDelay < 2000L) {
-                return
-            }
             if (loading.isShow) {
                 activity?.runOnUiThread { loading.dismiss() }
             }

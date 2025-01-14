@@ -1,5 +1,6 @@
 package com.Carewell.ecg700.port
 
+import com.Carewell.OmniEcg.jni.JniFilterNew
 import com.Carewell.ecg700.ParseData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -159,6 +160,7 @@ class SphThreads(
         } else {
             listener.onDataReceived(data)//发送下一个命令
             ParseData.processingOrdinaryData(data)
+
         }
     }
 
@@ -188,5 +190,11 @@ fun checkSum(crc: Byte, curByteBuffer: ByteArray): Boolean {
     for (i in 0..20) {
         checkSum = (curByteBuffer[i] + checkSum).toByte()
     }
-    return checkSum == crc
+    val check = checkSum == crc
+    if (check){
+        return true
+    }else{
+        LogUtil.v("校验失败-->${HexUtil.bytesToHexString(curByteBuffer)}  校验值-->${HexUtil.bytesToHexString(byteArrayOf(checkSum))}")
+        return false
+    }
 }

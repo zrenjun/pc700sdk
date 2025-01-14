@@ -164,21 +164,20 @@ class ParseEcg12Data {
                     }
 
                     TYPE2 -> {
+
                         //12导联回复帧,帧的总长度22byte
-                        System.arraycopy(curByteBuffer, 3, replyData, 0, 18)
-                        val version = ByteArray(8)
-                        System.arraycopy(replyData, 6, version, 0, 8)
-                        val versionStr = String(version)
-                        LogUtil.v("回复帧版 本号:$versionStr")
-                        //1 old version;0 new version
-                        var versionFlag = 0
-                        if ("V1.0.0.0" == versionStr) versionFlag = 1
+//                        System.arraycopy(curByteBuffer, 3, replyData, 0, 18)
+//                        val version = ByteArray(8)
+//                        System.arraycopy(replyData, 6, version, 0, 8)
+//                        val versionStr = String(version)
+//                        LogUtil.v("回复帧版 本号:$versionStr")
+//                        //1 old version;0 new version
+//                        var versionFlag = 0
+//                        if ("V1.0.0.0" == versionStr) versionFlag = 1
                         //解决基线跳变问题必须在开始滤波器之前
-                        JniFilterNew.getInstance().InitDCRecover(versionFlag)
+                        JniFilterNew.getInstance().InitDCRecover(0)
                     }
                 }
-            }else{
-                LogUtil.v("数据校验失败")
             }
         }
     }
@@ -292,14 +291,10 @@ class ParseEcg12Data {
     }
 
     companion object {
-        private var queue = ArrayQueue<ByteArray>(20000)
-
+        private var queue = ArrayQueue<ByteArray>(10000)
 
         fun addData(bytes: ByteArray) {
             queue.enqueue(bytes)
-//            if (queue.getSize() > 1000) {
-//                LogUtil.v("receive  ---->  " + HexUtil.bytesToHexString(bytes))
-//            }
         }
 
         private const val TYPE1 = 0x81 //12导联数据帧
