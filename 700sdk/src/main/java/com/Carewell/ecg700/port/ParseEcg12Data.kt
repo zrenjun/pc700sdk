@@ -335,6 +335,9 @@ interface Queue<E> {
     fun isEmpty(): Boolean  //复杂度 O(1)
 
     fun clear()
+
+    fun contains(e: E): Boolean
+
 }
 
 class ArrayQueue<E>(private val initialCapacity: Int) : Queue<E> {
@@ -365,6 +368,10 @@ class ArrayQueue<E>(private val initialCapacity: Int) : Queue<E> {
 
     override fun clear() {
         array.clear()
+    }
+
+    override fun contains(e: E): Boolean {
+       return array.contains(e)
     }
 
     override fun toString(): String {

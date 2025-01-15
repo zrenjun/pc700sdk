@@ -54,10 +54,10 @@ class FirmwareUpgradeDialog : DialogFragment(R.layout.dialog_upgrade) {
         super.onViewCreated(view, savedInstanceState)
         with(binding) {
             btnUpgradeMain.singleClick {//安装
-                if (systemMainVer >= MAIN_MCU_VER) {
-                    toast("已经是最新版本")
-                    return@singleClick
-                }
+//                if (systemMainVer >= MAIN_MCU_VER) {
+//                    toast("已经是最新版本")
+//                    return@singleClick
+//                }
                 if (mIAPTh == null) {
                     toast("串口启动失败，请取消或重启后尝试！")
                     return@singleClick
@@ -237,8 +237,14 @@ class FirmwareUpgradeDialog : DialogFragment(R.layout.dialog_upgrade) {
     }
 
 
-    private fun getIAPVersion() {
-
+    override fun onDestroy() {
+        super.onDestroy()
+        App.serial.mAPI?.serialPort?.let {
+            if (mIAPTh != null) {
+                mIAPTh?.stop()
+                mIAPTh = null
+            }
+        }
     }
 
     override fun onStop() {

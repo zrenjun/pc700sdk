@@ -10,10 +10,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
-import java.util.PriorityQueue
 
 
 /**
@@ -44,6 +42,7 @@ class IPAThreads(inputStream: InputStream, outputStream: OutputStream) {
                             delay(3)
                         }
                     } catch (e: Exception) {
+                        LogUtil.e(e.message?:"")
                         e.printStackTrace()
                     }
                 }
@@ -57,6 +56,7 @@ class IPAThreads(inputStream: InputStream, outputStream: OutputStream) {
                 scope.cancel()
             }
         } catch (e: Exception) {
+            LogUtil.e(e.message?:"")
             e.printStackTrace()
         }
     }
@@ -305,7 +305,7 @@ class IPAThreads(inputStream: InputStream, outputStream: OutputStream) {
 
 
     //命令队列
-    private val pendingQueue = PriorityQueue(20, compareBy<WriteData> { it.priority })
+    private val pendingQueue = ArrayQueue<WriteData>(20)
 
     // 发送串口命令的协程
     private var sendScope = CoroutineScope(Dispatchers.IO)
@@ -335,10 +335,11 @@ class IPAThreads(inputStream: InputStream, outputStream: OutputStream) {
     private fun send(writeData: WriteData) {
         try {
             if (!pendingQueue.contains(writeData)) {
-                pendingQueue.add(writeData)
+                pendingQueue.enqueue(writeData)
                 processCommand()
             }
-        } catch (e: NullPointerException) {
+        } catch (e: Exception) {
+            LogUtil.e(e.message?:"")
             e.printStackTrace()
         }
     }
@@ -350,12 +351,13 @@ class IPAThreads(inputStream: InputStream, outputStream: OutputStream) {
                     if (pendingQueue.isEmpty()) {
                         return
                     }
-                    writeData = pendingQueue.poll()
+                    writeData = pendingQueue.dequeue()
                     retry--
                     sendData()
                 }
             }
-        } catch (e: NullPointerException) {
+        } catch (e: Exception) {
+            LogUtil.e(e.message?:"")
             e.printStackTrace()
         }
     }
@@ -399,7 +401,8 @@ class IPAThreads(inputStream: InputStream, outputStream: OutputStream) {
                         writeStream.flush()
                     }
                     LogUtil.v(it.method + "  ---->  " + HexUtil.bytesToHexString(it.bytes))
-                } catch (e: IOException) {
+                } catch (e: Exception) {
+                    LogUtil.e(e.message?:"")
                     e.printStackTrace()
                 }
                 if (it.retry < 1) {
