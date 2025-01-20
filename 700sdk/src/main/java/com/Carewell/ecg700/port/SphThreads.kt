@@ -24,8 +24,8 @@ class SphThreads(
     private var listener: OnSerialPortDataListener
 ) {
     private var scope = CoroutineScope(Dispatchers.IO)
-    private val buffer = ByteArray(4400) //22倍数  多缓存一点，以防万一 好像最大4095
-    private var mReceiveBuffer = Vector<Byte>()
+    private val buffer = ByteArray(4400) //22倍数  最大4095
+    private var mReceiveBuffer = Vector<Byte>(4400)
 
     //普通命令
     //aa, 55, 30, 02, 01, c6,
@@ -72,10 +72,11 @@ class SphThreads(
             try {
                 if (inputStream.available() > 0) {
                     time = 0
-                    handleReceivedData(inputStream.read(buffer))
+                    mReceiveBuffer.addAll(buffer.copyOfRange(0, inputStream.read(buffer)).toList())
+                    processReceiveBuffer()
                 } else {
-                    delay(3)
-                    time += 3
+                    delay(10)
+                    time += 10
                     if (time > 60000) {
                         LogUtil.v("已经一分钟未读到数据了")
                         time = 0
@@ -87,43 +88,32 @@ class SphThreads(
         }
     }
 
-
-    private fun handleReceivedData(len: Int) {
-        if (len < 22) {
-            LogUtil.v("队列数据----> ${HexUtil.bytesToHexString(mReceiveBuffer.toByteArray())}")
-            LogUtil.v("读取--> ${HexUtil.bytesToHexString(buffer.copyOfRange(0, len))}")
-        }
-        if (len == buffer.size) {
-            Arrays.fill(buffer, 0.toByte())
-        } else {
-//            LogUtil.v("读取--> ${HexUtil.bytesToHexString(buffer.copyOfRange(0, len))}")
-            mReceiveBuffer.addAll(buffer.copyOfRange(0, len).toList())
-            processReceiveBuffer()
-        }
-    }
-
     private fun processReceiveBuffer() {
+        LogUtil.v("当前队列数据---->${HexUtil.bytesToHexString(mReceiveBuffer.toByteArray())}")
         while (mReceiveBuffer.size > 5) {
             val end = findEndOfPacket()
             if (end > 0) {
                 val data = ByteArray(end)
                 for (i in 0 until end) {
-                    data[i] = mReceiveBuffer.removeFirst()
-                    if (end == 22 && mReceiveBuffer.size > 1 &&
-                        mReceiveBuffer[0] == routineHead1 && mReceiveBuffer[1] == routineHead2
-                    ) {//异常数据且不能拼接了
-                        LogUtil.v("异常数据且不能拼接了---->${HexUtil.bytesToHexString(mReceiveBuffer.toByteArray())}")
-                        break
-                    }
+                    data[i] = mReceiveBuffer.removeAt(0)
                 }
                 handleParsedData(data)
-            } else {
-                mReceiveBuffer.removeFirst()//异常队列数据 移除第一个
+            } else if (end == -1) {
+                LogUtil.v("当前队列数据异常---->${HexUtil.bytesToHexString(mReceiveBuffer.toByteArray())}")
+                mReceiveBuffer.removeFirst()
+                for (i in 0 until 5) {
+                    if (mReceiveBuffer[0] != routineHead1 && mReceiveBuffer[0] != ecg12Head1) {
+                        mReceiveBuffer.removeAt(0)
+                    }
+                }
+            } else { // 0 等待拼接
+                break
             }
         }
     }
 
     private fun findEndOfPacket(): Int {
+        //非心电
         if (mReceiveBuffer[0] == routineHead1 && mReceiveBuffer[1] == routineHead2) {
             val length = mReceiveBuffer[3].toInt() and 0xFF
             if (mReceiveBuffer.size >= length + 4) {
@@ -132,26 +122,45 @@ class SphThreads(
                     mReceiveBuffer[potentialEnd] != routineHead1 &&
                     mReceiveBuffer[potentialEnd] != ecg12Head1
                 ) {
-                    LogUtil.v("异常队列数据---->${HexUtil.bytesToHexString(mReceiveBuffer.toByteArray())}")
+                    LogUtil.v("常规  下一包异常数据需要丢弃前面重解析")
                     return -1
                 }
                 return potentialEnd
+            } else {
+                LogUtil.v("等待拼接---->${HexUtil.bytesToHexString(mReceiveBuffer.toByteArray())}")
+                return 0
             }
         }
-
+        //心电
         if (mReceiveBuffer[0] == ecg12Head1 && (mReceiveBuffer[1] == ecg12DataHead2 || mReceiveBuffer[1] == ecg12CmdHead2)) {
-            if (mReceiveBuffer.size >= 22) {
-                return 22
+            return if (mReceiveBuffer.size == 22) {
+                22
+            } else if (mReceiveBuffer.size < 22) {
+                if (mReceiveBuffer.containsAll(listOf(routineHead1,routineHead2))){
+                    LogUtil.v("心电  异常数据需要丢弃前面重解析")
+                    -1
+                }else{
+                    LogUtil.v("等待拼接---->${HexUtil.bytesToHexString(mReceiveBuffer.toByteArray())}")
+                    0
+                }
+
+            } else {
+                if (mReceiveBuffer[22] == routineHead1 || mReceiveBuffer[22] == ecg12Head1) {
+                    22
+                } else {
+                    LogUtil.v("心电  下一包异常数据需要丢弃前面重解析")
+                    -1
+                }
             }
         }
-
+        LogUtil.v("其它  非正常包头")
         return -1
     }
 
     private fun handleParsedData(data: ByteArray) {
         if (data[0] == ecg12Head1) {
             if (data[1] == ecg12CmdHead2) {
-//                LogUtil.v("心电回复帧----> ${HexUtil.bytesToHexString(data)}")
+                LogUtil.v("心电回复帧----> ${HexUtil.bytesToHexString(data)}")
                 if (data[3] == 0x01.toByte() || data[3] == 0x02.toByte()) {
                     listener.onDataReceived(data)//发送下一个命令
                 }
@@ -160,7 +169,6 @@ class SphThreads(
         } else {
             listener.onDataReceived(data)//发送下一个命令
             ParseData.processingOrdinaryData(data)
-
         }
     }
 
@@ -191,10 +199,16 @@ fun checkSum(crc: Byte, curByteBuffer: ByteArray): Boolean {
         checkSum = (curByteBuffer[i] + checkSum).toByte()
     }
     val check = checkSum == crc
-    if (check){
+    if (check) {
         return true
-    }else{
-        LogUtil.v("校验失败-->${HexUtil.bytesToHexString(curByteBuffer)}  校验值-->${HexUtil.bytesToHexString(byteArrayOf(checkSum))}")
+    } else {
+        LogUtil.v(
+            "校验失败-->${HexUtil.bytesToHexString(curByteBuffer)}  校验值-->${
+                HexUtil.bytesToHexString(
+                    byteArrayOf(checkSum)
+                )
+            }"
+        )
         return false
     }
 }
