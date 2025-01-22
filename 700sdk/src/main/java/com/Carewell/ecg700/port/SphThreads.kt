@@ -89,7 +89,7 @@ class SphThreads(
     }
 
     private fun processReceiveBuffer() {
-        LogUtil.v("当前队列数据---->${HexUtil.bytesToHexString(mReceiveBuffer.toByteArray())}")
+//        LogUtil.v("当前队列数据---->${HexUtil.bytesToHexString(mReceiveBuffer.toByteArray())}")
         while (mReceiveBuffer.size > 5) {
             val end = findEndOfPacket()
             if (end > 0) {
