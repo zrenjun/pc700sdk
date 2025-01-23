@@ -597,6 +597,7 @@ object ParseData {
     }
 
     private fun analyseVersion(bytes: ByteArray, state: Int) {
+        if (bytes.size < 10) return
         var temp1: Int
         var temp2: Int
         //硬件版本

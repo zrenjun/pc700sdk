@@ -134,12 +134,18 @@ class SphThreads(
         //心电
         if (mReceiveBuffer[0] == ecg12Head1 && (mReceiveBuffer[1] == ecg12DataHead2 || mReceiveBuffer[1] == ecg12CmdHead2)) {
             return if (mReceiveBuffer.size == 22) {
-                22
+                //刚好22   校验失败-->7f, 81, 05, af, 00, de, 00, 61, 01, aa, 55, 30, 02, 02, 24, aa, 55, ff, 03, 03, 44, a9,   校验值-->93
+                if (checkSum(mReceiveBuffer[21], mReceiveBuffer.toByteArray())) {
+                    22
+                } else {
+                    LogUtil.v("心电  校验失败")
+                    -1
+                }
             } else if (mReceiveBuffer.size < 22) {
-                if (mReceiveBuffer.containsAll(listOf(routineHead1,routineHead2))){
+                if (mReceiveBuffer.containsAll(listOf(routineHead1, routineHead2))) {
                     LogUtil.v("心电  异常数据需要丢弃前面重解析")
                     -1
-                }else{
+                } else {
                     LogUtil.v("等待拼接---->${HexUtil.bytesToHexString(mReceiveBuffer.toByteArray())}")
                     0
                 }

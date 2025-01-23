@@ -54,9 +54,7 @@ class SerialPortHelper : OnSerialPortDataListener {
     }
 
     //当前是否可以发送命令
-    private var canSend by Delegates.observable(true) { _, _, newValue ->
-        if (newValue) processCommand()
-    }
+    private var canSend  = true
     private var writeData: WriteData? = null
     private val mTimeoutHandler = Handler(Looper.getMainLooper())
     private val mCommandTimeoutRunnable = CommandTimeoutRunnable()
@@ -68,7 +66,9 @@ class SerialPortHelper : OnSerialPortDataListener {
                 LogUtil.v("超时重发")
                 sendData()
             } else {
+                mTimeoutHandler.removeCallbacksAndMessages(null)
                 canSend = true
+                processCommand()
             }
         }
     }
@@ -76,11 +76,12 @@ class SerialPortHelper : OnSerialPortDataListener {
     /**
      * 发送数据
      */
+    @Synchronized
     private fun send(writeData: WriteData) {
         try {
             if (!pendingQueue.contains(writeData)) {
                 pendingQueue.add(writeData)
-                if (canSend){
+                if (canSend) {
                     processCommand()
                 }
             }
@@ -91,17 +92,13 @@ class SerialPortHelper : OnSerialPortDataListener {
 
     private fun processCommand() {
         try {
-            if (canSend) {
-                synchronized(pendingQueue) {
-                    if (pendingQueue.isEmpty()) {
-                        return
-                    }
-                    writeData = pendingQueue.poll()
-                    retry = writeData?.retry ?: 0
-
-                    sendData()
-                }
+            if (pendingQueue.isEmpty()) {
+                return
             }
+            canSend = false
+            writeData = pendingQueue.poll()
+            retry = writeData?.retry ?: 0
+            sendData()
         } catch (e: NullPointerException) {
             e.printStackTrace()
         }
@@ -128,28 +125,16 @@ class SerialPortHelper : OnSerialPortDataListener {
 
 
     override fun onDataReceived(bytes: ByteArray) {
-        LogUtil.v("receive  ---->  " + HexUtil.bytesToHexString(bytes))
-
-
-
-//        var flag = true
-//        writeData?.let {
-//            //开始12导测量
-//            if (it.method == "开始12导测量" && bytes[1] != 0xc1.toByte() && bytes[3] != 0x01.toByte()) {
-//                flag = false
-//            }
-//        }
-
+        LogUtil.v("received  ---->  " + HexUtil.bytesToHexString(bytes))
         mTimeoutHandler.removeCallbacksAndMessages(null)
         canSend = true
+        processCommand()
     }
 
     /**
      * 发送
      */
-    @Suppress("BlockingMethodInNonBlockingContext")
     private fun sendData() {
-        canSend = false
         writeData?.let {
             sendScope.launch {
                 retry--
@@ -157,18 +142,13 @@ class SerialPortHelper : OnSerialPortDataListener {
                 if (it.isCRC) {
                     BaseProtocol.getCRC(it.bytes, it.bytes.size)
                 }
-                if (retry > -1) {
-                    mTimeoutHandler.postDelayed(mCommandTimeoutRunnable, it.commandTimeoutMill)
-                }
+                mTimeoutHandler.postDelayed(mCommandTimeoutRunnable, it.commandTimeoutMill)
                 try {
-                    LogUtil.v("新命令 ----> ${writeData?.method}  "  + HexUtil.bytesToHexString(it.bytes))
+                    LogUtil.v("${writeData?.method} ----> " + HexUtil.bytesToHexString(it.bytes))
                     serialPort.outputStream.write(it.bytes)
                     serialPort.outputStream.flush()
                 } catch (e: IOException) {
                     e.printStackTrace()
-                }
-                if (retry < 0) {
-                    canSend = true
                 }
             }
         }
@@ -189,7 +169,15 @@ class SerialPortHelper : OnSerialPortDataListener {
         )
         //发送握手包,激活下位机
         pendingQueue.removeIf { it.bytes.contentEquals(Cmd.sleepMachine) }
-        send(WriteData(Cmd.handShake, method = "握手", delay = 1000, priority = Priority.HIGH, isCRC = false))
+        send(
+            WriteData(
+                Cmd.handShake,
+                method = "握手",
+                delay = 1000,
+                priority = Priority.HIGH,
+                isCRC = false
+            )
+        )
     }
 
     fun sleep() {
@@ -204,6 +192,7 @@ class SerialPortHelper : OnSerialPortDataListener {
         Cmd.bNIBP_SetPressureMode[5] = mode.toByte()
         send(WriteData(Cmd.bNIBP_SetPressureMode, method = "设置血压模块类型"))
     }
+
     fun getPressureMode() {
         send(WriteData(Cmd.bNIBP_GetPressureMode, method = "获取血压模块类型"))
     }
@@ -251,12 +240,15 @@ class SerialPortHelper : OnSerialPortDataListener {
     fun stopNIBPMeasure() {
         send(WriteData(Cmd.bNIBP_StopMeasureNIBP, method = "停止血压测量"))
     }
+
     fun setNIBPAdult() {
         send(WriteData(Cmd.bNIBP_SetAdult, method = "血压设置成人", isCRC = false))
     }
+
     fun setNIBPChild() {
         send(WriteData(Cmd.bNIBP_SetChild, method = "血压设置儿童", isCRC = false))
     }
+
     fun setNIBPInfant() {
         send(WriteData(Cmd.bNIBP_SetInfant, method = "血压设置婴儿", isCRC = false))
     }
@@ -313,6 +305,7 @@ class SerialPortHelper : OnSerialPortDataListener {
     fun startStaticAdjusting() {
         send(WriteData(Cmd.bNIBP_StaticAdjustingStart, method = "开始静态压校验"))
     }
+
     fun stopStaticAdjusting() {
         send(WriteData(Cmd.bNIBP_StaticAdjustingStop, method = "停止静态压校验"))
     }
@@ -320,6 +313,7 @@ class SerialPortHelper : OnSerialPortDataListener {
     fun startDynamicAdjusting() {
         send(WriteData(Cmd.bNIBP_DynamicAdjustingStart, method = "开始动态压校验"))
     }
+
     fun stopDynamicAdjusting() {
         send(WriteData(Cmd.bNIBP_DynamicAdjustingStop, method = "停止动态压校验"))
     }
@@ -327,6 +321,7 @@ class SerialPortHelper : OnSerialPortDataListener {
     fun startCheckLeakage() {
         send(WriteData(Cmd.bNIBP_CheckLeakageStart, method = "开始漏气检测"))
     }
+
     fun stopCheckLeakage() {
         send(WriteData(Cmd.bNIBP_CheckLeakageStop, method = "停止漏气检测"))
     }
