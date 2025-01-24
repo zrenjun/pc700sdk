@@ -136,29 +136,44 @@ class SphThreads(
         }
         //心电
         if (mReceiveBuffer[0] == ecg12Head1 && (mReceiveBuffer[1] == ecg12DataHead2 || mReceiveBuffer[1] == ecg12CmdHead2)) {
-            return if (mReceiveBuffer.size == 22) {
+            if (mReceiveBuffer.size == 22) {
                 //刚好22   校验失败-->7f, 81, 05, af, 00, de, 00, 61, 01, aa, 55, 30, 02, 02, 24, aa, 55, ff, 03, 03, 44, a9,   校验值-->93
                 if (checkSum(mReceiveBuffer[21], mReceiveBuffer.toByteArray())) {
-                    22
+                    return 22
                 } else {
                     LogUtil.v("心电  校验失败")
-                    -1
+                    return -1
                 }
             } else if (mReceiveBuffer.size < 22) {
                 if (mReceiveBuffer.containsAll(listOf(routineHead1, routineHead2))) {
                     LogUtil.v("心电  异常数据需要丢弃前面重解析")
-                    -1
+                    return -1
                 } else {
                     LogUtil.v("等待拼接---->${HexUtil.bytesToHexString(mReceiveBuffer.toByteArray())}")
-                    0
+                    return 0
                 }
 
             } else {
-                if (mReceiveBuffer[22] == routineHead1 || mReceiveBuffer[22] == ecg12Head1) {
-                    22
+                //大于22
+                if (mReceiveBuffer[22] == ecg12Head1) {
+                    return 22
+                }
+                //2025-01-24 15:02:21'724 E/DefaultDispatcher-worker-1:210 [Serial]: (SphThreads.kt:152).findEndOfPacket:  等待拼接---->7f, 81, 0d, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00,
+                //2025-01-24 15:02:23'929 E/DefaultDispatcher-worker-5:264 [Serial]: (SphThreads.kt:94).processReceiveBuffer:  当前队列数据---->7f, 81, 0d, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, aa, 55, 30, 02, 02, 24, aa, 55, ff, 03, 03, 44, a9, aa, 55, ff, 03, 03, c3, a6,
+                //2025-01-24 15:02:23'931 E/DefaultDispatcher-worker-3:212 [Serial]: (SphThreads.kt:214).checkSum:  校验失败-->7f, 81, 0d, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, aa, 55, 30, 02, 02, 24,   校验值-->40,
+                //2025-01-24 15:02:23'934 E/DefaultDispatcher-worker-5:264 [Serial]: (SerialPortHelper.kt:128).onDataReceived:  received  ---->  aa, 55, ff, 03, 03, 44, a9,
+                //2025-01-24 15:02:23'942 E/DefaultDispatcher-worker-5:264 [Serial]: (SerialPortHelper.kt:128).onDataReceived:  received  ---->  aa, 55, ff, 03, 03, c3, a6,
+
+                if (mReceiveBuffer[22] == routineHead1) {
+                    if (checkSum(mReceiveBuffer[21], mReceiveBuffer.toByteArray().copyOfRange(0, 22))) {
+                        return 22
+                    } else {
+                        LogUtil.v("心电  校验失败")
+                        return -1
+                    }
                 } else {
                     LogUtil.v("心电  下一包异常数据需要丢弃前面重解析")
-                    -1
+                    return -1
                 }
             }
         }
