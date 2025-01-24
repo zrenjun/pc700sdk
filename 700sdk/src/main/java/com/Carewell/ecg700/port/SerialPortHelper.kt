@@ -38,8 +38,8 @@ class SerialPortHelper : OnSerialPortDataListener {
     /**
      * 开启读写线程
      */
-    fun start() {
-        sphThreads = SphThreads(serialPort.inputStream, this)
+    fun start(isDebug: Boolean = false) {
+        sphThreads = SphThreads(serialPort.inputStream, isDebug, this)
         parseEcg12Data.start()
         wakeUp()
         JniFilterNew.getInstance().InitDCRecover(0)
@@ -54,7 +54,7 @@ class SerialPortHelper : OnSerialPortDataListener {
     }
 
     //当前是否可以发送命令
-    private var canSend  = true
+    private var canSend = true
     private var writeData: WriteData? = null
     private val mTimeoutHandler = Handler(Looper.getMainLooper())
     private val mCommandTimeoutRunnable = CommandTimeoutRunnable()

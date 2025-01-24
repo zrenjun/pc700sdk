@@ -21,6 +21,7 @@ import java.util.Vector
  */
 class SphThreads(
     private var inputStream: InputStream,
+    private var isDebug: Boolean = false,
     private var listener: OnSerialPortDataListener
 ) {
     private var scope = CoroutineScope(Dispatchers.IO)
@@ -89,7 +90,9 @@ class SphThreads(
     }
 
     private fun processReceiveBuffer() {
-//        LogUtil.v("当前队列数据---->${HexUtil.bytesToHexString(mReceiveBuffer.toByteArray())}")
+        if (isDebug) {
+            LogUtil.v("当前队列数据---->${HexUtil.bytesToHexString(mReceiveBuffer.toByteArray())}")
+        }
         while (mReceiveBuffer.size > 5) {
             val end = findEndOfPacket()
             if (end > 0) {

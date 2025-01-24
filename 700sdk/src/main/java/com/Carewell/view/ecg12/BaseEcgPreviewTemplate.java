@@ -217,16 +217,15 @@ public abstract class BaseEcgPreviewTemplate {
         paintWide.setColor(EcgConfig.screenGridWideColor);
 
         Paint paintThin = new Paint();
-        paintThin.setPathEffect(new DashPathEffect(new float[]{0.5F, 0.5F}, 0));
+        paintThin.setPathEffect(new DashPathEffect(new float[]{0.5F, 0}, 0));
         paintThin.setColor(EcgConfig.screenGridThinColor);
 
         float i;
         for (i = gridRect.left; i <= gridRect.right; i += gridSpace) {
             canvas.drawLine(i, gridRect.top, i, gridRect.bottom, paintThin);
         }
-        float j;
-        for (j = gridRect.top; j <= gridRect.bottom; j += gridSpace) {
-            canvas.drawLine(gridRect.left, j, gridRect.right, j, paintThin);
+        for (i = gridRect.top; i <= gridRect.bottom; i += gridSpace) {
+            canvas.drawLine(gridRect.left, i, gridRect.right, i, paintThin);
         }
 
         int numGrid = 0;
