@@ -224,8 +224,9 @@ public abstract class BaseEcgPreviewTemplate {
         for (i = gridRect.left; i <= gridRect.right; i += gridSpace) {
             canvas.drawLine(i, gridRect.top, i, gridRect.bottom, paintThin);
         }
-        for (i = gridRect.top; i <= gridRect.bottom; i += gridSpace) {
-            canvas.drawLine(gridRect.left, i, gridRect.right, i, paintThin);
+        float j;
+        for (j = gridRect.top; j <= gridRect.bottom; j += gridSpace) {
+            canvas.drawLine(gridRect.left, j, gridRect.right, j, paintThin);
         }
 
         int numGrid = 0;
