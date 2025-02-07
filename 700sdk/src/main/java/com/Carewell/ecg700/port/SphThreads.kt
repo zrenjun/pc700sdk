@@ -103,7 +103,7 @@ class SphThreads(
                 handleParsedData(data)
             } else if (end == -1) {
                 LogUtil.v("当前队列数据异常---->${HexUtil.bytesToHexString(mReceiveBuffer.toByteArray())}")
-                mReceiveBuffer.removeFirst()
+                mReceiveBuffer.removeAt(0)
                 for (i in 0 until 5) {
                     if (mReceiveBuffer[0] != routineHead1 && mReceiveBuffer[0] != ecg12Head1) {
                         mReceiveBuffer.removeAt(0)

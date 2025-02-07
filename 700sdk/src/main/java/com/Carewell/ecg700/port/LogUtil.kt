@@ -4,7 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import co.nedim.maildroidx.MaildroidXType
 import co.nedim.maildroidx.sendEmail
-import io.getstream.log.StreamLog
+//import io.getstream.log.StreamLog
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -137,7 +137,7 @@ object LogUtil {
                     })
                     dir[0].delete()
                 }
-                StreamLog.e(tag = tag) { msg }
+//                StreamLog.e(tag = tag) { msg }
             }
         }catch (e:Exception){
             e.printStackTrace()
