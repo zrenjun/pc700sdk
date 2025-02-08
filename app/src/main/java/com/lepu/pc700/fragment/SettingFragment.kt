@@ -12,7 +12,7 @@ import com.lepu.pc700.dialog.FirmwareUpgradeDialog
 import com.lepu.pc700.singleClick
 import com.lepu.pc700.toast
 import com.lepu.pc700.viewBinding
-//import io.getstream.log.android.file.StreamLogFileManager
+import io.getstream.log.android.file.StreamLogFileManager
 import java.io.File
 
 /**
@@ -37,7 +37,7 @@ class SettingFragment : Fragment(R.layout.fragment_setting) {
             FirmwareUpgradeDialog().show(childFragmentManager, "FirmwareUpgradeDialog")
         }
         binding.tv3.singleClick {
-//            StreamLogFileManager.share()
+            StreamLogFileManager.share()
             try {
                 File("${requireContext().getExternalFilesDir(null)?.path}").listFiles()?.last()?.absolutePath?.let {
                     LogUtil.sendDsl("本地日志","", it)

@@ -4,6 +4,7 @@ package com.Carewell.ecg700.port
 
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android_serialport_api.SerialPort
 import androidx.annotation.IntDef
 import com.Carewell.OmniEcg.jni.JniFilterNew
@@ -55,14 +56,13 @@ class SerialPortHelper : OnSerialPortDataListener {
 
     //当前是否可以发送命令
     private var canSend = true
-    private var writeData: WriteData? = null
+    private var cmd: WriteData? = null
     private val mTimeoutHandler = Handler(Looper.getMainLooper())
     private val mCommandTimeoutRunnable = CommandTimeoutRunnable()
-    private var retry = 0
 
     private inner class CommandTimeoutRunnable : Runnable {
         override fun run() {
-            if (retry > -1) {
+            if ((cmd?.retry ?: -1) > -1) {
                 LogUtil.v("超时重发")
                 sendData()
             } else {
@@ -76,7 +76,6 @@ class SerialPortHelper : OnSerialPortDataListener {
     /**
      * 发送数据
      */
-    @Synchronized
     private fun send(writeData: WriteData) {
         try {
             if (!pendingQueue.contains(writeData)) {
@@ -96,8 +95,7 @@ class SerialPortHelper : OnSerialPortDataListener {
                 return
             }
             canSend = false
-            writeData = pendingQueue.poll()
-            retry = writeData?.retry ?: 0
+            cmd = pendingQueue.poll()
             sendData()
         } catch (e: NullPointerException) {
             e.printStackTrace()
@@ -125,26 +123,36 @@ class SerialPortHelper : OnSerialPortDataListener {
 
 
     override fun onDataReceived(bytes: ByteArray) {
-        LogUtil.v("received  ---->  " + HexUtil.bytesToHexString(bytes))
         mTimeoutHandler.removeCallbacksAndMessages(null)
-        canSend = true
-        processCommand()
+        cmd?.let {
+            if (it.bytes[0] == 0xaa.toByte() && it.bytes[1] == 0x55.toByte()) {
+                if (it.bytes[2] == bytes[2]) {
+                    LogUtil.v("${it.method}  received ---->  " + HexUtil.bytesToHexString(bytes))
+                    canSend = true
+                    processCommand()
+                }
+            }else{
+                LogUtil.v("received  ---->  " + HexUtil.bytesToHexString(bytes))
+                canSend = true
+                processCommand()
+            }
+        }
     }
 
     /**
      * 发送
      */
     private fun sendData() {
-        writeData?.let {
+        cmd?.let {
             sendScope.launch {
-                retry--
+                it.retry--
                 delay(it.delay)
                 if (it.isCRC) {
                     BaseProtocol.getCRC(it.bytes, it.bytes.size)
                 }
                 mTimeoutHandler.postDelayed(mCommandTimeoutRunnable, it.commandTimeoutMill)
                 try {
-                    LogUtil.v("${writeData?.method} ----> " + HexUtil.bytesToHexString(it.bytes))
+                    LogUtil.v("${it.method} ----> " + HexUtil.bytesToHexString(it.bytes))
                     serialPort.outputStream.write(it.bytes)
                     serialPort.outputStream.flush()
                 } catch (e: IOException) {
