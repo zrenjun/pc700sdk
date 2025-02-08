@@ -236,20 +236,10 @@ class FirmwareUpgradeDialog : DialogFragment(R.layout.dialog_upgrade) {
         }
     }
 
-
-    override fun onDestroy() {
-        super.onDestroy()
-        App.serial.mAPI?.serialPort?.let {
-            if (mIAPTh != null) {
-                mIAPTh?.stop()
-                mIAPTh = null
-            }
-        }
-    }
-
     override fun onStop() {
         super.onStop()
         mIAPTh?.pause()
+        mIAPTh?.stop()
         mIAPTh = null
         App.serial.mAPI?.reStart() //恢复API
     }

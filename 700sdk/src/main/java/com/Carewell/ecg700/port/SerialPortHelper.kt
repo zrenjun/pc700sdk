@@ -4,7 +4,6 @@ package com.Carewell.ecg700.port
 
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android_serialport_api.SerialPort
 import androidx.annotation.IntDef
 import com.Carewell.OmniEcg.jni.JniFilterNew
@@ -12,7 +11,6 @@ import kotlinx.coroutines.*
 import java.io.File
 import java.io.IOException
 import java.util.*
-import kotlin.properties.Delegates
 
 
 /**
@@ -123,8 +121,10 @@ class SerialPortHelper : OnSerialPortDataListener {
 
 
     override fun onDataReceived(bytes: ByteArray) {
+        LogUtil.v("received  ---->  " + HexUtil.bytesToHexString(bytes))
         mTimeoutHandler.removeCallbacksAndMessages(null)
         cmd?.let {
+            //保持正常队列命令一发一收再发下一个，超时不算
             if (it.bytes[0] == 0xaa.toByte() && it.bytes[1] == 0x55.toByte()) {
                 if (it.bytes[2] == bytes[2]) {
                     LogUtil.v("${it.method}  received ---->  " + HexUtil.bytesToHexString(bytes))
@@ -132,7 +132,6 @@ class SerialPortHelper : OnSerialPortDataListener {
                     processCommand()
                 }
             }else{
-                LogUtil.v("received  ---->  " + HexUtil.bytesToHexString(bytes))
                 canSend = true
                 processCommand()
             }
