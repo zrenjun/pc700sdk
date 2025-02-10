@@ -2,6 +2,7 @@ package com.Carewell.ecg700.port
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.util.Log
 import co.nedim.maildroidx.MaildroidXType
 import co.nedim.maildroidx.sendEmail
 import io.getstream.log.StreamLog
@@ -43,8 +44,10 @@ object LogUtil {
         }
     }
 
-    fun isSaveLog(context: Context) {
+    fun isSaveLog(context: Context, logEnabled: Boolean = true, isSaveLog: Boolean = true)  {
         LogUtil.context = context
+        LogUtil.logEnabled = logEnabled
+        LogUtil.isSaveLog = isSaveLog
     }
     fun v(msg: String, customTag: String = "Serial") {
         log(customTag, msg)
@@ -88,9 +91,7 @@ object LogUtil {
         val element = elements[index]
         val tag = handleTag(element, customTag)
         val content = "(${element.fileName}:${element.lineNumber}).${element.methodName}:  $msg"
-        if (isSaveLog) {
-            point(tag, content)
-        }
+        point(tag, content)
     }
 
 
@@ -123,7 +124,7 @@ object LogUtil {
             if (isSaveLog) {
                 val log = File("${context.getExternalFilesDir(null)?.path}")
                 val dir = log.listFiles()
-                if (dir != null && (dir.size > 7 || log.length() > 40 * 1024 * 1024)) {//5*4 5天  40M
+                if (dir != null && (dir.size > 7 || log.length() > 50 * 1024 * 1024)) {//5*4 5天  50M
                     //文件修改日期：递增
                     Arrays.sort(dir, object : Comparator<File> {
                         override fun compare(f1: File, f2: File): Int {
@@ -138,6 +139,8 @@ object LogUtil {
                     dir[0].delete()
                 }
                 StreamLog.e(tag = tag) { msg }
+            }else{
+                Log.e(tag, msg)
             }
         }catch (e:Exception){
             e.printStackTrace()
