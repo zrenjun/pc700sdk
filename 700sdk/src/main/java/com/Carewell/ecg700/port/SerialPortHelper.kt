@@ -122,17 +122,22 @@ class SerialPortHelper : OnSerialPortDataListener {
 
     override fun onDataReceived(bytes: ByteArray) {
         LogUtil.v("received  ---->  " + HexUtil.bytesToHexString(bytes))
-        mTimeoutHandler.removeCallbacksAndMessages(null)
         cmd?.let {
             //保持正常队列命令一发一收再发下一个，超时不算
             if (it.bytes[0] == 0xaa.toByte() && it.bytes[1] == 0x55.toByte()) {
                 if (it.bytes[2] == bytes[2]) {
+                    mTimeoutHandler.removeCallbacksAndMessages(null)
                     canSend = true
                     processCommand()
                 }
-            }else{
-                canSend = true
-                processCommand()
+            }
+            //心电命令
+            if (it.bytes[0] == 0x7f.toByte() && it.bytes[1] == 0xc1.toByte()) {
+                if (it.bytes[3] == bytes[3]) {
+                    mTimeoutHandler.removeCallbacksAndMessages(null)
+                    canSend = true
+                    processCommand()
+                }
             }
         }
     }

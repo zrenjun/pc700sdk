@@ -54,7 +54,7 @@ class SphThreads(
     @Volatile
     private var flag = true
     private var time = 0
-    private var index = 0
+    private var index = 0 //当前有效数据长度
 
     init {
         scope.launch(Dispatchers.IO) {
@@ -157,18 +157,16 @@ class SphThreads(
                                     //如果找到了
                                     if (start == 0 && end > 0) {
                                         //先把数据写入真实数据区域
-                                        val data = ByteArray(end + 1)
-                                        System.arraycopy(buffer, start, data, 0, data.size)
+                                        val data = buffer.copyOfRange(0, end + 1)
                                         //然后向左移动数据
                                         for (i in buffer.indices) {
                                             if (i + data.size < index) {
                                                 buffer[i] = buffer[i + data.size]
                                             } else {
-                                                buffer[i] = 0
+                                                break
                                             }
                                         }
-                                        //把index前移
-                                        index -= data.size
+                                        index -= data.size  //把index前移
                                         handleParsedData(data)
                                     } else {
                                         LogUtil.v("等待拼接---->${HexUtil.bytesToHexString(buffer.copyOfRange(0, index))}")
