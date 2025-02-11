@@ -127,7 +127,6 @@ class SerialPortHelper : OnSerialPortDataListener {
             //保持正常队列命令一发一收再发下一个，超时不算
             if (it.bytes[0] == 0xaa.toByte() && it.bytes[1] == 0x55.toByte()) {
                 if (it.bytes[2] == bytes[2]) {
-                    LogUtil.v("${it.method}  received ---->  " + HexUtil.bytesToHexString(bytes))
                     canSend = true
                     processCommand()
                 }

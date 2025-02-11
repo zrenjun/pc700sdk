@@ -7,10 +7,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.io.InputStream
-import java.util.Arrays
-import java.util.Vector
 
 
 /**
@@ -26,7 +23,7 @@ class SphThreads(
 ) {
     private var scope = CoroutineScope(Dispatchers.IO)
     private val buffer = ByteArray(4400) //22倍数  最大4095
-    private var mReceiveBuffer = Vector<Byte>(4400)
+    private var mReceiveBuffer = ByteArray(4400)
 
     //普通命令
     //aa, 55, 30, 02, 01, c6,
@@ -57,128 +54,157 @@ class SphThreads(
     @Volatile
     private var flag = true
     private var time = 0
+    private var index = 0
 
     init {
         scope.launch(Dispatchers.IO) {
             while (scope.isActive) {
                 if (flag) {
-                    processInputStream()
+                    try {
+                        if (inputStream.available() > 0) {
+                            time = 0
+                            val len = inputStream.read(mReceiveBuffer)
+                            if (len > 0) {
+                                System.arraycopy(mReceiveBuffer, 0, buffer, index, len)
+                                index += len
+                                if (isDebug) {
+                                    LogUtil.v("当前队列数据---->${HexUtil.bytesToHexString(buffer.copyOfRange(0, index))}")
+                                }
+                                while (index > 5) {
+                                    //查找数据头和数据尾
+                                    var start = -1
+                                    var end = -1
+                                    for (i in 0 until index) {
+                                        //非心电
+                                        if (buffer[i] == routineHead1 && i + 1 < index && buffer[i + 1] == routineHead2) {
+                                            start = i
+                                            if (i + 3 < index) {
+                                                val length = buffer[i + 3].toInt() and 0xFF
+                                                if (index > length + 4) {
+                                                    val potentialEnd = length + 4
+                                                    if (index > potentialEnd && (buffer[i + potentialEnd] == routineHead1 || buffer[i + potentialEnd] == ecg12Head1)) {
+                                                        end = i + 3 + length
+                                                    } else {
+                                                        val pair = deleteStart()
+                                                        start = pair.first
+                                                        end = pair.second
+                                                    }
+                                                } else if (index == length + 4) {
+                                                    end = i + 3 + length
+                                                }else{//  等待拼接
+                                                    break
+                                                }
+                                            }
+                                        }
+
+                                        //心电
+                                        if (buffer[i] == ecg12Head1 && i + 1 < index && (buffer[i + 1] == ecg12DataHead2 || buffer[i + 1] == ecg12CmdHead2)) {
+                                            start = i
+                                            if (index == 22) {
+                                                //刚好22   校验失败-->7f, 81, 05, af, 00, de, 00, 61, 01, aa, 55, 30, 02, 02, 24, aa, 55, ff, 03, 03, 44, a9,   校验值-->93
+                                                if (checkSum(buffer[i + 21], buffer.copyOfRange(i, i + 22))) {
+                                                    end = i + 21
+                                                } else {
+                                                    val pair = deleteStart()
+                                                    start = pair.first
+                                                    end = pair.second
+                                                }
+                                            } else if (index < 22) {
+                                                if (buffer.indexOf(routineHead1) + 1 == buffer.indexOf(routineHead2)) {
+                                                    val pair = deleteStart()
+                                                    start = pair.first
+                                                    end = pair.second
+                                                }else{//  等待拼接
+                                                    break
+                                                }
+                                            } else {
+                                                //大于22
+                                                if (buffer[i + 22] == ecg12Head1) {
+                                                    end = i + 21
+                                                } else if (buffer[i + 22] == routineHead1) {
+                                                    if (checkSum(buffer[i + 21], buffer.copyOfRange(i, i + 22))) {  //最后一包也要校验
+                                                        end = i + 21
+                                                    } else {
+                                                        val pair = deleteStart()
+                                                        start = pair.first
+                                                        end = pair.second
+                                                    }
+                                                } else {
+                                                    val pair = deleteStart()
+                                                    start = pair.first
+                                                    end = pair.second
+                                                }
+                                            }
+                                        }
+                                        //获取到一包数据
+                                        if (end != -1) {
+                                            break
+                                        }
+                                    }
+                                    //说明前面有脏数据，把数据前移start位
+                                    if (start > 0) {
+                                        LogUtil.v("异常数据---->${HexUtil.bytesToHexString(buffer.copyOfRange(0, index))}")
+                                        var i = 0
+                                        while (i < index && i + start < index) {
+                                            buffer[i] = buffer[i + start]
+                                            i++
+                                        }
+                                        end -= start
+                                        index -= start
+                                        start = 0
+                                        LogUtil.v("清理后数据---->${HexUtil.bytesToHexString(buffer.copyOfRange(0, index))}")
+                                    }
+                                    //如果找到了
+                                    if (start == 0 && end > 0) {
+                                        //先把数据写入真实数据区域
+                                        val data = ByteArray(end + 1)
+                                        System.arraycopy(buffer, start, data, 0, data.size)
+                                        //然后向左移动数据
+                                        for (i in buffer.indices) {
+                                            if (i + data.size < index) {
+                                                buffer[i] = buffer[i + data.size]
+                                            } else {
+                                                buffer[i] = 0
+                                            }
+                                        }
+                                        //把index前移
+                                        index -= data.size
+                                        handleParsedData(data)
+                                    } else {
+                                        LogUtil.v("等待拼接---->${HexUtil.bytesToHexString(buffer.copyOfRange(0, index))}")
+                                        break
+                                    }
+                                }
+                            }
+                        } else {
+                            delay(10)
+                            time += 10
+                            if (time > 60000) {
+                                LogUtil.v("已经一分钟未读到数据了")
+                                time = 0
+                            }
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
                 }
             }
         }
     }
 
-    private suspend fun processInputStream() {
-        withContext(Dispatchers.IO) {
-            try {
-                if (inputStream.available() > 0) {
-                    time = 0
-                    mReceiveBuffer.addAll(buffer.copyOfRange(0, inputStream.read(buffer)).toList())
-                    processReceiveBuffer()
-                } else {
-                    delay(10)
-                    time += 10
-                    if (time > 60000) {
-                        LogUtil.v("已经一分钟未读到数据了")
-                        time = 0
-                    }
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
+    private fun deleteStart() :Pair<Int,Int> {
+        var start = 0  // 默认从2开始 因为前两个字节是固定的
+        var end = 0
+        val temp = buffer.copyOfRange(2, index)
+        if (temp.indexOf(routineHead1) + 1 == temp.indexOf(routineHead2)) {
+            start = temp.indexOf(routineHead1) + 2
+            val length = buffer[start + 3].toInt() and 0xFF
+            end = start + 3 + length
+        } else if (temp.indexOf(ecg12Head1) + 1 == temp.indexOf(ecg12DataHead2) || temp.indexOf(ecg12Head1) + 1 == temp.indexOf(ecg12CmdHead2)) {
+            start = temp.indexOf(ecg12Head1) + 2
+            end = start + 21
         }
-    }
-
-    private fun processReceiveBuffer() {
-        if (isDebug) {
-            LogUtil.v("当前队列数据---->${HexUtil.bytesToHexString(mReceiveBuffer.toByteArray())}")
-        }
-        while (mReceiveBuffer.size > 5) {
-            val end = findEndOfPacket()
-            if (end > 0) {
-                val data = ByteArray(end)
-                for (i in 0 until end) {
-                    data[i] = mReceiveBuffer.removeAt(0)
-                }
-                handleParsedData(data)
-            } else if (end == -1) {
-                LogUtil.v("当前队列数据异常---->${HexUtil.bytesToHexString(mReceiveBuffer.toByteArray())}")
-                mReceiveBuffer.removeAt(0)
-                for (i in 0 until 5) {
-                    if (mReceiveBuffer[0] != routineHead1 && mReceiveBuffer[0] != ecg12Head1) {
-                        mReceiveBuffer.removeAt(0)
-                    }
-                }
-            } else { // 0 等待拼接
-                break
-            }
-        }
-    }
-
-    private fun findEndOfPacket(): Int {
-        //非心电
-        if (mReceiveBuffer[0] == routineHead1 && mReceiveBuffer[1] == routineHead2) {
-            val length = mReceiveBuffer[3].toInt() and 0xFF
-            if (mReceiveBuffer.size >= length + 4) {
-                val potentialEnd = length + 4
-                if (mReceiveBuffer.size > potentialEnd &&
-                    mReceiveBuffer[potentialEnd] != routineHead1 &&
-                    mReceiveBuffer[potentialEnd] != ecg12Head1
-                ) {
-                    LogUtil.v("常规  下一包异常数据需要丢弃前面重解析")
-                    return -1
-                }
-                return potentialEnd
-            } else {
-                LogUtil.v("等待拼接---->${HexUtil.bytesToHexString(mReceiveBuffer.toByteArray())}")
-                return 0
-            }
-        }
-        //心电
-        if (mReceiveBuffer[0] == ecg12Head1 && (mReceiveBuffer[1] == ecg12DataHead2 || mReceiveBuffer[1] == ecg12CmdHead2)) {
-            if (mReceiveBuffer.size == 22) {
-                //刚好22   校验失败-->7f, 81, 05, af, 00, de, 00, 61, 01, aa, 55, 30, 02, 02, 24, aa, 55, ff, 03, 03, 44, a9,   校验值-->93
-                if (checkSum(mReceiveBuffer[21], mReceiveBuffer.toByteArray())) {
-                    return 22
-                } else {
-                    LogUtil.v("心电  校验失败")
-                    return -1
-                }
-            } else if (mReceiveBuffer.size < 22) {
-                if (mReceiveBuffer.containsAll(listOf(routineHead1, routineHead2))) {
-                    LogUtil.v("心电  异常数据需要丢弃前面重解析")
-                    return -1
-                } else {
-                    LogUtil.v("等待拼接---->${HexUtil.bytesToHexString(mReceiveBuffer.toByteArray())}")
-                    return 0
-                }
-
-            } else {
-                //大于22
-                if (mReceiveBuffer[22] == ecg12Head1) {
-                    return 22
-                }
-                //2025-01-24 15:02:21'724 E/DefaultDispatcher-worker-1:210 [Serial]: (SphThreads.kt:152).findEndOfPacket:  等待拼接---->7f, 81, 0d, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00,
-                //2025-01-24 15:02:23'929 E/DefaultDispatcher-worker-5:264 [Serial]: (SphThreads.kt:94).processReceiveBuffer:  当前队列数据---->7f, 81, 0d, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, aa, 55, 30, 02, 02, 24, aa, 55, ff, 03, 03, 44, a9, aa, 55, ff, 03, 03, c3, a6,
-                //2025-01-24 15:02:23'931 E/DefaultDispatcher-worker-3:212 [Serial]: (SphThreads.kt:214).checkSum:  校验失败-->7f, 81, 0d, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, aa, 55, 30, 02, 02, 24,   校验值-->40,
-                //2025-01-24 15:02:23'934 E/DefaultDispatcher-worker-5:264 [Serial]: (SerialPortHelper.kt:128).onDataReceived:  received  ---->  aa, 55, ff, 03, 03, 44, a9,
-                //2025-01-24 15:02:23'942 E/DefaultDispatcher-worker-5:264 [Serial]: (SerialPortHelper.kt:128).onDataReceived:  received  ---->  aa, 55, ff, 03, 03, c3, a6,
-
-                if (mReceiveBuffer[22] == routineHead1) {
-                    if (checkSum(mReceiveBuffer[21], mReceiveBuffer.toByteArray().copyOfRange(0, 22))) {
-                        return 22
-                    } else {
-                        LogUtil.v("心电  校验失败")
-                        return -1
-                    }
-                } else {
-                    LogUtil.v("心电  下一包异常数据需要丢弃前面重解析")
-                    return -1
-                }
-            }
-        }
-        LogUtil.v("其它  非正常包头")
-        return -1
+        return Pair(start,end)
     }
 
     private fun handleParsedData(data: ByteArray) {
@@ -198,7 +224,6 @@ class SphThreads(
 
     fun stop() {
         try {
-            mReceiveBuffer.clear()
             if (scope.isActive) {
                 scope.cancel()
             }
