@@ -11,6 +11,7 @@ import kotlinx.coroutines.*
 import java.io.File
 import java.io.IOException
 import java.util.*
+import java.util.concurrent.PriorityBlockingQueue
 
 
 /**
@@ -21,7 +22,7 @@ import java.util.*
  */
 class SerialPortHelper : OnSerialPortDataListener {
     //命令队列
-    private val pendingQueue = PriorityQueue(20, compareBy<WriteData> { it.priority })
+    private val pendingQueue = PriorityBlockingQueue(20, compareBy<WriteData> { it.priority })
 
     // 发送串口命令的协程
     private var sendScope = CoroutineScope(Dispatchers.IO)
@@ -53,7 +54,9 @@ class SerialPortHelper : OnSerialPortDataListener {
     }
 
     //当前是否可以发送命令
+    @Volatile
     private var canSend = true
+    @Volatile
     private var cmd: WriteData? = null
     private val mTimeoutHandler = Handler(Looper.getMainLooper())
     private val mCommandTimeoutRunnable = CommandTimeoutRunnable()
@@ -119,24 +122,25 @@ class SerialPortHelper : OnSerialPortDataListener {
         LogUtil.v("关闭串口")
     }
 
-
     override fun onDataReceived(bytes: ByteArray) {
         LogUtil.v("received  ---->  " + HexUtil.bytesToHexString(bytes))
         cmd?.let {
-            //保持正常队列命令一发一收再发下一个，超时不算
-            if (it.bytes[0] == 0xaa.toByte() && it.bytes[1] == 0x55.toByte()) {
-                if (it.bytes[2] == bytes[2]) {
-                    mTimeoutHandler.removeCallbacksAndMessages(null)
-                    canSend = true
-                    processCommand()
+            if (bytes.size >= 3) {
+                // 保持正常队列命令一发一收再发下一个，超时不算
+                if (it.bytes[0] == 0xaa.toByte() && it.bytes[1] == 0x55.toByte()) {
+                    if (it.bytes[2] == bytes[2]) {
+                        mTimeoutHandler.removeCallbacksAndMessages(null)
+                        canSend = true
+                        processCommand()
+                    }
                 }
-            }
-            //心电命令
-            if (it.bytes[0] == 0x7f.toByte() && it.bytes[1] == 0xc1.toByte()) {
-                if (it.bytes[3] == bytes[3]) {
-                    mTimeoutHandler.removeCallbacksAndMessages(null)
-                    canSend = true
-                    processCommand()
+                // 心电命令
+                if (it.bytes[0] == 0x7f.toByte() && it.bytes[1] == 0xc1.toByte()) {
+                    if (it.bytes[3] == bytes[3]) {
+                        mTimeoutHandler.removeCallbacksAndMessages(null)
+                        canSend = true
+                        processCommand()
+                    }
                 }
             }
         }
@@ -160,6 +164,9 @@ class SerialPortHelper : OnSerialPortDataListener {
                     serialPort.outputStream.flush()
                 } catch (e: IOException) {
                     e.printStackTrace()
+                    // 重置标志位并尝试重新处理命令
+                    canSend = true
+                    processCommand()
                 }
             }
         }
@@ -179,7 +186,9 @@ class SerialPortHelper : OnSerialPortDataListener {
             )
         )
         //发送握手包,激活下位机
-        pendingQueue.removeIf { it.bytes.contentEquals(Cmd.sleepMachine) }
+        synchronized(pendingQueue) {
+            pendingQueue.removeIf { it.bytes.contentEquals(Cmd.sleepMachine) }
+        }
         send(
             WriteData(
                 Cmd.handShake,
@@ -367,15 +376,15 @@ data class WriteData(
     var isCRC: Boolean = true,
     var commandTimeoutMill: Long = 500L,
 ) {
-    override fun hashCode(): Int {
-        return super.hashCode()
-    }
-
     override fun equals(other: Any?): Boolean {
         return when (other) {
             !is WriteData -> false
-            else -> method == other.method
+            else -> method == other.method && bytes.contentEquals(other.bytes)
         }
+    }
+
+    override fun hashCode(): Int {
+        return method.hashCode() + bytes.contentHashCode()
     }
 }
 

@@ -68,8 +68,13 @@ class SphThreads(
                             time = 0
                             val len = inputStream.read(mReceiveBuffer)
                             if (len > 0) {
-                                System.arraycopy(mReceiveBuffer, 0, buffer, index, len) //异常直接从头来
-                                index += len
+                                if (index + len <= buffer.size) {
+                                    System.arraycopy(mReceiveBuffer, 0, buffer, index, len)
+                                    index += len
+                                } else {
+                                    LogUtil.v("Buffer overflow, resetting buffer")
+                                    index = 0 // 重置缓冲区
+                                }
                                 if (isDebug) {
                                     LogUtil.v("当前队列数据---->${HexUtil.bytesToHexString(buffer.copyOfRange(0, index))}")
                                 }
@@ -79,24 +84,24 @@ class SphThreads(
                                     var end = -1
                                     for (i in 0 until index) {
                                         //非心电
-                                        if (buffer[i] == routineHead1 && i + 1 < index && buffer[i + 1] == routineHead2) {
+                                        if (buffer[i] == routineHead1 && i + 3 < index && buffer[i + 1] == routineHead2) {
                                             start = i
-                                            if (i + 3 < index) {
-                                                val length = buffer[i + 3].toInt() and 0xFF
-                                                if (index > length + 4) {
-                                                    val potentialEnd = length + 4
-                                                    if (index > potentialEnd && (buffer[i + potentialEnd] == routineHead1 || buffer[i + potentialEnd] == ecg12Head1)) {
-                                                        end = i + 3 + length
-                                                    } else {
-                                                        val pair = deleteStart()
-                                                        start = pair.first
-                                                        end = pair.second
-                                                    }
-                                                } else if (index == length + 4) {
+                                            val length = buffer[i + 3].toInt() and 0xFF
+                                            if (index > i + 4 + length) {
+                                                // 数据帧长度足够
+                                                val potentialEnd = length + 4
+                                                if (index > potentialEnd && (buffer[i + potentialEnd] == routineHead1 || buffer[i + potentialEnd] == ecg12Head1)) {
                                                     end = i + 3 + length
-                                                }else{//  等待拼接
-                                                    break
+                                                } else {
+                                                    val pair = deleteStart()
+                                                    start = pair.first
+                                                    end = pair.second
                                                 }
+                                            }else if (index == i + length + 4) {
+                                                end = i + 3 + length
+                                            } else {
+                                                // 数据帧不完整，等待更多数据
+                                                break
                                             }
                                         }
 
@@ -196,10 +201,10 @@ class SphThreads(
         }
     }
 
-    private fun deleteStart() :Pair<Int,Int> {
-        var start = 0  // 默认从2开始 因为前两个字节是固定的
+    private fun deleteStart(): Pair<Int, Int> {
+        var start = 0
         var end = 0
-        val temp = buffer.copyOfRange(2, index)
+        val temp = buffer.copyOfRange(2, index) // 默认从2开始 因为前两个字节是固定的
         if (temp.indexOf(routineHead1) + 1 == temp.indexOf(routineHead2)) {
             start = temp.indexOf(routineHead1) + 2
             val length = buffer[start + 3].toInt() and 0xFF
@@ -207,21 +212,30 @@ class SphThreads(
         } else if (temp.indexOf(ecg12Head1) + 1 == temp.indexOf(ecg12DataHead2) || temp.indexOf(ecg12Head1) + 1 == temp.indexOf(ecg12CmdHead2)) {
             start = temp.indexOf(ecg12Head1) + 2
             end = start + 21
+        } else {
+            // 未找到有效数据，丢弃整个缓冲区
+            index = 0
+            Arrays.fill(buffer, 0.toByte())
         }
-        return Pair(start,end)
+        return Pair(start, end)
     }
 
+
     private fun handleParsedData(data: ByteArray) {
+        if (data.size < 2) {
+            LogUtil.v("Invalid data frame: too short")
+            return
+        }
         if (data[0] == ecg12Head1) {
-            if (data[1] == ecg12CmdHead2) {
+            if (data.size >= 22 && data[1] == ecg12CmdHead2) {
                 LogUtil.v("心电回复帧----> ${HexUtil.bytesToHexString(data)}")
                 if (data[3] == 0x01.toByte() || data[3] == 0x02.toByte()) {
-                    listener.onDataReceived(data)//发送下一个命令
+                    listener.onDataReceived(data)
                 }
             }
             ParseEcg12Data.addData(data)
         } else {
-            listener.onDataReceived(data)//发送下一个命令
+            listener.onDataReceived(data) //发送下一个命令
             ParseData.processingOrdinaryData(data)
         }
     }
