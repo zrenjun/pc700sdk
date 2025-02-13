@@ -398,14 +398,7 @@ object ParseData {
                     if (filterCallBackCnt(glu_type)) {
                         if (gluType == 0x01) {
                             LogUtil.e("============怡成 血糖结果 $a  $dataMmol  $dataMgdl  $unit")
-                            postEvent(
-                                GetGLUResult(
-                                    a,
-                                    "$dataMmol",
-                                    "${(dataMmol * 18).toInt()}",
-                                    unit
-                                )
-                            )
+                            postEvent(GetGLUResult(a, "$dataMmol", "${(dataMmol * 18).toInt()}", unit))
                         }
                         if (gluType == 0x02) {
                             LogUtil.e("============百捷 血糖结果 $a  $dataMmol  $dataMgdl  $unit")  //设备显示L 直接给0值 aa, 55, e2, 05, 01, 01, 00, 00, d2,
@@ -426,10 +419,9 @@ object ParseData {
                             LogUtil.e("============百捷 尿酸结果 $a  $dataMmol  $dataMgdl  $unit")
                             postEvent(GetUAResult(a, "$dataMmol", "$dataMgdl", unit))
                         }
-                        if (gluType == 0x04) { //aa, 55, e2, 05, 02, 00, 06, 76, 7e    0.676  11.364
-                            dataMmol =
-                                "%.3f".format(dataMmol / 100f).toFloat()  // 设备展示的umol 通用解析已经除了1次10
-                            dataMgdl = "%.3f".format(dataMmol * 16.81f).toFloat()
+                        if (gluType == 0x04) { //aa, 55, e2, 05, 02, 00, 06, 76, 7e    0.676  11.364 == 11.4
+                            dataMmol = "%.3f".format(dataMmol / 100f).toFloat()  // 设备展示的umol 通用解析已经除了1次10
+                            dataMgdl = "%.1f".format(dataMmol * 16.81f).toFloat()
                             LogUtil.e("============乐普 尿酸结果 $a  $dataMmol  $dataMgdl   $unit")
                             postEvent(GetUAResult(a, "$dataMmol", "$dataMgdl", unit))
                         }
@@ -444,7 +436,7 @@ object ParseData {
                         }
                     }
                     if (gluType == 0x04) {  //乐普
-                        if (filterCallBackCnt(bk_type)) {   //aa, 55, e2, 05, 03, 00, 00, 02, c2,   ==0.2
+                        if (filterCallBackCnt(bk_type)) {   //aa, 55, e2, 05, 03, 00, 00, 02, c2,   02 ==0.2
                             dataMgdl = "%.2f".format(dataMmol * 10.4f).toFloat()
                             LogUtil.e("============乐普 血酮结果 $a  $dataMmol  $dataMgdl  $unit")
                             postEvent(GetBKResult(a, "$dataMmol", "$dataMgdl", unit))
@@ -651,6 +643,7 @@ object ParseData {
     //获取收缩压等级
     private fun getLevelSYS(sys: Int): Int {
         return when {
+            sys < 90 -> 0 //低血压
             sys < 120 -> 1 //理想血压
             sys < 130 -> 2 //正常血压
             sys in 130..139 -> 3 //正常高值
@@ -663,6 +656,7 @@ object ParseData {
     //获取舒张压等级
     private fun getLevelDIA(dia: Int): Int {
         return when {
+            dia < 60 -> 0 //低血压
             dia < 80 -> 1 //理想血压
             dia < 85 -> 2 //正常血压
             dia in 85..89 -> 3 //正常高值
