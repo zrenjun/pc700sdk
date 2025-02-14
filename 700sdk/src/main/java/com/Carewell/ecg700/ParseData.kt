@@ -633,11 +633,11 @@ object ParseData {
      * @param dia 舒张压
      */
     private fun getGrade(sys: Int, dia: Int): Int {
-        return if (getLevelSYS(sys) >= getLevelDIA(dia)) {
-            getLevelSYS(sys)
-        } else {
-            getLevelDIA(dia)
-        }
+        val sysL = getLevelSYS(sys)
+        val diaL = getLevelDIA(dia)
+        if (sysL == 0 && diaL <= 2) return 0
+        if (sysL <= 2 && diaL == 0) return 0
+        return if (sysL >= diaL)  sysL  else  diaL
     }
 
     //获取收缩压等级
@@ -645,11 +645,10 @@ object ParseData {
         return when {
             sys < 90 -> 0 //低血压
             sys < 120 -> 1 //理想血压
-            sys < 130 -> 2 //正常血压
-            sys in 130..139 -> 3 //正常高值
-            sys in 140..159 -> 4 //1级高血压
-            sys in 160..179 -> 5 //2级高血压
-            else -> 6 //3级高血压
+            sys < 140 -> 2 //正常血压
+            sys < 160 -> 3 //1级高血压
+            sys < 180 -> 4 //2级高血压
+            else -> 5 //3级高血压
         }
     }
 
@@ -658,11 +657,10 @@ object ParseData {
         return when {
             dia < 60 -> 0 //低血压
             dia < 80 -> 1 //理想血压
-            dia < 85 -> 2 //正常血压
-            dia in 85..89 -> 3 //正常高值
-            dia in 90..99 -> 4 //1级高血压
-            dia in 100..109 -> 5 //2级高血压
-            else -> 6 //3级高血压
+            dia < 90 -> 2 //正常血压
+            dia < 100 -> 3 //1级高血压
+            dia < 110 -> 4 //2级高血压
+            else -> 5 //3级高血压
         }
     }
 
