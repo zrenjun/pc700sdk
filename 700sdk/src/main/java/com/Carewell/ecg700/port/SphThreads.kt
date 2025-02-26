@@ -241,6 +241,7 @@ class SphThreads(
     }
 
     fun stop() {
+        pause()
         try {
             if (scope.isActive) {
                 scope.cancel()

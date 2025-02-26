@@ -268,7 +268,7 @@ public class MainEcgManager {
             return gainArrayTemp;
         }
         //计算自动增益  有22个大格，每2个格子 1mv
-        float maxShowMv = (22f / leadLines / 2f) * 0.5f;  //1.83
+        float maxShowMv = (22f / leadLines / 2f) * 0.5f;  //0.916
         if (bodyMaxValue > maxShowMv) {
             if (bodyMaxValue / 2 > maxShowMv) {
                 gainArrayTemp[0] = 0.25f;

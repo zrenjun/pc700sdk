@@ -51,6 +51,7 @@ class IPAThreads(inputStream: InputStream, outputStream: OutputStream) {
     }
 
     fun stop() {
+        pause()
         try {
             if (scope.isActive) {
                 scope.cancel()
