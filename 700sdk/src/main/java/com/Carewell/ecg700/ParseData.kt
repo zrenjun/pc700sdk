@@ -525,7 +525,7 @@ object ParseData {
                     val flag = temp1 and 0x40 ushr 6
                     temp1 = temp1 and 0x0f
                     var data = (temp1 shl 8) + temp2
-//                    data = hpFilter(data, 0)
+                    data = hpFilter(data, 0)
                     ecgData.data.add(Wave(data, flag))
                 }
                 val temp3 =
