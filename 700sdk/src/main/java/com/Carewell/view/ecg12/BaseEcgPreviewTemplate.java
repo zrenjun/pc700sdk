@@ -1,6 +1,5 @@
 package com.Carewell.view.ecg12;
 
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -33,7 +32,6 @@ public abstract class BaseEcgPreviewTemplate {
      */
     public abstract void drawLeadInfo();
 
-    Context context;
     int drawWidth;
     int drawHeight;
     float[] gainArray;
@@ -459,7 +457,7 @@ public abstract class BaseEcgPreviewTemplate {
         float nTimeScaleBitmapW = timeLen * gridSpace * speed;
         float len = nTimeScaleBitmapW - 2;
         float baseY = gridRect.bottom - timeRulerHeight;
-        float baseX = gridRect.left + largeGridSpace + reportWaveOffsetLeft;
+        float baseX = gridRect.left + largeGridSpace + leadColumes == 1 ?  (largeGridSpace * 3) :  largeGridSpace;
         float yOffset = 0f, verticalLineHeight = 0;
         if (timeRulerPaint == null) {
             timeRulerPaint = new Paint();
@@ -534,30 +532,33 @@ public abstract class BaseEcgPreviewTemplate {
         leadManager.calcPath();
         leadManager.drawEcgPath(canvas, wavePaint);
     }
+
     /**
      * 预览画图
      */
-    public void drawEcgPathPreview(){
-        if(leadManager == null){
+    public void drawEcgPathPreview() {
+        if (leadManager == null) {
             return;
         }
         drawPerviewGridBg(canvasBg);
         leadManager.calcPath();
-        leadManager.drawEcgPath(canvasBg,wavePaint);
+        leadManager.drawEcgPath(canvasBg, wavePaint);
     }
+
     Bitmap gridCellBitmap;
+
     /**
      * 画预览背景表格
      */
-    public void drawPerviewGridBg(Canvas canvas){
-        if (gridCellBitmap==null){
-            gridCellBitmap= Bitmap.createBitmap(drawWidth, drawHeight, Bitmap.Config.RGB_565);
-            Canvas canvasCell=new Canvas(gridCellBitmap);
+    public void drawPerviewGridBg(Canvas canvas) {
+        if (gridCellBitmap == null) {
+            gridCellBitmap = Bitmap.createBitmap((int) drawWidth,  drawHeight, Bitmap.Config.RGB_565);
+            Canvas canvasCell = new Canvas(gridCellBitmap);
             canvasCell.drawColor(EcgConfig.screenBgColor);
             drawScreenGridBg(canvasCell);
             drawModeTip(canvasCell);
         }
-        canvas.drawBitmap(gridCellBitmap,0,0,new Paint());
+        canvas.drawBitmap(gridCellBitmap, 0, 0, new Paint());
     }
 
 

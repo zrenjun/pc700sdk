@@ -8,14 +8,14 @@ public class EcgPreviewTemplate12Lead6X2 extends BaseEcgPreviewTemplate {
 
     public EcgPreviewTemplate12Lead6X2(int width, int height,
                                        boolean isDrawGrid, List<String> leadNameList,
-                                       float[] gainArray, LeadSpeedType leadSpeedType){
+                                       float[] gainArray, LeadSpeedType leadSpeedType) {
         this.drawWidth = width;
         this.drawHeight = height;
         this.gainArray = gainArray;
         this.leadSpeedType = leadSpeedType;
         this.leadLines = 6;
         this.leadColumes = 2;
-        this.leadNameList=leadNameList;
+        this.leadNameList = leadNameList;
         this.drawReportGridBg = isDrawGrid;
     }
 
@@ -31,7 +31,7 @@ public class EcgPreviewTemplate12Lead6X2 extends BaseEcgPreviewTemplate {
         int dataLen = dataArray[0].length;
 
         //定标数据
-        if (scaleBean != null){
+        if (scaleBean != null) {
             dataLen = scaleBean.getDataArray().length;
         }
         //数据顺序相关
@@ -39,28 +39,28 @@ public class EcgPreviewTemplate12Lead6X2 extends BaseEcgPreviewTemplate {
         int beginDataLen;
 
         for (int i = 0; i < leadNum; i++) {
-            for(int j=0;j<dataLen;j++){
-                if(scaleBean != null){
+            for (int j = 0; j < dataLen; j++) {
+                if (scaleBean != null) {
                     value = scaleBean.getDataArray()[j];
-                }else{
+                } else {
                     value = dataArray[i][j];
                 }
                 chestLead = i > 5;
-                if(previewPageEnum != PreviewPageEnum.PAGE_REPORT){
-                    if( i < leadManager.getLeadList().size() )
-                        leadManager.getLeadList().get(i).addFilterPoint(value,chestLead);
-                }else{
+                if (previewPageEnum != PreviewPageEnum.PAGE_REPORT) {
+                    if (i < leadManager.getLeadList().size())
+                        leadManager.getLeadList().get(i).addFilterPoint(value, chestLead);
+                } else {
                     //预览，报告模式
-                    if(recordOrderType == RecordOrderType.ORDER_INORDER){
+                    if (recordOrderType == RecordOrderType.ORDER_INORDER) {
                         //顺序，拿每个分段的数据
                         beginDataLen = (i / 6) * perColumeDataLen;
-                        if(j >= beginDataLen && j < beginDataLen+perColumeDataLen){
-                            leadManager.getLeadList().get(i).addFilterPoint(value,chestLead);
+                        if (j >= beginDataLen && j < beginDataLen + perColumeDataLen) {
+                            leadManager.getLeadList().get(i).addFilterPoint(value, chestLead);
                         }
-                    }else{
+                    } else {
                         //同步，只拿最前面的数据
-                        if(j < perColumeDataLen){
-                            leadManager.getLeadList().get(i).addFilterPoint(value,chestLead);
+                        if (j < perColumeDataLen) {
+                            leadManager.getLeadList().get(i).addFilterPoint(value, chestLead);
                         }
                     }
                 }
@@ -83,20 +83,20 @@ public class EcgPreviewTemplate12Lead6X2 extends BaseEcgPreviewTemplate {
     /**
      * 初始化导联布局
      */
-    private void initDrawWave(){
+    private void initDrawWave() {
         float topMargin = largeGridSpace;
         float left = gridRect.left + largeGridSpace;
         float right = (gridRect.left + largeGridSpace + leadWidth);
         float top = (gridRect.top + topMargin);
 
-        for(int i=0;i<leadLines;i++){
+        for (int i = 0; i < leadLines; i++) {
             leadManager.addLead(leadManager.new Lead(new RectF(left, top, right, top += (leadHeight))));
         }
 
         left = gridRect.left + largeGridSpace + leadWidth;
         right = (gridRect.right);
         top = (gridRect.top + topMargin);
-        for(int i=0;i<leadLines;i++){
+        for (int i = 0; i < leadLines; i++) {
             leadManager.addLead(leadManager.new Lead(new RectF(left, top, right, top += (leadHeight))));
         }
     }
@@ -105,25 +105,20 @@ public class EcgPreviewTemplate12Lead6X2 extends BaseEcgPreviewTemplate {
     /**
      * 绘制导联信息 定标，名称
      */
-    public void drawLeadInfo(){
+    public void drawLeadInfo() {
         int num = 0;
-        for (float i = (gridRect.top + leadHeight/2 + largeGridSpace); i <= gridRect.bottom; i += leadHeight) {
+        for (float i = (gridRect.top + leadHeight / 2 + largeGridSpace); i <= gridRect.bottom; i += leadHeight) {
             //left 1
             if (num < leadLines) {
-                drawLeadStandard(canvasBg, leadStandardPaint, gridRect.left + gridSpace*3,i,
-                        false,false,false,true, false,leadLines);
+                drawLeadStandard(canvasBg, leadStandardPaint, gridRect.left + gridSpace * 3, i, false, false, false, true, false, leadLines);
             }
-            updateFontPaintColor();
-            canvasBg.drawText(leadNameList.get(num), gridRect.left + largeGridSpace ,i - leadNameYOffset, fontPaint);
-
+            canvasBg.drawText(leadNameList.get(num), gridRect.left + gridSpace * 3, i + leadNameYOffset, fontPaint);
             //right 1
             if (num < leadLines) {
-                drawLeadStandard(canvasBg, leadStandardPaint, gridRect.left + gridSpace*6 + leadWidth,i,
-                        true,true,false,true, false,leadLines);
+                drawLeadStandard(canvasBg, leadStandardPaint, gridRect.left + gridSpace * 6 + leadWidth, i, true, true, false, true, false, leadLines);
             }
-            updateFontPaintColor();
-            canvasBg.drawText(leadNameList.get(num + leadLines), gridRect.left + gridSpace*7 + leadWidth ,i - leadNameYOffset, fontPaint);
-            num ++;
+            canvasBg.drawText(leadNameList.get(num + leadLines), gridRect.left + gridSpace * 6 + leadWidth, i + leadNameYOffset, fontPaint);
+            num++;
         }
     }
 }

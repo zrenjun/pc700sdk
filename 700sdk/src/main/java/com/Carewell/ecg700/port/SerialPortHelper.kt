@@ -274,6 +274,8 @@ class SerialPortHelper : OnSerialPortDataListener {
     }
 
     fun startTransfer() {
+        pendingQueue.removeIf { it.bytes.contentEquals(Cmd.stopECG12Measure) }
+        pendingQueue.removeIf { it.bytes.contentEquals(Cmd.stopTransfer) }
         JniFilterNew.getInstance().resetFilter()
         send(
             WriteData(
@@ -287,6 +289,8 @@ class SerialPortHelper : OnSerialPortDataListener {
     }
 
     fun startECG12Measure() {
+        pendingQueue.removeIf { it.bytes.contentEquals(Cmd.stopECG12Measure) }
+        pendingQueue.removeIf { it.bytes.contentEquals(Cmd.stopTransfer) }
         send(
             WriteData(
                 Cmd.startECG12Measure,
@@ -299,6 +303,8 @@ class SerialPortHelper : OnSerialPortDataListener {
     }
 
     fun stopECG12Measure() {
+        pendingQueue.removeIf { it.bytes.contentEquals(Cmd.startTransfer) }
+        pendingQueue.removeIf { it.bytes.contentEquals(Cmd.startECG12Measure) }
         send(
             WriteData(
                 Cmd.stopECG12Measure,
@@ -311,6 +317,8 @@ class SerialPortHelper : OnSerialPortDataListener {
     }
 
     fun stopTransfer() {
+        pendingQueue.removeIf { it.bytes.contentEquals(Cmd.startTransfer) }
+        pendingQueue.removeIf { it.bytes.contentEquals(Cmd.startECG12Measure) }
         send(
             WriteData(
                 Cmd.stopTransfer,

@@ -21,7 +21,7 @@ public abstract class BaseEcgReportTemplate {
 
     public static final float TEXT_SIZE_TITLE_BIG = 45.0F;
     public static final float TEXT_SIZE_NORMAL = 35.0F;
-    public static final int ONE_PIXEL = 2;
+    public static final float ONE_PIXEL = 2.0f;
     public  static final int A4_WIDTH = 2100;
     public static final int A4_HEIGHT = 2970;
     /**
@@ -30,8 +30,8 @@ public abstract class BaseEcgReportTemplate {
     boolean isVertical;
     Context context;
 
-    int smartGrid;
-    int largeGrid;
+    float smartGrid;
+    float largeGrid;
     Rect rect;
     int textHeight;
     //左右间距
@@ -58,9 +58,9 @@ public abstract class BaseEcgReportTemplate {
         //old
         smartGrid = 5 * ONE_PIXEL;
         largeGrid = 5 * smartGrid;
-        textHeight = largeGrid;
-        leftMargin = largeGrid;
-        topMargin = largeGrid;
+        textHeight = (int) largeGrid;
+        leftMargin = (int)largeGrid;
+        topMargin = (int)largeGrid;
 
         if (!isVertical) {
             //横版
@@ -110,7 +110,7 @@ public abstract class BaseEcgReportTemplate {
     /**
      * 画心电图
      */
-    public abstract void drawEcgImage(float[] gainArray, short[][] ecgDataArray,
+    public abstract void drawEcgImage(float[] gainArray, LeadSpeedType leadSpeedType,short[][] ecgDataArray,
                                       boolean averageTemplate, List<String> macureValueList);
 
     /**
@@ -134,7 +134,7 @@ public abstract class BaseEcgReportTemplate {
     public void drawRoundTable() {
         int left = rect.left;
         int right = rect.right;
-        int top = rect.top + ONE_PIXEL;
+        int top = rect.top + (int)ONE_PIXEL;
         int bottom = rect.bottom;
 
         //top line
@@ -159,12 +159,12 @@ public abstract class BaseEcgReportTemplate {
         int left = rect.left;
         int right = rect.right;
         int top = currentBottomPosition;
-        int topY = top + largeGrid;
+        int topY = top + (int)largeGrid;
 
         ecgCanvas.save();
         ecgCanvas.translate(left, topY - largeGrid);
         String contentResult = String.format("%s", titleInfo);
-        StaticLayout staticLayoutResult = new StaticLayout(contentResult, new TextPaint(ptText), right - largeGrid,
+        StaticLayout staticLayoutResult = new StaticLayout(contentResult, new TextPaint(ptText), right - (int)largeGrid,
                 Layout.Alignment.ALIGN_CENTER, 0, 0, false);
         staticLayoutResult.draw(ecgCanvas);
         ecgCanvas.restore();
@@ -188,8 +188,8 @@ public abstract class BaseEcgReportTemplate {
      * 绘制多列，患者信息
      */
     public void drawPatientInfoTopLandscapeMulColume(PatientInfoBean patientInfoBean) {
-        int left = rect.left + smartGrid;
-        int top = currentBottomPosition + smartGrid;
+        int left = rect.left + (int)smartGrid;
+        int top = currentBottomPosition + (int)smartGrid;
         //画患者信息
         String patientNumber = String.format("%s:%s", context.getString(R.string.print_export_patient_number),
                 patientInfoBean.getPatientNumber() == null ? "" : patientInfoBean.getPatientNumber());
@@ -230,7 +230,7 @@ public abstract class BaseEcgReportTemplate {
         ptText.setFakeBoldText(false);
         ptText.setTextSize(TEXT_SIZE_NORMAL);
 
-        int left = rect.left + smartGrid;
+        int left = rect.left + (int)smartGrid;
         int topY = rect.bottom - textHeight;// - smartGrid*2
 
         ecgCanvas.drawText(ecgParamInfo, left, topY, ptText);
@@ -239,8 +239,8 @@ public abstract class BaseEcgReportTemplate {
     public void drawBottomOtherInfoBase(String infoTip) {
         ptText.setFakeBoldText(false);
         ptText.setTextSize(TEXT_SIZE_NORMAL);
-        int left = rect.left + smartGrid;
-        int topY = rect.bottom - smartGrid;//*3
+        int left = rect.left + (int)smartGrid;
+        int topY = rect.bottom - (int)smartGrid;//*3
         ecgCanvas.drawText(infoTip, left, topY, ptText);
         ecgCanvas.save();
         ecgCanvas.translate(left, topY - smartGrid * 3);

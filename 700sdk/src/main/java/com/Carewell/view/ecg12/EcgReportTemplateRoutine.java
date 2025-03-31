@@ -20,7 +20,7 @@ public class EcgReportTemplateRoutine extends BaseEcgReportTemplate {
     public EcgReportTemplateRoutine(Context context, boolean isVertical, boolean drawGridBg) {
         super(context, isVertical, drawGridBg);
         patientInfoHeight = textHeight * 10;
-        bottomInfoHeight = textHeight * 2 + smartGrid;
+        bottomInfoHeight = textHeight * 2 + (int)smartGrid;
         //画四周表格
         drawRoundTable();
     }
@@ -46,13 +46,13 @@ public class EcgReportTemplateRoutine extends BaseEcgReportTemplate {
 
         int left = rect.left;
         int right = rect.right;
-        int top = currentBottomPosition + smartGrid;
-        int bottom = top + patientInfoHeight + ONE_PIXEL;
+        int top = currentBottomPosition + (int)smartGrid;
+        int bottom = top + patientInfoHeight + (int)ONE_PIXEL;
 
         currentBottomPosition = bottom;
 
         //画表格线
-        int perRectWidth = (drawWidth - largeGrid) / 3;
+        int perRectWidth = (drawWidth - (int)largeGrid) / 3;
         //middle line
         ecgCanvas.drawLine(perRectWidth, top, perRectWidth + ONE_PIXEL, bottom, ptLine);
         ecgCanvas.drawLine(perRectWidth * 2, top, perRectWidth * 2 + ONE_PIXEL, bottom, ptLine);
@@ -61,7 +61,7 @@ public class EcgReportTemplateRoutine extends BaseEcgReportTemplate {
         //bottom line
         ecgCanvas.drawLine(left, bottom - ONE_PIXEL, right, bottom, ptLine);
 
-        int marginX = perRectWidth + smartGrid;
+        int marginX = perRectWidth + (int)smartGrid;
 
         //================测量值 ====================
 
@@ -126,7 +126,7 @@ public class EcgReportTemplateRoutine extends BaseEcgReportTemplate {
         ecgCanvas.save();
         ecgCanvas.translate(marginX, top + smartGrid * 2);
         String contentCode = String.format("%s : %s", context.getString(R.string.print_minnesota_code), codeSb);
-        StaticLayout staticLayoutCode = new StaticLayout(contentCode, new TextPaint(ptText), (largeGrid * 19),
+        StaticLayout staticLayoutCode = new StaticLayout(contentCode, new TextPaint(ptText), (int)(largeGrid * 19),
                 Layout.Alignment.ALIGN_NORMAL, 1, 0, false);
         staticLayoutCode.draw(ecgCanvas);
         ecgCanvas.restore();
@@ -144,7 +144,7 @@ public class EcgReportTemplateRoutine extends BaseEcgReportTemplate {
         ecgCanvas.save();
         ecgCanvas.translate(marginX, top + largeGrid * 2);
         String contentResult = String.format("%s : %s", context.getString(R.string.print_analysis_result), diaResultSb);
-        StaticLayout staticLayoutResult = new StaticLayout(contentResult, new TextPaint(ptText), (largeGrid * 19),
+        StaticLayout staticLayoutResult = new StaticLayout(contentResult, new TextPaint(ptText), (int)(largeGrid * 19),
                 Layout.Alignment.ALIGN_NORMAL, 1, 0, false);
         staticLayoutResult.draw(ecgCanvas);
         ecgCanvas.restore();
@@ -155,21 +155,36 @@ public class EcgReportTemplateRoutine extends BaseEcgReportTemplate {
 
 
     @Override
-    public void drawEcgImage(float[] gainArray, short[][] ecgDataArray, boolean averageTemplate, List<String> valueList) {
-        int left = rect.left + smartGrid;
-        int right = rect.right - smartGrid;
-        int top = currentBottomPosition + ONE_PIXEL;
+    public void drawEcgImage(float[] gainArray,LeadSpeedType leadSpeedType, short[][] ecgDataArray, boolean averageTemplate, List<String> valueList) {
+        int left = rect.left + (int)smartGrid;
+        int right = rect.right - (int)smartGrid;
+        int top = currentBottomPosition + (int)ONE_PIXEL;
         int bottom = rect.bottom - bottomInfoHeight;
         int gridWidth = (right - left);
-        int gridHeight = (bottom - top) + smartGrid * 3;
-        BaseEcgPreviewTemplate baseEcgPreviewTemplate = getBaseEcgPreviewTemplate(PreviewPageEnum.PAGE_REPORT, smartGrid, gridWidth, gridHeight,
-                gainArray, drawGridBg);
+        int gridHeight = (bottom - top) + (int)smartGrid * 3;
+
+        //获取画图模板
+        List<String> leadNameList = new ArrayList<>();
+        leadNameList.add("I");
+        leadNameList.add("II");
+        leadNameList.add("III");
+        leadNameList.add("aVR");
+        leadNameList.add("aVL");
+        leadNameList.add("aVF");
+        leadNameList.add("V1");
+        leadNameList.add("V2");
+        leadNameList.add("V3");
+        leadNameList.add("V4");
+        leadNameList.add("V5");
+        leadNameList.add("V6");
+        BaseEcgPreviewTemplate baseEcgPreviewTemplate = new EcgPreviewTemplate12Lead6X2(gridWidth, gridHeight, drawGridBg, leadNameList, gainArray, leadSpeedType);
+        baseEcgPreviewTemplate.init(PreviewPageEnum.PAGE_REPORT, smartGrid, RecordOrderType.ORDER_SYNC);
 
         baseEcgPreviewTemplate.initParams();
         baseEcgPreviewTemplate.setEcgMode(EcgShowModeEnum.MODE_SCROLL);
         baseEcgPreviewTemplate.addEcgData(ecgDataArray);
         baseEcgPreviewTemplate.drawEcgReport();
-        baseEcgPreviewTemplate.drawTimeRuler(ecgDataArray[0].length / 1000f, 25f, 0);
+        baseEcgPreviewTemplate.drawTimeRuler(ecgDataArray[0].length / 1000f, leadSpeedType.getValue(), 0);
 
         ecgCanvas.drawBitmap(baseEcgPreviewTemplate.getBgBitmap(), left, top, ptLine);
     }
@@ -184,27 +199,4 @@ public class EcgReportTemplateRoutine extends BaseEcgReportTemplate {
         drawBottomOtherInfoBase(infoTip);
     }
 
-
-    /**
-     * 获取画图模板
-     */
-    public static BaseEcgPreviewTemplate getBaseEcgPreviewTemplate(PreviewPageEnum previewPageEnum, float smallGridSpace, int drawWidth, int drawHeight,
-                                                                   float[] gainArray, boolean drawReportGridBg) {
-        List<String> leadNameList = new ArrayList<>();
-        leadNameList.add("I");
-        leadNameList.add("II");
-        leadNameList.add("III");
-        leadNameList.add("aVR");
-        leadNameList.add("aVL");
-        leadNameList.add("aVF");
-        leadNameList.add("V1");
-        leadNameList.add("V2");
-        leadNameList.add("V3");
-        leadNameList.add("V4");
-        leadNameList.add("V5");
-        leadNameList.add("V6");
-        BaseEcgPreviewTemplate baseEcgPreviewTemplate = new EcgPreviewTemplate12Lead12X1(drawWidth, drawHeight, drawReportGridBg, leadNameList, gainArray, LeadSpeedType.FORMFEED_25);
-        baseEcgPreviewTemplate.init(previewPageEnum, smallGridSpace, RecordOrderType.ORDER_SYNC);
-        return baseEcgPreviewTemplate;
-    }
 }

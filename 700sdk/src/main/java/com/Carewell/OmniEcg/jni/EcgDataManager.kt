@@ -9,6 +9,7 @@ import com.Carewell.ecg700.entity.AiResultBean
 import com.Carewell.ecg700.entity.MacureResultBean
 import com.Carewell.ecg700.entity.PatientInfoBean
 import com.Carewell.view.ecg12.EcgReportTemplateRoutine
+import com.Carewell.view.ecg12.LeadSpeedType
 import com.Carewell.view.ecg12.PdfUtil
 import com.creative.sdkpack.R
 import java.io.File
@@ -41,7 +42,8 @@ class EcgDataManager private constructor() {
             patientInfoBean,
             resultBean,
             checkTimeStamp,
-            floatArrayOf(1f, 1f),
+            floatArrayOf(1f, 1f), //增益 10mm/mv
+            LeadSpeedType.FORMFEED_25,
             ecgDataArrayTemp,
             lowPassHz, hpHz, acHz
         )
@@ -82,7 +84,7 @@ class EcgDataManager private constructor() {
 
     private fun makeReportRoutine(
         context: Context, patientInfoBean: PatientInfoBean, resultBean: MacureResultBean,
-        reportTimeStamp: Long, gainArray: FloatArray,
+        reportTimeStamp: Long, gainArray: FloatArray, leadSpeedType: LeadSpeedType,
         ecgDataArrayAll: Array<ShortArray>,
         lowPassHz: String,
         hpHz: String,
@@ -92,7 +94,7 @@ class EcgDataManager private constructor() {
         ecgReportTemplateRoutine.drawTitleInfo(context.getString(R.string.print_export_title))
         ecgReportTemplateRoutine.drawPatientInfoTop(patientInfoBean)
         ecgReportTemplateRoutine.drawMacureResult(resultBean)
-        ecgReportTemplateRoutine.drawEcgImage(gainArray, ecgDataArrayAll, false, null)
+        ecgReportTemplateRoutine.drawEcgImage(gainArray, leadSpeedType,ecgDataArrayAll, false, null)
         ecgReportTemplateRoutine.drawBottomEcgParamInfo(
             getPrintBottomInfo(context, reportTimeStamp, lowPassHz, hpHz, acHz)
         )
