@@ -34,8 +34,9 @@ public class EcgPreviewTemplate12Lead6X2 extends BaseEcgPreviewTemplate {
         if (scaleBean != null) {
             dataLen = scaleBean.getDataArray().length;
         }
-        //数据顺序相关
-        int perColumeDataLen = dataLen / leadColumes;
+        //数据顺序相关  25mm/s走速下，5秒数据
+        float len = LeadSpeedType.FORMFEED_25.getValue() / leadSpeedType.getValue(); //走速动态计算数据量
+        int perColumeDataLen = dataLen * ((int) len) / leadColumes;
         int beginDataLen;
 
         for (int i = 0; i < leadNum; i++) {

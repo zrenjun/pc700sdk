@@ -3,6 +3,11 @@
 package com.Carewell.ecg700.port
 
 /**
+ * 固件重启
+ */
+class ChildRebootedEvent
+
+/**
  * 固件升级 结束
  */
 class IAPEndEvent

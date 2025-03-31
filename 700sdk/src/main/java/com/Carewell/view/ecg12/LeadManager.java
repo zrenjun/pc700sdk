@@ -141,38 +141,6 @@ public class LeadManager {
             }
         }
 
-        public void removeFilterPoint(){
-            if (rate < 1) {
-                if (addCnt == filterNum[filterCnt]) {
-                    if (++filterCnt >= filterSpeed) {
-                        filterCnt = 0;
-                    }
-
-                    if(++twoCnt >= 2){
-                        twoCnt = 0;
-
-                        removePoint();
-                        removePoint();
-                    }
-                }
-
-                if (++addCnt >= EcgConfig.SPEED) {
-                    addCnt = 0;
-                }
-            } else {
-                removePoint();
-            }
-        }
-        private void removePoint(){
-            if (ecgShowModeEnum == EcgShowModeEnum.MODE_SCROLL) {
-                //数据只删除
-                if(mDirection== EcgScrollDirection.RIGHT){
-                    buffer.remove(length - 1);
-                }else {
-                    buffer.remove(0);
-                }
-            }
-        }
         private void addPoint(int val) {
             //val = (int) (val * mRangeRate);
             if (ecgShowModeEnum == EcgShowModeEnum.MODE_SWEEP) {

@@ -195,7 +195,6 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
             binding.spinnerSpeed.isEnabled = true
             binding.spinnerShow.isEnabled = true
             binding.spinnerTime.isEnabled = true
-            subscript = 0
             //测量完成分析
             getLocalXML(saveDataList)
 //            getAiPdf(saveDataList)
@@ -523,7 +522,7 @@ fun countDownFlow(
     for (i in total downTo 0) {
         if (i == 0) break
         emit(i)
-        delay(1000)
+        delay(1100)
     }
 }.flowOn(Dispatchers.Main)
     .onStart { onStart?.invoke() }

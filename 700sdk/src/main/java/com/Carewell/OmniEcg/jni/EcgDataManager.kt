@@ -43,7 +43,7 @@ class EcgDataManager private constructor() {
             resultBean,
             checkTimeStamp,
             floatArrayOf(1f, 1f), //增益 10mm/mv
-            LeadSpeedType.FORMFEED_25,
+            LeadSpeedType.FORMFEED_12_P_5,
             ecgDataArrayTemp,
             lowPassHz, hpHz, acHz
         )
@@ -96,7 +96,7 @@ class EcgDataManager private constructor() {
         ecgReportTemplateRoutine.drawMacureResult(resultBean)
         ecgReportTemplateRoutine.drawEcgImage(gainArray, leadSpeedType,ecgDataArrayAll, false, null)
         ecgReportTemplateRoutine.drawBottomEcgParamInfo(
-            getPrintBottomInfo(context, reportTimeStamp, lowPassHz, hpHz, acHz)
+            getPrintBottomInfo(context,leadSpeedType, reportTimeStamp, lowPassHz, hpHz, acHz)
         )
         ecgReportTemplateRoutine.drawBottomOtherInfo(context.getString(R.string.print_export_bottom_info))
         return ecgReportTemplateRoutine.bgEcg
@@ -105,6 +105,7 @@ class EcgDataManager private constructor() {
     @SuppressLint("SimpleDateFormat")
     private fun getPrintBottomInfo(
         context: Context,
+        leadSpeedType: LeadSpeedType,
         checkTimeStamp: Long,
         lowPassHz: String,
         hpHz: String,
@@ -113,7 +114,7 @@ class EcgDataManager private constructor() {
         val space = "\t \t"
         val sb = StringBuilder()
         //走速 增益
-        sb.append("25 mm/s").append(space)
+        sb.append("${leadSpeedType.value} mm/s").append(space)
         sb.append("10 mm/mV").append(space)
         //滤波
         sb.append(String.format("工频滤波: %s", "$acHz Hz")).append(space)

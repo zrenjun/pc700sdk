@@ -1,6 +1,7 @@
 package com.Carewell.ecg700
 
 import com.Carewell.ecg700.port.BatteryStatusEvent
+import com.Carewell.ecg700.port.ChildRebootedEvent
 import com.Carewell.ecg700.port.ECGData
 import com.Carewell.ecg700.port.EcgStopTransferEvent
 import com.Carewell.ecg700.port.GetBKResult
@@ -209,6 +210,9 @@ object ParseData {
                     val ac = temp1 shr 6 and 0x01 //ac充电线插入
                     val chargeLvl = temp1 and 0x07 //电量等级
                     postEvent(BatteryStatusEvent(chargeLvl, chargeStatus, ac))
+                }
+                0x06 -> { //重启子固件
+                    postEvent(ChildRebootedEvent())
                 }
             }
             //MCU固件版本查询
