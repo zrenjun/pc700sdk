@@ -184,7 +184,7 @@ public class EcgReportTemplateRoutine extends BaseEcgReportTemplate {
         baseEcgPreviewTemplate.setEcgMode(EcgShowModeEnum.MODE_SCROLL);
         baseEcgPreviewTemplate.addEcgData(ecgDataArray);
         baseEcgPreviewTemplate.drawEcgReport();
-        baseEcgPreviewTemplate.drawTimeRuler(ecgDataArray[0].length / 1000f, leadSpeedType.getValue(), 0);
+        baseEcgPreviewTemplate.drawTimeRuler(ecgDataArray[0].length / 1000f, leadSpeedType, 0);
 
         ecgCanvas.drawBitmap(baseEcgPreviewTemplate.getBgBitmap(), left, top, ptLine);
     }

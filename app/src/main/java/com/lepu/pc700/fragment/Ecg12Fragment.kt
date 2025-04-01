@@ -457,6 +457,8 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
                         resultBean,
                         ecgDataArray,
                         checkTimeStamp,
+                        LeadGainType.GAIN_10,
+                        LeadSpeedType.FORMFEED_25,
                         "$lowPassHz",
                         "$hpHz",
                         "$acHz",

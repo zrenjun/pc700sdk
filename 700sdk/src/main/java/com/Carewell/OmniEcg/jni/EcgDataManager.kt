@@ -9,6 +9,7 @@ import com.Carewell.ecg700.entity.AiResultBean
 import com.Carewell.ecg700.entity.MacureResultBean
 import com.Carewell.ecg700.entity.PatientInfoBean
 import com.Carewell.view.ecg12.EcgReportTemplateRoutine
+import com.Carewell.view.ecg12.LeadGainType
 import com.Carewell.view.ecg12.LeadSpeedType
 import com.Carewell.view.ecg12.PdfUtil
 import com.creative.sdkpack.R
@@ -25,7 +26,7 @@ class EcgDataManager private constructor() {
      */
     fun exportBmp(
         context: Context, patientInfoBean: PatientInfoBean, resultBean: MacureResultBean,
-        ecgDataArray: Array<ShortArray>, checkTimeStamp: Long,
+        ecgDataArray: Array<ShortArray>, checkTimeStamp: Long, leadGainType: LeadGainType, leadSpeedType: LeadSpeedType,
         lowPassHz: String,
         hpHz: String,
         acHz: String
@@ -37,13 +38,21 @@ class EcgDataManager private constructor() {
         for (i in ecgDataArrayTemp.indices) {
             System.arraycopy(ecgDataArray[i], beginPos, ecgDataArrayTemp[i], 0, needDataLen)
         }
+
+        //增益：默认10 mm/mV，可根据需要调整为5 mm/mV或20 mm/mV。
+        //走速：默认25 mm/s，可根据需要调整为50 mm/s或12.5 mm/s。
+        val gainArray = when (leadGainType) {
+            LeadGainType.GAIN_5 -> floatArrayOf(0.5f, 0.5f)
+            LeadGainType.GAIN_20 -> floatArrayOf(2f, 2f)
+            else -> floatArrayOf(1f, 1f)
+        }
         return makeReportRoutine(
             context,
             patientInfoBean,
             resultBean,
             checkTimeStamp,
-            floatArrayOf(1f, 1f), //增益 10mm/mv
-            LeadSpeedType.FORMFEED_12_P_5,
+            gainArray, //增益 10mm/mv    5mm/mv 0.5f  20mm/mv 2f
+            leadSpeedType,
             ecgDataArrayTemp,
             lowPassHz, hpHz, acHz
         )
@@ -55,7 +64,7 @@ class EcgDataManager private constructor() {
     fun exportPdf(
         context: Context, patientInfoBean: PatientInfoBean, resultBean: MacureResultBean,
         ecgDataArray: Array<ShortArray>, checkTimeStamp: Long,
-        resultFilePath: String, lowPassHz: String, hpHz: String,
+        resultFilePath: String,leadGainType: LeadGainType, leadSpeedType: LeadSpeedType,lowPassHz: String, hpHz: String,
         acHz: String
     ): File? {
         val imageList = exportBmp(
@@ -64,6 +73,8 @@ class EcgDataManager private constructor() {
             resultBean,
             ecgDataArray,
             checkTimeStamp,
+            leadGainType,
+            leadSpeedType,
             lowPassHz, hpHz, acHz
         )
         Log.d("pc700", "save pdf path = $resultFilePath")

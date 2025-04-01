@@ -450,14 +450,16 @@ public abstract class BaseEcgPreviewTemplate {
     /**
      * 绘制时间标尺
      */
-    public void drawTimeRuler(float timeLen, float speed, float startTime) {
+    public void drawTimeRuler(float timeLen, LeadSpeedType leadSpeedType, float startTime) {
         if (timeRulerHeight == 0)
             return;
 
-        float nTimeScaleBitmapW = timeLen * gridSpace * speed;
+        float x = LeadSpeedType.FORMFEED_25.getValue() / leadSpeedType.getValue();
+
+        float nTimeScaleBitmapW = timeLen * gridSpace * leadSpeedType.getValue() * x;
         float len = nTimeScaleBitmapW - 2;
         float baseY = gridRect.bottom - timeRulerHeight;
-        float baseX = gridRect.left + largeGridSpace + leadColumes == 1 ?  (largeGridSpace * 3) :  largeGridSpace;
+        float baseX = gridRect.left + largeGridSpace + leadColumes == 1 ? (largeGridSpace * 3) : largeGridSpace;
         float yOffset = 0f, verticalLineHeight = 0;
         if (timeRulerPaint == null) {
             timeRulerPaint = new Paint();
@@ -481,8 +483,8 @@ public abstract class BaseEcgPreviewTemplate {
         timeRulerPath.moveTo(baseX + 1, horizontalLineY - verticalLineHeight / 2);
         timeRulerPath.lineTo(baseX + 1, horizontalLineY + verticalLineHeight / 2);
         for (int i = 1; i < (timeLen); i++) {
-            timeRulerPath.moveTo(baseX + gridSpace * speed * i, horizontalLineY - verticalLineHeight / 2);
-            timeRulerPath.lineTo(baseX + gridSpace * speed * i, horizontalLineY + verticalLineHeight / 2);
+            timeRulerPath.moveTo(baseX + gridSpace * leadSpeedType.getValue() * i, horizontalLineY - verticalLineHeight / 2);
+            timeRulerPath.lineTo(baseX + gridSpace * leadSpeedType.getValue() * i, horizontalLineY + verticalLineHeight / 2);
         }
         timeRulerPath.moveTo(baseX + len, horizontalLineY - verticalLineHeight / 2);
         timeRulerPath.lineTo(baseX + len, horizontalLineY + verticalLineHeight / 2);
@@ -506,9 +508,9 @@ public abstract class BaseEcgPreviewTemplate {
             }
             timeRulerPaint.setTextAlign(Paint.Align.RIGHT);
             if (timeLen % leadColumes == 0) {
-                canvas.drawText(String.format(formatStr + "秒", startTime + timeLen / leadColumes), baseX + nTimeScaleBitmapW, horizontalLineY + verticalLineHeight - 15, timeRulerPaint);
+                canvas.drawText(String.format(formatStr + "秒", startTime + timeLen * x / leadColumes), baseX + nTimeScaleBitmapW, horizontalLineY + verticalLineHeight - 15, timeRulerPaint);
             } else {
-                canvas.drawText(String.format(formatStr + "秒", startTime + timeLen / leadColumes), baseX + nTimeScaleBitmapW, horizontalLineY + verticalLineHeight - 15, timeRulerPaint);
+                canvas.drawText(String.format(formatStr + "秒", startTime + timeLen * x / leadColumes), baseX + nTimeScaleBitmapW, horizontalLineY + verticalLineHeight - 15, timeRulerPaint);
             }
         }
     }
@@ -552,7 +554,7 @@ public abstract class BaseEcgPreviewTemplate {
      */
     public void drawPerviewGridBg(Canvas canvas) {
         if (gridCellBitmap == null) {
-            gridCellBitmap = Bitmap.createBitmap((int) drawWidth,  drawHeight, Bitmap.Config.RGB_565);
+            gridCellBitmap = Bitmap.createBitmap((int) drawWidth, drawHeight, Bitmap.Config.RGB_565);
             Canvas canvasCell = new Canvas(gridCellBitmap);
             canvasCell.drawColor(EcgConfig.screenBgColor);
             drawScreenGridBg(canvasCell);

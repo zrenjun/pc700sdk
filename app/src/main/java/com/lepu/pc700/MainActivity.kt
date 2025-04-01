@@ -17,6 +17,8 @@ import com.Carewell.ecg700.entity.EcgSettingConfigEnum
 import com.Carewell.ecg700.entity.PatientInfoBean
 import com.Carewell.ecg700.port.IAPVersionEvent
 import com.Carewell.ecg700.port.observeEvent
+import com.Carewell.view.ecg12.LeadGainType
+import com.Carewell.view.ecg12.LeadSpeedType
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
 import com.lepu.pc700.databinding.ActivityMainBinding
@@ -154,6 +156,8 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
             resultBean,
             data.toTypedArray(),
             System.currentTimeMillis(),
+            LeadGainType.GAIN_10,
+            LeadSpeedType.FORMFEED_25,
             "35",
             "0.67f",
             "50",
