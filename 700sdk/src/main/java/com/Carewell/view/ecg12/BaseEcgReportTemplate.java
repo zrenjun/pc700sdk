@@ -21,7 +21,7 @@ public abstract class BaseEcgReportTemplate {
 
     public static final float TEXT_SIZE_TITLE_BIG = 45.0F;
     public static final float TEXT_SIZE_NORMAL = 35.0F;
-    public static final float ONE_PIXEL = 2.0f;
+    public static final float ONE_PIXEL = 2.03f;
     public  static final int A4_WIDTH = 2100;
     public static final int A4_HEIGHT = 2970;
     /**

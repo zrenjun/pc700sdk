@@ -213,6 +213,7 @@ object ParseData {
                 }
                 0x06 -> { //重启子固件
                     postEvent(ChildRebootedEvent())
+                    LogUtil.e("重启子固件")
                 }
             }
             //MCU固件版本查询
