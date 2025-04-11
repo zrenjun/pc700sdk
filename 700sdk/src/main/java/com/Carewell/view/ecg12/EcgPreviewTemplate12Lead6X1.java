@@ -6,7 +6,7 @@ import java.util.List;
 
 public class EcgPreviewTemplate12Lead6X1 extends BaseEcgPreviewTemplate {
 
-    public EcgPreviewTemplate12Lead6X1(int width, int height,
+    public EcgPreviewTemplate12Lead6X1(float width, float height,
                                        boolean isDrawGrid, List<String> leadNameList,
                                        float[] gainArray, LeadSpeedType leadSpeedType){
         this.drawWidth = width;

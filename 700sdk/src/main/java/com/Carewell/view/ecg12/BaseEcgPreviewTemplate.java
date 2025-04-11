@@ -12,6 +12,7 @@ import android.graphics.RectF;
 import android.text.Layout;
 import android.text.StaticLayout;
 import android.text.TextPaint;
+import android.util.Log;
 
 import java.util.List;
 
@@ -32,8 +33,8 @@ public abstract class BaseEcgPreviewTemplate {
      */
     public abstract void drawLeadInfo();
 
-    int drawWidth;
-    int drawHeight;
+    float drawWidth;
+    float drawHeight;
     float[] gainArray;
     LeadSpeedType leadSpeedType;
     LeadManager leadManager;
@@ -88,7 +89,9 @@ public abstract class BaseEcgPreviewTemplate {
         }
         gridSpace = smallGridSpace;
         largeGridSpace = gridSpace * 5;
-        bgBitmap = Bitmap.createBitmap(drawWidth, drawHeight, Bitmap.Config.RGB_565);
+        Log.e("zrj", "gridSpace:" + gridSpace);
+        Log.e("zrj", "largeGridSpace:" + largeGridSpace);
+        bgBitmap = Bitmap.createBitmap((int) drawWidth, (int) drawHeight, Bitmap.Config.RGB_565);
 
         wavePaint = new Paint();
         wavePaint.setStyle(Paint.Style.STROKE);
@@ -135,11 +138,10 @@ public abstract class BaseEcgPreviewTemplate {
         float nWidth = leftSpacing * (drawWidth / leftSpacing);
         float nHeight = leftSpacing * (drawHeight / leftSpacing);
 
-        float left = (drawWidth - nWidth) / 2;
+        float left = (drawWidth - nWidth) / 2f;
         float right = left + nWidth;
-        float top = (drawHeight - nHeight) / 2;
+        float top = (drawHeight - nHeight) / 2f;
         float bottom = top + nHeight;
-
         gridRect = new RectF(left, top, right, bottom);
 
         if (previewPageEnum == PreviewPageEnum.PAGE_REPORT) {
@@ -190,7 +192,7 @@ public abstract class BaseEcgPreviewTemplate {
         canvasCell.save();
         canvasCell.translate(x, y);
         String contentResult = String.format("%s", text);
-        StaticLayout staticLayoutResult = new StaticLayout(contentResult, new TextPaint(modePaint), drawWidth,
+        StaticLayout staticLayoutResult = new StaticLayout(contentResult, new TextPaint(modePaint), (int) drawWidth,
                 Layout.Alignment.ALIGN_CENTER, 1, 0, false);
         staticLayoutResult.draw(canvasCell);
         canvasCell.restore();
@@ -257,13 +259,14 @@ public abstract class BaseEcgPreviewTemplate {
 
         float smallGridPx = gridSpace;
         float largeGridPx = gridSpace * 5;
-
+        Log.e("zrj", "smallGridPx:" + smallGridPx);
+        Log.e("zrj", "largeGridPx:" + largeGridPx);
         Path path = new Path();
         path.addCircle(0, 0, 1, Path.Direction.CW);
 
         Paint paintSmall = new Paint();
         paintSmall.setColor(EcgConfig.pdfGridWideColor);
-        paintSmall.setStrokeWidth(smallGridPx / 5);
+        paintSmall.setStrokeWidth(1);
         paintSmall.setStyle(Paint.Style.STROKE);
 
 
@@ -554,7 +557,7 @@ public abstract class BaseEcgPreviewTemplate {
      */
     public void drawPerviewGridBg(Canvas canvas) {
         if (gridCellBitmap == null) {
-            gridCellBitmap = Bitmap.createBitmap((int) drawWidth, drawHeight, Bitmap.Config.RGB_565);
+            gridCellBitmap = Bitmap.createBitmap((int) drawWidth, (int) drawHeight, Bitmap.Config.RGB_565);
             Canvas canvasCell = new Canvas(gridCellBitmap);
             canvasCell.drawColor(EcgConfig.screenBgColor);
             drawScreenGridBg(canvasCell);

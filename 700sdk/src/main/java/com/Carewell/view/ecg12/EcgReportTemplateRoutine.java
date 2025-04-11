@@ -156,12 +156,12 @@ public class EcgReportTemplateRoutine extends BaseEcgReportTemplate {
 
     @Override
     public void drawEcgImage(float[] gainArray,LeadSpeedType leadSpeedType, short[][] ecgDataArray, boolean averageTemplate, List<String> valueList) {
-        int left = rect.left + (int)smartGrid;
-        int right = rect.right - (int)smartGrid;
-        int top = currentBottomPosition + (int)ONE_PIXEL;
-        int bottom = rect.bottom - bottomInfoHeight;
-        int gridWidth = (right - left);
-        int gridHeight = (bottom - top) + (int)smartGrid * 3;
+        float left = rect.left + smartGrid;
+        float right = rect.right - smartGrid;
+        float top = currentBottomPosition + ONE_PIXEL;
+        float bottom = rect.bottom - bottomInfoHeight;
+        float gridWidth = (right - left);
+        float gridHeight = (bottom - top) + smartGrid * 3;
 
         //获取画图模板
         List<String> leadNameList = new ArrayList<>();
