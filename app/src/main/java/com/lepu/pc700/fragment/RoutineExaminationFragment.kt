@@ -260,7 +260,7 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
                     binding.realplayPc300TvPr.text = it.plus.toString()
                 }
                 // 设置血压测量状态值：最佳，正常...
-                binding.insView.setProgress(it.rank - 1, true)
+                binding.insView.setProgress(it.rank, true)
                 val hrNormal = if (bpUnit) {
                     getString(R.string.hr_noral_nibp)
                 } else {

@@ -38,9 +38,9 @@ public class InstrumentView extends View {
 
 
     private final String[] nibpGradeRange = {
+            getResources().getString(R.string.low),
             getResources().getString(R.string.best),
             getResources().getString(R.string.normal),
-            getResources().getString(R.string.Inthehigh),
             getResources().getString(R.string.light),
             getResources().getString(R.string.crowning),
             getResources().getString(R.string.Heavy_high)
@@ -317,7 +317,7 @@ public class InstrumentView extends View {
         }
         this.nibp = nibp;
         this.isResult = isResult;
-        postInvalidate();
+        postInvalidate(); //刷新onDraw()
     }
     /**
      * 画一个两端为圆弧的圆形曲
@@ -360,3 +360,4 @@ public class InstrumentView extends View {
         return new int[]{(int) x, (int) y};
     }
 }
+

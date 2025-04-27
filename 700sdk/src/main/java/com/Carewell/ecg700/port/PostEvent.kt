@@ -120,7 +120,7 @@ data class SPOGetWaveEvent(val waves: MutableList<Wave>)
  * @param dia  舒张压
  * @param plus  脉率
  * @param bHr true心率正常 false心率不齐
- * @param rank   血压结果等级 数值为1-6 对应 最佳、正常、临高、轻高、中高、重高
+ * @param rank   血压结果等级 数值为0-5 对应 低血压、理想血压、正常血压、1级高血压、2级高血压、3级高血压
  */
 data class NIBPGetMeasureResultEvent(
     val sys: Int,

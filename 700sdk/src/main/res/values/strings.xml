@@ -1,6 +1,6 @@
 <resources>
+    <string name="low">偏低</string>
     <string name="best">最佳</string>
-    <string name="Inthehigh">临高</string>
     <string name="light">轻高</string>
     <string name="crowning">中高</string>
     <string name="Heavy_high">重高</string>
