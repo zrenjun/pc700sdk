@@ -41,6 +41,7 @@ dependencies {
     api "androidx.fragment:fragment-ktx:1.5.6"
     api 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'
     implementation files('libs\\dom4j-1.6.1.jar')
+    implementation files('libs\\plsyreadersdk.jar')
     def lifecycle_version = '2.7.0'
     api "androidx.lifecycle:lifecycle-viewmodel-ktx:${lifecycle_version}"
     api "androidx.lifecycle:lifecycle-runtime-ktx:${lifecycle_version}"
