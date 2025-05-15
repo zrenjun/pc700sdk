@@ -32,7 +32,8 @@ class MainFragment : Fragment(R.layout.fragment_main) {
         binding.tv1.singleClick { findNavController().navigate(R.id.routineExaminationFragment) }
         binding.tv2.singleClick { findNavController().navigate(R.id.ecg12Fragment) }
         binding.tv3.singleClick { findNavController().navigate(R.id.eCGSingleFragment) }
-        binding.tv4.singleClick { findNavController().navigate(R.id.idCardInputFragment) }
+//        binding.tv4.singleClick { findNavController().navigate(R.id.idCardInputFragment) }
+        binding.tv4.singleClick { findNavController().navigate(R.id.newIdCardInputFragment) }
         binding.tv5.singleClick { findNavController().navigate(R.id.settingFragment) }
         binding.tv7.singleClick { findNavController().navigate(R.id.bodyFatFragment) }
         //是否充电
