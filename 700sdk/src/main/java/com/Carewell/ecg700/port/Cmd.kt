@@ -295,6 +295,19 @@ object Cmd {
     )
 
     /**
+     * 卡/证命令————类型设置
+     */
+    val bIDCard_Type = byteArrayOf(
+        0xAA.toByte(),
+        0x55.toByte(),
+        0xFF.toByte(),
+        0x03.toByte(),
+        0x07.toByte(),
+        0x00.toByte(),
+        0x00.toByte()
+    )
+
+    /**
      * 卡/证命令————开始扫描
      */
     val bIDCard_StartScan = byteArrayOf(
