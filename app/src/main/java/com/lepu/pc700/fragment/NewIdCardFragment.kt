@@ -51,7 +51,7 @@ class NewIdCardFragment : Fragment(R.layout.fragment_idcardinput) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         (activity as MainActivity).setMainTitle("身份证识别")
-        App.serial.mAPI?.setIDCard_StartScan()
+        App.serial.mAPI?.setIDCard_Type(1)
         with(binding) {
             btnIdcardScan.singleClick {
                 bScan = !bScan
@@ -133,7 +133,6 @@ class NewIdCardFragment : Fragment(R.layout.fragment_idcardinput) {
 
     override fun onDestroy() {
         super.onDestroy()
-        App.serial.mAPI?.setIDCard_StopScan()
         //释放USB对象
         mUsbPermissionMgr?.releaseMgr()
     }

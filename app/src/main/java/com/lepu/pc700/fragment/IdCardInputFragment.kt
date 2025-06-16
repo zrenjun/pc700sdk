@@ -30,6 +30,7 @@ class IdCardInputFragment : Fragment(R.layout.fragment_idcardinput) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         (activity as MainActivity).setMainTitle("身份证识别")
+        App.serial.mAPI?.setIDCard_Type(0)
         with(binding) {
             btnIdcardScan.singleClick {
                 bScan = !bScan

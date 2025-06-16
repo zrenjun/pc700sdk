@@ -8,6 +8,7 @@ import android.text.TextUtils
 import android.view.View
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.lifecycleScope
+import com.Carewell.OmniEcg.jni.toJson
 import com.Carewell.ecg700.port.IAPCheckEvent
 import com.Carewell.ecg700.port.IAPEndEvent
 import com.Carewell.ecg700.port.IAPProgramingEvent
@@ -27,7 +28,6 @@ import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.*
-import java.lang.StringBuilder
 
 /**
  *
@@ -36,10 +36,6 @@ import java.lang.StringBuilder
  *
  */
 class FirmwareUpgradeDialog : DialogFragment(R.layout.dialog_upgrade) {
-    private var MAIN_MCU_VER = 0
-    private var SUB_MCU_VER = 0
-    private var DOWNLOAD_MCU_MAIN_URL = ""
-    private var DOWNLOAD_MCU_SUB_URL = ""
 
     private val binding by viewBinding(DialogUpgradeBinding::bind)
     private var mIAPTh: IPAThreads? = null
@@ -47,63 +43,46 @@ class FirmwareUpgradeDialog : DialogFragment(R.layout.dialog_upgrade) {
     private var systemSubVer = 0
     private var gujianup_main = false
     private var gujianup_sub = false
+    private var curFileName = ""
 
     @OptIn(InternalCoroutinesApi::class)
     @SuppressLint("SetTextI18n")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        // viewModel.getFirmware(getMachineCode())
+        //        viewModel.apply {
+        //            firmwareUpgrade.observe(viewLifecycleOwner) {
+        //                if (Constant.MAIN_MCU_VER != 0) {
+        //                    binding.tvNetMcuMainVer.text = Constant.MAIN_MCU_VER.toString() + ""
+        //                }
+        //                if (Constant.SUB_MCU_VER != 0) {
+        //                    binding.tvNetMcuSubVer.text = Constant.SUB_MCU_VER.toString() + ""
+        //                }
+        //            }
+        //            mException.observe(viewLifecycleOwner) { //网络异常
+        //                toast(R.string.network_anomaly)
+        //            }
+        //
+        //            progressData.observe(viewLifecycleOwner) {
+        //                binding.tvDownloadPro.text = "$it%"
+        //                binding.pbDownload.progress = it ?: 0
+        //            }
+        //        }
         with(binding) {
             btnUpgradeMain.singleClick {//安装
-//                if (systemMainVer >= MAIN_MCU_VER) {
-//                    toast("已经是最新版本")
-//                    return@singleClick
-//                }
-                if (mIAPTh == null) {
-                    toast("串口启动失败，请取消或重启后尝试！")
-                    return@singleClick
-                }
-                btnUpgradeMain.isEnabled = false //防止升级过程中，多次点击升级
-                btnUpgradeSub.isEnabled = false
-                val maingujian = getMCUFileStream("main_")
-                if (maingujian != null) {
-
-                    mIAPTh?.setIAPFile(
-                        BufferedInputStream(getMCUFileStream("main_")),
-                        true
-                    )
+                curFileName = "main_"
+                getMCUFileStream(systemMainVer)?.let {
+                    mIAPTh?.setIAPFile(BufferedInputStream(it), true)
                     gujianup_main = true
                     gujianup_sub = false
-                } else {
-                    btnUpgradeMain.isEnabled = true //防止升级过程中，多次点击升级
-                    btnUpgradeSub.isEnabled = true
-                    toast("请先下载固件")
                 }
             }
-
             btnUpgradeSub.singleClick {
-                if (systemSubVer >= SUB_MCU_VER) {
-                    toast("已经是最新版本")
-                    return@singleClick
-                }
-                if (mIAPTh == null) {
-                    toast("串口启动失败，请取消或重启后尝试！")
-                    return@singleClick
-                }
-                btnUpgradeMain.isEnabled = false
-                btnUpgradeSub.isEnabled = false
-                val maingujian = getMCUFileStream("sub_")
-                if (maingujian != null) {
-
-                    mIAPTh?.setIAPFile(
-                        BufferedInputStream(getMCUFileStream("sub_")),
-                        false
-                    )
+                curFileName = "sub_"
+                getMCUFileStream(systemSubVer)?.let {
+                    mIAPTh?.setIAPFile(BufferedInputStream(it), false)
                     gujianup_sub = true
                     gujianup_main = false
-                } else {
-                    btnUpgradeMain.isEnabled = true
-                    btnUpgradeSub.isEnabled = true
-                    toast("请先下载固件")
                 }
             }
             btnUpgradeCancel.singleClick {
@@ -114,8 +93,8 @@ class FirmwareUpgradeDialog : DialogFragment(R.layout.dialog_upgrade) {
                 mIAPTh?.pause()
                 dismiss()
             }
-            btnDownloadMainVer.singleClick { download(DOWNLOAD_MCU_MAIN_URL) }
-            btnDownloadSubVer.singleClick { download(DOWNLOAD_MCU_SUB_URL) }
+//            btnDownloadMainVer.singleClick { download("DOWNLOAD_MCU_MAIN_URL") }
+//            btnDownloadSubVer.singleClick { download("DOWNLOAD_MCU_SUB_URL") }
             btnUpgradeTips.singleClick {
                 val sb = StringBuilder()
                 sb.append("固件升级操件步骤：\n").append("1、连接WIFI或4G网络；\n")
@@ -137,28 +116,23 @@ class FirmwareUpgradeDialog : DialogFragment(R.layout.dialog_upgrade) {
                 alertDialog.setCancelable(false)
                 alertDialog.show()
             }
-            if (MAIN_MCU_VER != 0) {
-                tvNetMcuMainVer.text = MAIN_MCU_VER.toString() + ""
-            }
-            if (SUB_MCU_VER != 0) {
-                tvNetMcuSubVer.text = SUB_MCU_VER.toString() + ""
-            }
         }
 
         this.isCancelable = false
         dialog?.setCanceledOnTouchOutside(false)//点击屏幕不消失
 
         observeEvent<IAPVersionEvent> {
+            LogUtil.v(it.toJson())
             if (it.response.toInt() == 2) {
                 if (it.softwareVersion != 0) {
                     systemMainVer = it.softwareVersion
+                    App.mcuMainVer = it.softwareVersion
                     binding.tvMcuMainVer.text = systemMainVer.toString()
-
-                    if (it.hardwareVersion==0){
+                    if (it.hardwareVersion == 0) {
                         App.serial.mAPI?.serialPort?.let {
                             mIAPTh?.getIAPVer(false) //获取子固件版本
                         }
-                    }else{
+                    } else {
                         systemSubVer = it.hardwareVersion
                         binding.tvMcuSubVer.text = systemSubVer.toString()
                     }
@@ -180,19 +154,18 @@ class FirmwareUpgradeDialog : DialogFragment(R.layout.dialog_upgrade) {
                 App.serial.mAPI?.serialPort?.let {
                     mIAPTh?.getIAPVer(true) //获取主固件版本
                 }
+                binding.btnUpgradeSub.isEnabled = true
+                binding.btnUpgradeMain.isEnabled = true
+                gujianup_sub = false
+                gujianup_main = false
             }
         }
 
         observeEvent<ShakeHandsEvent> {
-            lifecycleScope.launch(Dispatchers.Main) {
-                delay(1000)
-                toast("升级成功")
-                binding.btnUpgradeSub.isEnabled = true
-                gujianup_sub = false
-                binding.btnUpgradeMain.isEnabled = true
-                gujianup_main = false
-            }
-
+            toast("升级成功")
+            File(PROJECT_DIR).listFiles()
+                ?.filter { it.name.contains(curFileName) && it.isFile }
+                ?.forEach { it.delete() }
         }
 
         observeEvent<IAPCheckEvent> {
@@ -208,23 +181,10 @@ class FirmwareUpgradeDialog : DialogFragment(R.layout.dialog_upgrade) {
                     delay(7000)
                     binding.pbUpgrade.progress = it.type
                     binding.tvUpgradePro.text = "${it.type}%"
-                    if (it.type == 100 && gujianup_main) {
-                        binding.tvMcuMainVer.text = MAIN_MCU_VER.toString()
-                    }
-                    if (it.type == 100 && gujianup_sub) {
-                        binding.tvMcuSubVer.text = SUB_MCU_VER.toString()
-                    }
                 }
             }
         }
-        if (!App.serialStart) {
-            App.serial.start()
-            LogUtil.v("App.serialStart")
-        }
-        iapStart()
-    }
 
-    private fun iapStart() {
         App.serial.mAPI?.pause()
         App.serial.mAPI?.serialPort?.let {
             if (mIAPTh != null) {
@@ -234,11 +194,21 @@ class FirmwareUpgradeDialog : DialogFragment(R.layout.dialog_upgrade) {
             mIAPTh = IPAThreads(it.inputStream, it.outputStream)
             mIAPTh?.getIAPVer(true) //获取主固件版本
         }
+
+        //  viewModel.mFileName.observeForever {
+        //          if (it.contains("main_")){
+        //              binding.tvMcuMainVerU.text = it.split(".")[0].takeLast(4)
+        //          }
+        //          if (it.contains("sub_")){
+        //              binding.tvMcuSubVerU.text = it.split(".")[0].takeLast(4)
+        //          }
+        //        }
     }
+
+
 
     override fun onStop() {
         super.onStop()
-        mIAPTh?.pause()
         mIAPTh?.stop()
         mIAPTh = null
         App.serial.mAPI?.reStart() //恢复API
@@ -256,24 +226,42 @@ class FirmwareUpgradeDialog : DialogFragment(R.layout.dialog_upgrade) {
     }
 
     /** 从下载的路径获取mcu文件流  */
-    private fun getMCUFileStream(mcuPartFileName: String): FileInputStream? {
+    private fun getMCUFileStream(deviceVer: Int): FileInputStream? {
+        if (mIAPTh == null) {
+            hint("串口启动失败，请取消或重启后尝试！")
+            return null
+        }
         val file = File(PROJECT_DIR)
         if (!file.exists()) { //目录不存在
-            toast("本地固件不存在，请联网下载")
+            hint("本地固件不存在，请联网下载")
             return null
         }
         //获取目录下已存在的所有文件
-        val mcuFile = file.listFiles()?.find { item -> item.name.contains(mcuPartFileName) }
-        if (mcuFile == null) { //文件不存在
-            toast("本地固件不存在，请联网下载")
+        val mcuFile = file.listFiles()?.filter { item -> item.name.contains(curFileName) }
+        if (mcuFile.isNullOrEmpty()) { //文件不存在
+            hint("本地固件不存在，请联网下载")
             return null
         }
+        val mcu = mcuFile.maxBy { it.lastModified() }
+//        if (deviceVer >= mcu.name.split(".")[0].takeLast(4).toInt()) {
+//            hint("已经是最新版本")
+//            return null
+//        }
         try {
-            return FileInputStream(mcuFile)
-        } catch (e: FileNotFoundException) {
+            //防止升级过程中，多次点击升级
+            binding.btnUpgradeMain.isEnabled = false
+            binding.btnUpgradeSub.isEnabled = false
+            return FileInputStream(mcu)
+        } catch (e: Exception) {
             e.printStackTrace()
         }
         return null
+    }
+
+    private fun hint(string: String) {
+        binding.btnUpgradeMain.isEnabled = true //防止升级过程中，多次点击升级
+        binding.btnUpgradeSub.isEnabled = true
+        toast(string)
     }
 }
 
