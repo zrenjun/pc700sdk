@@ -2,6 +2,9 @@
 
 package com.Carewell.ecg700.port
 
+
+class CardTypeEvent
+class USBModeEvent
 /**
  * 固件重启
  */

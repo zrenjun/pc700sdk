@@ -295,6 +295,20 @@ object Cmd {
     )
 
     /**
+     * usb-mode: •0-device(=iA), 1-host.
+     * 11•该命令仅在bIDCard_Type =1时有效
+     */
+    val usb_Mode = byteArrayOf(
+        0xAA.toByte(),
+        0x55.toByte(),
+        0xFF.toByte(),
+        0x03.toByte(),
+        0x08.toByte(),
+        0x00.toByte(),
+        0x00.toByte()
+    )
+
+    /**
      * 卡/证命令————类型设置
      */
     val bIDCard_Type = byteArrayOf(

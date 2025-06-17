@@ -1,6 +1,7 @@
 package com.Carewell.ecg700
 
 import com.Carewell.ecg700.port.BatteryStatusEvent
+import com.Carewell.ecg700.port.CardTypeEvent
 import com.Carewell.ecg700.port.ChildRebootedEvent
 import com.Carewell.ecg700.port.ECGData
 import com.Carewell.ecg700.port.EcgStopTransferEvent
@@ -39,6 +40,7 @@ import com.Carewell.ecg700.port.SPOGetModeEvent
 import com.Carewell.ecg700.port.SPOGetParamEvent
 import com.Carewell.ecg700.port.SPOGetStateEvent
 import com.Carewell.ecg700.port.SPOGetWaveEvent
+import com.Carewell.ecg700.port.USBModeEvent
 import com.Carewell.ecg700.port.Wave
 import com.Carewell.ecg700.port.postEvent
 import com.zkteco.android.IDReader.IDPhotoHelper
@@ -214,6 +216,14 @@ object ParseData {
                 0x06 -> { //重启子固件
                     postEvent(ChildRebootedEvent())
                     LogUtil.e("重启子固件")
+                }
+                0x07 -> { //设置身份证模块
+                    postEvent(CardTypeEvent())
+                    LogUtil.e("设置身份证模块成功")
+                }
+                0x08 -> { //设置USB模式
+                    postEvent(USBModeEvent())
+                    LogUtil.e("设置USB模式成功")
                 }
             }
             //MCU固件版本查询

@@ -227,6 +227,14 @@ class SerialPortHelper : OnSerialPortDataListener {
     }
 
     /**
+     * usb-mode  0-device, 1-host
+     */
+    fun setUsb_Mode(mode: Int) {
+        Cmd.usb_Mode[5] = mode.toByte()
+        send(WriteData(Cmd.usb_Mode, method = "USB模式设置"))
+    }
+
+    /**
      * 卡/证命令————类型设置
      */
     fun setIDCard_Type(mode: Int) {
