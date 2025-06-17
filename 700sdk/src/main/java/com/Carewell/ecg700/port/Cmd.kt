@@ -309,7 +309,7 @@ object Cmd {
     )
 
     /**
-     * 卡/证命令————类型设置
+     * 卡/证命令————类型设置  0 = 离线； 1 = 在线
      */
     val bIDCard_Type = byteArrayOf(
         0xAA.toByte(),

@@ -237,8 +237,8 @@ class SerialPortHelper : OnSerialPortDataListener {
     /**
      * 卡/证命令————类型设置
      */
-    fun setIDCard_Type(mode: Int) {
-        Cmd.bIDCard_Type[5] = mode.toByte()
+    fun setIDCard_Type(type: Int) {
+        Cmd.bIDCard_Type[5] = type.toByte()
         send(WriteData(Cmd.bIDCard_Type, method = "IDCard类型设置"))
     }
 
