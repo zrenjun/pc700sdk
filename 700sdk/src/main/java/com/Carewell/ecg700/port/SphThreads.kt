@@ -3,14 +3,14 @@ package com.Carewell.ecg700.port
 import com.Carewell.ecg700.ParseData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.InputStream
 import java.util.Arrays
-
-
 
 
 /**
@@ -76,7 +76,16 @@ class SphThreads(
                                     index = 0 // 重置缓冲区
                                 }
                                 if (isDebug) {
-                                    LogUtil.v("当前队列数据---->${HexUtil.bytesToHexString(buffer.copyOfRange(0, index))}")
+                                    LogUtil.v(
+                                        "当前队列数据---->${
+                                            HexUtil.bytesToHexString(
+                                                buffer.copyOfRange(
+                                                    0,
+                                                    index
+                                                )
+                                            )
+                                        }"
+                                    )
                                 }
                                 while (index > 5) {
                                     //查找数据头和数据尾
@@ -97,7 +106,7 @@ class SphThreads(
                                                     start = pair.first
                                                     end = pair.second
                                                 }
-                                            }else if (index == i + length + 4) {
+                                            } else if (index == i + length + 4) {
                                                 end = i + 3 + length
                                             } else {
                                                 // 数据帧不完整，等待更多数据
@@ -110,7 +119,11 @@ class SphThreads(
                                             start = i
                                             if (index == 22) {
                                                 //刚好22   校验失败-->7f, 81, 05, af, 00, de, 00, 61, 01, aa, 55, 30, 02, 02, 24, aa, 55, ff, 03, 03, 44, a9,   校验值-->93
-                                                if (checkSum(buffer[i + 21], buffer.copyOfRange(i, i + 22))) {
+                                                if (checkSum(
+                                                        buffer[i + 21],
+                                                        buffer.copyOfRange(i, i + 22)
+                                                    )
+                                                ) {
                                                     end = i + 21
                                                 } else {
                                                     val pair = deleteStart()
@@ -118,11 +131,14 @@ class SphThreads(
                                                     end = pair.second
                                                 }
                                             } else if (index < 22) {
-                                                if (buffer.indexOf(routineHead1) + 1 == buffer.indexOf(routineHead2)) {
+                                                if (buffer.indexOf(routineHead1) + 1 == buffer.indexOf(
+                                                        routineHead2
+                                                    )
+                                                ) {
                                                     val pair = deleteStart()
                                                     start = pair.first
                                                     end = pair.second
-                                                }else{//  等待拼接
+                                                } else {//  等待拼接
                                                     break
                                                 }
                                             } else {
@@ -130,7 +146,11 @@ class SphThreads(
                                                 if (buffer[i + 22] == ecg12Head1) {
                                                     end = i + 21
                                                 } else if (buffer[i + 22] == routineHead1) {
-                                                    if (checkSum(buffer[i + 21], buffer.copyOfRange(i, i + 22))) {  //最后一包也要校验
+                                                    if (checkSum(
+                                                            buffer[i + 21],
+                                                            buffer.copyOfRange(i, i + 22)
+                                                        )
+                                                    ) {  //最后一包也要校验
                                                         end = i + 21
                                                     } else {
                                                         val pair = deleteStart()
@@ -151,7 +171,16 @@ class SphThreads(
                                     }
                                     //说明前面有脏数据，把数据前移start位
                                     if (start > 0) {
-                                        LogUtil.v("异常数据---->${HexUtil.bytesToHexString(buffer.copyOfRange(0, index))}")
+                                        LogUtil.v(
+                                            "异常数据---->${
+                                                HexUtil.bytesToHexString(
+                                                    buffer.copyOfRange(
+                                                        0,
+                                                        index
+                                                    )
+                                                )
+                                            }"
+                                        )
                                         var i = 0
                                         while (i < index && i + start < index) {
                                             buffer[i] = buffer[i + start]
@@ -160,7 +189,16 @@ class SphThreads(
                                         end -= start
                                         index -= start
                                         start = 0
-                                        LogUtil.v("清理后数据---->${HexUtil.bytesToHexString(buffer.copyOfRange(0, index))}")
+                                        LogUtil.v(
+                                            "清理后数据---->${
+                                                HexUtil.bytesToHexString(
+                                                    buffer.copyOfRange(
+                                                        0,
+                                                        index
+                                                    )
+                                                )
+                                            }"
+                                        )
                                     }
                                     //如果找到了
                                     if (start == 0 && end > 0) {
@@ -177,7 +215,16 @@ class SphThreads(
                                         index -= data.size  //把index前移
                                         handleParsedData(data)
                                     } else {
-                                        LogUtil.v("等待拼接---->${HexUtil.bytesToHexString(buffer.copyOfRange(0, index))}")
+                                        LogUtil.v(
+                                            "等待拼接---->${
+                                                HexUtil.bytesToHexString(
+                                                    buffer.copyOfRange(
+                                                        0,
+                                                        index
+                                                    )
+                                                )
+                                            }"
+                                        )
                                         break
                                     }
                                 }
@@ -192,7 +239,16 @@ class SphThreads(
                         }
                     } catch (e: Exception) {
                         index = 0
-                        LogUtil.v("当前队列数据---->${HexUtil.bytesToHexString(buffer.copyOfRange(0, index))}")
+                        LogUtil.v(
+                            "当前队列数据---->${
+                                HexUtil.bytesToHexString(
+                                    buffer.copyOfRange(
+                                        0,
+                                        index
+                                    )
+                                )
+                            }"
+                        )
                         Arrays.fill(buffer, 0.toByte())
                         e.printStackTrace()
                     }
@@ -209,7 +265,10 @@ class SphThreads(
             start = temp.indexOf(routineHead1) + 2
             val length = buffer[start + 3].toInt() and 0xFF
             end = start + 3 + length
-        } else if (temp.indexOf(ecg12Head1) + 1 == temp.indexOf(ecg12DataHead2) || temp.indexOf(ecg12Head1) + 1 == temp.indexOf(ecg12CmdHead2)) {
+        } else if (temp.indexOf(ecg12Head1) + 1 == temp.indexOf(ecg12DataHead2) || temp.indexOf(
+                ecg12Head1
+            ) + 1 == temp.indexOf(ecg12CmdHead2)
+        ) {
             start = temp.indexOf(ecg12Head1) + 2
             end = start + 21
         } else {
@@ -220,23 +279,49 @@ class SphThreads(
         return Pair(start, end)
     }
 
+    // 添加异步处理队列
+    private val dataProcessingScope = CoroutineScope(Dispatchers.Default + Job())
 
     private fun handleParsedData(data: ByteArray) {
         if (data.size < 2) {
             LogUtil.v("Invalid data frame: too short")
             return
         }
-        if (data[0] == ecg12Head1) {
-            if (data.size >= 22 && data[1] == ecg12CmdHead2) {
-                LogUtil.v("心电回复帧----> ${HexUtil.bytesToHexString(data)}")
-                if (data[3] == 0x01.toByte() || data[3] == 0x02.toByte()) {
-                    listener.onDataReceived(data)
+//        if (data[0] == ecg12Head1) {
+//            if (data.size >= 22 && data[1] == ecg12CmdHead2) {
+//                LogUtil.v("心电回复帧----> ${HexUtil.bytesToHexString(data)}")
+//                if (data[3] == 0x01.toByte() || data[3] == 0x02.toByte()) {
+//                    listener.onDataReceived(data)
+//                }
+//            }
+//            ParseEcg12Data.addData(data)
+//        } else {
+//            listener.onDataReceived(data) //发送下一个命令
+//            ParseData.processingOrdinaryData(data)
+//        }
+
+        // 使用深拷贝避免原始数据被修改
+        val processedData = data.copyOf()
+
+        dataProcessingScope.launch {
+            if (processedData[0] == ecg12Head1) {
+                // 心电数据处理异步化
+                if (processedData.size >= 22 && processedData[1] == ecg12CmdHead2) {
+                    LogUtil.v("心电回复帧----> ${HexUtil.bytesToHexString(data)}")
+                    if (data[3] == 0x01.toByte() || data[3] == 0x02.toByte()) {
+                        withContext(Dispatchers.Main) {
+                            listener.onDataReceived(processedData)
+                        }
+                    }
+                }
+                ParseEcg12Data.addData(processedData)
+            } else {
+                // 普通数据异步处理
+                ParseData.processingOrdinaryData(processedData)
+                withContext(Dispatchers.Main) {
+                    listener.onDataReceived(processedData)
                 }
             }
-            ParseEcg12Data.addData(data)
-        } else {
-            listener.onDataReceived(data) //发送下一个命令
-            ParseData.processingOrdinaryData(data)
         }
     }
 

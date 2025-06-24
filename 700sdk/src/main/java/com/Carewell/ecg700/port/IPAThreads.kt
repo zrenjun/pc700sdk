@@ -306,7 +306,7 @@ class IPAThreads(inputStream: InputStream, outputStream: OutputStream) {
 
 
     //命令队列
-    private val pendingQueue = ArrayQueue<WriteData>(20)
+    private val pendingQueue = LinkedBlockingQueue<WriteData>(20)
 
     // 发送串口命令的协程
     private var sendScope = CoroutineScope(Dispatchers.IO)
