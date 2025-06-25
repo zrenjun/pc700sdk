@@ -12,6 +12,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.InputStream
 import java.io.OutputStream
+import java.util.concurrent.LinkedBlockingQueue
 
 
 /**
@@ -336,7 +337,7 @@ class IPAThreads(inputStream: InputStream, outputStream: OutputStream) {
     private fun send(writeData: WriteData) {
         try {
             if (!pendingQueue.contains(writeData)) {
-                pendingQueue.enqueue(writeData)
+                pendingQueue.put(writeData)
                 processCommand()
             }
         } catch (e: Exception) {
@@ -352,7 +353,7 @@ class IPAThreads(inputStream: InputStream, outputStream: OutputStream) {
                     if (pendingQueue.isEmpty()) {
                         return
                     }
-                    writeData = pendingQueue.dequeue()
+                    writeData = pendingQueue.poll()
                     retry--
                     sendData()
                 }
