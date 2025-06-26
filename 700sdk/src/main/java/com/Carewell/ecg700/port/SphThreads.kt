@@ -1,282 +1,275 @@
 package com.Carewell.ecg700.port
 
 import com.Carewell.ecg700.ParseData
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import java.io.InputStream
-import java.util.Arrays
-
+import java.nio.ByteBuffer
+import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.math.min
 
 /**
- *
- *  说明: 数据读取
- *  zrj 2022/3/25 15:03
- *
+ * SphThreads 类用于从输入流中读取数据，对数据进行解析和处理。
+ * 该类使用协程进行异步数据读取，并通过缓冲区管理数据。
  */
 class SphThreads(
-    private var inputStream: InputStream,
-    private var isDebug: Boolean = false,
-    private var listener: OnSerialPortDataListener
+    private val inputStream: InputStream,
+    private val isDebug: Boolean = false,
+    private val listener: OnSerialPortDataListener
 ) {
-    private var scope = CoroutineScope(Dispatchers.IO + Job())
-    private val buffer = ByteArray(4400) //22倍数  最大4095
-    private var mReceiveBuffer = ByteArray(4400)
+    companion object {
+        // 初始缓冲区大小
+        private const val INITIAL_BUFFER_SIZE = 4096
 
-    //普通命令
-    //aa, 55, 30, 02, 01, c6,
-    private val routineHead1 = 0xaa.toByte()
-    private val routineHead2 = 0x55.toByte()
+        // 最大缓冲区大小，设置为 64KB
+        private const val MAX_BUFFER_SIZE = 64 * 1024
 
-    //12导
-    //数据帧
-    //7f, 81, 00, fe, ff, 00, 00, fe, ff, 00, 00, 02, 00, 00, 00, 00, 00, 02, 00, 00, 00, fe,
-    //回复帧
-    //7f, c2, 00, 02, 00, 81, 08, 01, 00, 56, 31, 2e, 30, 2e, 30, 2e, 30, 00, 00, 00, 00, 6e,
-    private val ecg12Head1 = 0x7f.toByte()
-    private val ecg12DataHead2 = 0x81.toByte() //透传数据
-    private val ecg12CmdHead2 = 0xc2.toByte() //命令回复
+        // 常规数据帧头
+        private const val ROUTINE_HEADER = 0xAA55
 
-    //发送12导停止测量
-    //    7f c1 00 02 00 00 00 00 00 00 00 42
-    //接收到12导停止测量
-    //    7f, c2, 00, 02, 00, 81, 08, 01, 00, 56, 31, 2e, 30, 2e, 30, 2e, 30, 00, 00, 00, 00, 6e,
+        // 12 导联心电图数据帧头
+        private const val ECG12_HEADER = 0x7F81
 
-    //发送12导停止透传
-    //    aa 55 30 02 02 24
-    //接收到12导停止透传
-    //   aa, 55, 30, 02, 02, aa,
-    //单导
-    //aa, 55, 32, 37, 01, 00, 88, 00, 88, 00, 88, 00, 88, 00, 88, 00, 88, 00, 88, 00, 88, 00, 88, 00, 88, 00, 88, 00, 88, 00, 88, 00, 88, 00, 88, 00, 88, 00, 88, 00, 88, 00, 88, 00, 88, 00, 88, 00, 88, 00, 88, 00, 88, 00, 88, 00, 00, 01, 78,
+        // 12 导联心电图响应数据帧头
+        private const val ECG12_RESPONSE_HEADER = 0x7FC2
 
-    @Volatile
-    private var flag = true
-    private var index = 0 //当前有效数据长度
+        // 12 导联心电图数据帧大小
+        private const val FRAME_SIZE_12LEAD = 22
+    }
+
+    // 协程作用域，使用 IO 调度器和 SupervisorJob
+    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+
+    // 用于存储从输入流读取数据的缓冲区
+    private var buffer = ByteBuffer.allocate(INITIAL_BUFFER_SIZE)
+
+    // 用于同步操作的对象
+    private val syncObject = Any()
+
+    // 原子布尔值，用于控制数据读取循环的运行状态
+    private var isRunning = AtomicBoolean(true)
 
     init {
-        scope.launch {
-            while (isActive) {
-                if (flag) {
-                    try {
-                        if (inputStream.available() > 0) {
-                            val len = inputStream.read(mReceiveBuffer)
-                            if (len > 0) {
-                                if (index + len <= buffer.size) {
-                                    System.arraycopy(mReceiveBuffer, 0, buffer, index, len)
-                                    index += len
-                                } else {
-                                    LogUtil.v("Buffer overflow, resetting buffer")
-                                    index = 0 // 重置缓冲区
-                                    buffer.fill(0)
-                                }
-                                sliceData()
+        // 在 IO 线程中启动一个协程，持续读取输入流数据
+        scope.launch(Dispatchers.IO) {
+            // 临时缓冲区，用于从输入流读取数据
+            val tempBuffer = ByteArray(4096)
+            // 只要 isRunning 为 true，就持续读取数据
+            while (isRunning.get()) {
+                try {
+                    // 设置 100 毫秒的超时时间读取输入流数据
+                    val bytesRead = withTimeoutOrNull(100) {
+                        inputStream.read(tempBuffer)
+                    } ?: continue
+
+                    // 如果读取到有效数据
+                    if (bytesRead > 0) {
+                        // 同步操作，确保线程安全
+                        synchronized(syncObject) {
+                            // 如果缓冲区剩余空间不足，扩展缓冲区
+                            if (buffer.remaining() < bytesRead) {
+                                expandBuffer(buffer.position() + bytesRead)
                             }
-                        }else{
-                            delay(1)
+                            // 将临时缓冲区的数据写入主缓冲区
+                            buffer.put(tempBuffer, 0, bytesRead)
                         }
-                    } catch (e: Exception) {
-                        LogUtil.v("读取数据异常 -->${e.message}")
-                        index = 0 // 重置缓冲区
-                        buffer.fill(0)
-                        e.printStackTrace()
+                        // 处理缓冲区中的数据
+                        processBuffer()
                     }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    // 记录数据处理错误日志
+                    LogUtil.e("Data processing error: ${e.message}")
+                    // 延迟 10 毫秒后继续尝试
+                    delay(10)
                 }
             }
         }
     }
 
-    private fun sliceData() {
-        while (index > 5) {
-            //查找数据头和数据尾
-            var start = -1
-            var end = -1
-            for (i in 0 until index) {
-                //非心电
-                if (buffer[i] == routineHead1 && i + 3 < index && buffer[i + 1] == routineHead2) {
-                    start = i
-                    val length = buffer[i + 3].toInt() and 0xFF
-                    if (index > i + 4 + length) {
-                        // 数据帧长度足够
-                        val potentialEnd = length + 4
-                        if (index > potentialEnd && (buffer[i + potentialEnd] == routineHead1 || buffer[i + potentialEnd] == ecg12Head1)) {
-                            end = i + 3 + length
-                        } else {
-                            val pair = deleteStart()
-                            start = pair.first
-                            end = pair.second
-                        }
-                    } else if (index == i + length + 4) {
-                        end = i + 3 + length
-                    } else {
-                        // 数据帧不完整，等待更多数据
-                        break
-                    }
-                }
+    /**
+     * 暂停数据读取操作。
+     */
+    fun pause() {
+        isRunning.set(false)
+    }
 
-                //心电
-                if (buffer[i] == ecg12Head1 && i + 1 < index && (buffer[i + 1] == ecg12DataHead2 || buffer[i + 1] == ecg12CmdHead2)) {
-                    start = i
-                    if (index == 22) {
-                        //刚好22   校验失败-->7f, 81, 05, af, 00, de, 00, 61, 01, aa, 55, 30, 02, 02, 24, aa, 55, ff, 03, 03, 44, a9,   校验值-->93
-                        if (checkSum(buffer[i + 21], buffer.copyOfRange(i, i + 22))) {
-                            end = i + 21
-                        } else {
-                            val pair = deleteStart()
-                            start = pair.first
-                            end = pair.second
-                        }
-                    } else if (index < 22) {
-                        if (buffer.indexOf(routineHead1) + 1 == buffer.indexOf(routineHead2)) {
-                            val pair = deleteStart()
-                            start = pair.first
-                            end = pair.second
-                        } else {//  等待拼接
-                            break
-                        }
-                    } else {
-                        //大于22
-                        if (buffer[i + 22] == ecg12Head1) {
-                            end = i + 21
-                        } else if (buffer[i + 22] == routineHead1) {
-                            if (checkSum(buffer[i + 21], buffer.copyOfRange(i, i + 22))) {  //最后一包也要校验
-                                end = i + 21
-                            } else {
-                                val pair = deleteStart()
-                                start = pair.first
-                                end = pair.second
-                            }
-                        } else {
-                            val pair = deleteStart()
-                            start = pair.first
-                            end = pair.second
+    /**
+     * 重新启动数据读取操作。
+     */
+    fun reStart() {
+        isRunning.set(true)
+    }
+
+    /**
+     * 停止数据读取操作，取消协程并关闭输入流。
+     */
+    fun stop() {
+        isRunning.set(false)
+        // 取消协程作用域
+        scope.cancel()
+        try {
+            // 关闭输入流
+            inputStream.close()
+        } catch (e: Exception) {
+            // 记录关闭输入流错误日志
+            LogUtil.e("Error closing stream: ${e.message}")
+        }
+    }
+
+    /**
+     * 核心处理逻辑，处理缓冲区中的数据。
+     * 该方法在 Default 调度器中运行，确保线程安全。
+     */
+    private suspend fun processBuffer() {
+        withContext(Dispatchers.Default) {
+            synchronized(syncObject) {
+                // 将缓冲区切换到读模式
+                buffer.flip()
+                try {
+                    // 只要缓冲区中至少有 2 个字节，就继续处理
+                    while (buffer.remaining() >= 2) {
+                        // 读取 2 字节作为帧头
+                        when (val header = buffer.short.toInt() and 0xFFFF) {
+                            ROUTINE_HEADER -> handleRoutineFrame()
+                            ECG12_HEADER, ECG12_RESPONSE_HEADER -> handleEcg12Frame(header)
+                            else -> findNextHeader()
                         }
                     }
+                } finally {
+                    // 压缩缓冲区，准备下一次写入
+                    buffer.compact()
                 }
-                //获取到一包数据
-                if (end != -1) {
+            }
+        }
+    }
+
+    /**
+     * 处理常规数据帧。 普通命令 aa, 55, 30, 02, 01, c6,
+     */
+    private fun handleRoutineFrame() {
+        // 如果缓冲区剩余数据不足 4 字节，直接返回 等待拼接
+        if (buffer.remaining() < 4) {
+            return
+        }
+        // 记录当前 position
+        val currentPos = buffer.position()
+        // 读取数据帧长度
+        val length = buffer.get(currentPos + 1).toInt() and 0xFF
+        // 如果缓冲区剩余数据不足指定长度，等待拼接
+        if (buffer.remaining() < length + 2) {  //position 没有移动 + 2 = cmd + length
+            return
+        }
+        // 从缓冲区中提取数据帧
+        val frameData = ByteArray(length + 4).apply {
+            buffer.position(currentPos - 2)  // 回退 2 个字节 + 2 个头
+            buffer.get(this, 0, length + 4)
+        }
+        // 分发数据
+        ParseData.processingOrdinaryData(frameData)
+        // 调用监听器的回调方法，通知数据接收
+        listener.onDataReceived(frameData)
+    }
+
+    /**
+     * 处理 12 导联心电图数据帧。
+     *
+     * @param header 数据帧头
+     */
+    private fun handleEcg12Frame(header: Int) {
+        // 如果缓冲区剩余数据不足指定长度，直接返回 等待拼接
+        if (buffer.remaining() < FRAME_SIZE_12LEAD - 2) {
+            return
+        }
+        // 记录当前 position
+        val currentPos = buffer.position()
+        // 从缓冲区中提取数据帧
+        val frameData = ByteArray(FRAME_SIZE_12LEAD).apply {
+            buffer.position(currentPos - 2)
+            buffer.get(this)
+        }
+        // 验证数据帧校验和
+        if (verifyChecksum(frameData)) {
+            when (header) {
+                // 添加数据到解析器
+                ECG12_HEADER -> ParseEcg12Data.addData(frameData)
+                // 命令回复需要分发数据
+                ECG12_RESPONSE_HEADER -> listener.onDataReceived(frameData)
+            }
+        } else {
+            // 校验失败，回退   去掉2个头
+            buffer.position(currentPos)
+        }
+    }
+
+    /**
+     * 扩展缓冲区大小。
+     *
+     * @param requiredCapacity 所需的缓冲区容量
+     */
+    private fun expandBuffer(requiredCapacity: Int) {
+        // 计算新的缓冲区大小
+        val newSize = min(requiredCapacity * 2, MAX_BUFFER_SIZE)
+        // 如果新大小大于当前缓冲区容量，则进行扩展
+        if (newSize > buffer.capacity()) {
+            // 创建新的缓冲区
+            val newBuffer = ByteBuffer.allocate(newSize)
+            // 将原缓冲区切换到读模式
+            buffer.flip()
+            // 将原缓冲区的数据复制到新缓冲区
+            newBuffer.put(buffer)
+            // 清空原缓冲区
+            buffer.clear()
+            // 使用新缓冲区替换原缓冲区
+            buffer = newBuffer
+        }
+    }
+
+    /**
+     * 查找下一个有效的数据帧头。
+     */
+    private fun findNextHeader() {
+        var found = false
+        while (buffer.remaining() >= 1 && !found) {
+            val mark = buffer.position()
+            val first = buffer.get().toInt() and 0xFF
+            if (first == 0xAA || first == 0x7F) {
+                if (buffer.remaining() >= 1) {
+                    val second = buffer.get().toInt() and 0xFF
+                    val header = (first shl 8) or second
+                    when (header) {
+                        ROUTINE_HEADER, ECG12_HEADER, ECG12_RESPONSE_HEADER -> {
+                            buffer.position(mark)
+                            found = true
+                        }
+                        else -> buffer.position(mark + 1)
+                    }
+                } else {
+                    buffer.position(mark)
                     break
                 }
             }
-            //说明前面有脏数据，把数据前移start位
-            if (start > 0) {
-                if (isDebug) {
-                    LogUtil.v("异常数据---->${HexUtil.bytesToHexString(buffer.copyOfRange(0, index))}")
-                }
-                var i = 0
-                while (i < index && i + start < index) {
-                    buffer[i] = buffer[i + start]
-                    i++
-                }
-                end -= start
-                index -= start
-                start = 0
-                if (isDebug) {
-                    LogUtil.v("清理后数据---->${HexUtil.bytesToHexString(buffer.copyOfRange(0, index))}")
-                }
-            }
-            //如果找到了
-            if (start == 0 && end > 0) {
-                //先把数据写入真实数据区域
-                val data = buffer.copyOfRange(0, end + 1)
-                //然后向左移动数据
-                for (i in buffer.indices) {
-                    if (i + data.size < index) {
-                        buffer[i] = buffer[i + data.size]
-                    } else {
-                        break
-                    }
-                }
-                index -= data.size  //把index前移
-                handleParsedData(data)
-            } else {
-                if (isDebug) {
-                    LogUtil.v("等待拼接---->${HexUtil.bytesToHexString(buffer.copyOfRange(0, index))}")
-                }
-                break
-            }
         }
     }
 
-
-    private fun deleteStart(): Pair<Int, Int> {
-        var start = 0
-        var end = 0
-        val temp = buffer.copyOfRange(2, index) // 默认从2开始 因为前两个字节是固定的
-        if (temp.indexOf(routineHead1) + 1 == temp.indexOf(routineHead2)) {
-            start = temp.indexOf(routineHead1) + 2
-            val length = buffer[start + 3].toInt() and 0xFF
-            end = start + 3 + length
-        } else if (temp.indexOf(ecg12Head1) + 1 == temp.indexOf(ecg12DataHead2) || temp.indexOf(
-                ecg12Head1
-            ) + 1 == temp.indexOf(ecg12CmdHead2)
-        ) {
-            start = temp.indexOf(ecg12Head1) + 2
-            end = start + 21
-        } else {
-            // 未找到有效数据，丢弃整个缓冲区
-            index = 0
-            Arrays.fill(buffer, 0.toByte())
+    /**
+     * 验证数据帧的校验和。
+     */
+    private fun verifyChecksum(frame: ByteArray): Boolean {
+        val size = frame.size
+        var sum: Byte = 0
+        for (i in 0..size - 2) {
+            sum = (sum + frame[i]).toByte()
         }
-        return Pair(start, end)
-    }
-
-
-    private fun handleParsedData(data: ByteArray) {
-        if (data.size < 2) {
-            return
+        val check = sum == frame[size - 1]
+        if (!check) {
+            LogUtil.v(
+                "校验失败-->${HexUtil.bytesToHexString(frame)}  校验值-->${
+                    HexUtil.bytesToHexString(
+                        byteArrayOf(sum)
+                    )
+                }"
+            )
         }
-        if (data[0] == ecg12Head1) {
-            if (data.size >= 22 && data[1] == ecg12CmdHead2) {
-                LogUtil.v("心电回复帧----> ${HexUtil.bytesToHexString(data)}")
-                if (data[3] == 0x01.toByte() || data[3] == 0x02.toByte()) {
-                    listener.onDataReceived(data)
-                }
-            }
-            ParseEcg12Data.addData(data)
-        } else {
-            // 普通数据
-            ParseData.processingOrdinaryData(data)
-            listener.onDataReceived(data)
-        }
-    }
-
-    fun stop() {
-        pause()
-        scope.cancel()
-    }
-
-    fun pause() {
-        flag = false
-    }
-
-    fun reStart() {
-        flag = true
-    }
-
-    //12导校验
-    private fun checkSum(crc: Byte, curByteBuffer: ByteArray): Boolean {
-        var checkSum: Byte = 0x00
-        for (i in 0..20) {
-            checkSum = (curByteBuffer[i] + checkSum).toByte()
-        }
-        val check = checkSum == crc
-        if (check) {
-            return true
-        } else {
-            if (isDebug) {
-                LogUtil.v(
-                    "校验失败-->${HexUtil.bytesToHexString(curByteBuffer)}  校验值-->${
-                        HexUtil.bytesToHexString(
-                            byteArrayOf(checkSum)
-                        )
-                    }"
-                )
-            }
-            return false
-        }
+        return check
     }
 }

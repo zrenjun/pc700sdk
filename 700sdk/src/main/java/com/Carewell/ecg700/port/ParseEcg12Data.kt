@@ -159,7 +159,7 @@ class ParseEcg12Data {
             time++
             if (time % 10000 == 0) {
                 time = 0
-                LogUtil.v("待处理心电包队列大小:${queue.size}")
+                LogUtil.v("待处理队列大小:${queue.size}")
             }
             queue.put(bytes)
         }
