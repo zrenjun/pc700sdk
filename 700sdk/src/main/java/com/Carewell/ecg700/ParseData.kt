@@ -40,6 +40,7 @@ import com.Carewell.ecg700.port.SPOGetModeEvent
 import com.Carewell.ecg700.port.SPOGetParamEvent
 import com.Carewell.ecg700.port.SPOGetStateEvent
 import com.Carewell.ecg700.port.SPOGetWaveEvent
+import com.Carewell.ecg700.port.ShakeHandsEvent
 import com.Carewell.ecg700.port.USBModeEvent
 import com.Carewell.ecg700.port.Wave
 import com.Carewell.ecg700.port.postEvent
@@ -186,6 +187,9 @@ object ParseData {
             }
 
             (0xFF).toByte() -> when (type) {
+                0x01 -> { // 握手
+                    postEvent(ShakeHandsEvent())
+                }
                 0x02 -> { // 版本信息
                     //其中版本V_h:为硬件版本号；V_Sotf为软件版本号，均用压缩BCD码表示。例：V_Hard = 0x11,
                     //表示硬件版本号为V1.1

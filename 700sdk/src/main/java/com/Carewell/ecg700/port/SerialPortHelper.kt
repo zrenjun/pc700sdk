@@ -195,6 +195,7 @@ class SerialPortHelper : OnSerialPortDataListener {
                 method = "握手",
                 delay = 1000,
                 priority = Priority.HIGH,
+                retry = 0,
                 isCRC = false
             )
         )
