@@ -289,7 +289,6 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
     private var preHrTime = 0L
     private var preLeadTime = 0L
     private var subscript = 0
-    private var sum = 0
 
     private var ecg12DataListener = object : OnECG12DataListener {
         override fun onECG12DataReceived(ecg12Data: IntArray) {
@@ -306,11 +305,6 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
 
             if (loading.isShow) {
                 activity?.runOnUiThread { loading.dismiss() }
-            }
-            sum++
-            if (sum / 1000 > 9) {
-                sum = 0
-                LogUtil.v("心电数据接收--10s-->")
             }
             MainEcgManager.getInstance().addEcgData(ecgDataArray)
         }

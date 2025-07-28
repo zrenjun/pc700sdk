@@ -10,7 +10,6 @@ import com.Carewell.OmniEcg.jni.JniFilterNew
 import kotlinx.coroutines.*
 import java.io.File
 import java.io.IOException
-import java.util.*
 import java.util.concurrent.PriorityBlockingQueue
 
 
@@ -238,8 +237,8 @@ class SerialPortHelper : OnSerialPortDataListener {
     /**
      * 卡/证命令————类型设置
      */
-    fun setIDCard_Type(mode: Int) {
-        Cmd.bIDCard_Type[5] = mode.toByte()
+    fun setIDCard_Type(type: Int) {
+        Cmd.bIDCard_Type[5] = type.toByte()
         send(WriteData(Cmd.bIDCard_Type, method = "IDCard类型设置"))
     }
 

@@ -12,6 +12,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.InputStream
 import java.io.OutputStream
+import java.util.concurrent.LinkedBlockingQueue
 
 
 /**
@@ -306,7 +307,7 @@ class IPAThreads(inputStream: InputStream, outputStream: OutputStream) {
 
 
     //命令队列
-    private val pendingQueue = ArrayQueue<WriteData>(20)
+    private val pendingQueue = LinkedBlockingQueue<WriteData>(20)
 
     // 发送串口命令的协程
     private var sendScope = CoroutineScope(Dispatchers.IO)
@@ -336,7 +337,7 @@ class IPAThreads(inputStream: InputStream, outputStream: OutputStream) {
     private fun send(writeData: WriteData) {
         try {
             if (!pendingQueue.contains(writeData)) {
-                pendingQueue.enqueue(writeData)
+                pendingQueue.put(writeData)
                 processCommand()
             }
         } catch (e: Exception) {
@@ -352,7 +353,7 @@ class IPAThreads(inputStream: InputStream, outputStream: OutputStream) {
                     if (pendingQueue.isEmpty()) {
                         return
                     }
-                    writeData = pendingQueue.dequeue()
+                    writeData = pendingQueue.poll()
                     retry--
                     sendData()
                 }
