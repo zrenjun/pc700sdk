@@ -63,12 +63,10 @@ import java.util.Locale
 object ParseData {
 
     init {
-        System.loadLibrary("sigleEcg")
         System.loadLibrary("online")
         System.loadLibrary("offline")
     }
 
-    private external fun hpFilter(dataIn: Int, init: Int): Int
     external fun shortFilter(inShorts: ShortArray?): ShortArray
     external fun offlineFilter(f: Double, reset: Boolean): DoubleArray
 
@@ -543,8 +541,7 @@ object ParseData {
                     val temp2 = bytes[7 + j].toInt() and 0xff //波形数据
                     val flag = temp1 and 0x40 ushr 6
                     temp1 = temp1 and 0x0f
-                    var data = (temp1 shl 8) + temp2
-                    data = hpFilter(data, 0)
+                    val data = (temp1 shl 8) + temp2 - 2048
                     ecgData.data.add(Wave(data, flag))
                 }
                 val temp3 =

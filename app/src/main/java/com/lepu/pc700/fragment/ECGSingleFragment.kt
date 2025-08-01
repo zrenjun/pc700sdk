@@ -148,18 +148,7 @@ class ECGSingleFragment : Fragment(R.layout.fragment_ecg_single) {
             }
 
             val data = ecgData.data.map { it.data }
-            data.forEachIndexed { index, i ->
-                val filter = if (flag) ParseData.filter(
-                    i.toDouble(),
-                    index == 0 && countdown == 67
-                ) else ParseData.offlineFilter(i.toDouble(), index == 0 && countdown == 67)
-
-                if (filter.isNotEmpty()) {
-                    if (countdown <= 33) {//前5秒数据丢弃
-                        allData.addAll(filter.map { item -> item.toInt() })
-                    }
-                }
-            }
+            allData.addAll(data)
             if (ecgData.frameNum == 0) {
                 countdown--
                 binding.tvCountdown.text = "${(countdown * 0.15f).toInt()}"
