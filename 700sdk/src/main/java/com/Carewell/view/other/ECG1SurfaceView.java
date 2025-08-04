@@ -76,7 +76,6 @@ public class ECG1SurfaceView extends SurfaceView implements SurfaceHolder.Callba
         mGridSize = resx * 5; //5 mm 像素点
         ecgYOffset = ecgYOffsetCount * mGridSize;
 
-        //        refreshCurrentHardwareGain();
     }
 
     @Override
@@ -313,7 +312,7 @@ public class ECG1SurfaceView extends SurfaceView implements SurfaceHolder.Callba
         bViewed = false;
         mPosition = 0;
         mWaveFifo.clear();
-        mXScale = speed;
+        mXScale = speed / 2f;
         mBufSize = (int) ((mSurfaceWidth + 1) / mXScale);
         mWaveFifo = new Fifo<>(Float.class, mBufSize);
         screenClear();
@@ -321,7 +320,7 @@ public class ECG1SurfaceView extends SurfaceView implements SurfaceHolder.Callba
     }
 
     private float conversionFormula2(int ecgY) {
-        float temp = ecgY *2/ 355f;  //转mV
+        float temp = ecgY * 2 / 355f;  //转mV
         return ecgYOffset / 2 - temp * mGridSize * mCalScale / 2;
     }
 

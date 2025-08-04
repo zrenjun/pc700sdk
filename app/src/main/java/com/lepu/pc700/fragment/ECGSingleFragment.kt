@@ -13,6 +13,7 @@ import com.Carewell.ecg700.port.GetSingleECGResult
 import com.Carewell.ecg700.port.LogUtil
 import com.Carewell.ecg700.ParseData
 import com.Carewell.ecg700.port.observeEvent
+import com.Carewell.ecg700.port.toInt
 import com.lepu.pc700.App
 import com.lepu.pc700.MainActivity
 import com.lepu.pc700.R
@@ -36,7 +37,8 @@ class ECGSingleFragment : Fragment(R.layout.fragment_ecg_single) {
 
     private var dataEcg = mutableListOf<Int>() // 保存心电数据的列表
     private val allData = LinkedList<Int>()
-    private var countdown = 67 //0.150*67 = 10s
+    private var count = 0 //0.0750*400 = 30s
+    private var countdown = 133 //0.0750*133 = 10s
     private var num = 0
     private var isStart: Boolean by Delegates.observable(false) { _, _, newValue ->
         if (newValue) {
@@ -45,8 +47,9 @@ class ECGSingleFragment : Fragment(R.layout.fragment_ecg_single) {
                 allData.clear()
             }
             ParseData.resetFilter()
-            countdown = 67
-            binding.tvCountdown.text = "${(countdown * 0.15f).toInt()}"
+            count = 0
+            countdown = 133
+            binding.tvCountdown.text = "${(countdown * 0.075f).toInt()}"
             binding.ecg1Surfaceview.screenClear()
             App.serial.mAPI?.startSingleEcgMeasure()
         } else {
@@ -65,7 +68,6 @@ class ECGSingleFragment : Fragment(R.layout.fragment_ecg_single) {
         binding.spinnerSpeed.isEnabled = !newValue
     }
     private var updateTimer = Timer()
-    private var flag = false
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         (activity as MainActivity).setMainTitle("单导心电")
@@ -81,7 +83,7 @@ class ECGSingleFragment : Fragment(R.layout.fragment_ecg_single) {
             binding.tvHr.text = getString(R.string.heart)
             isStart = !isStart
         }
-      initData()
+        initData()
     }
 
     @OptIn(InternalCoroutinesApi::class)
@@ -92,7 +94,7 @@ class ECGSingleFragment : Fragment(R.layout.fragment_ecg_single) {
         updateTimer.schedule(object : TimerTask() {
             override fun run() {
                 if (isStart) {
-                    val max = if (allData.size > 50) 4 else if (allData.size > 30) 2 else 1
+                    val max = if (allData.size > 50) 8 else if (allData.size > 30) 4 else 2
                     for (i in 0..max) {
                         binding.ecg1Surfaceview.delayOnLifecycle {
                             binding.ecg1Surfaceview.addWaveDate(if (allData.size > 0) allData.removeFirst() else 0)
@@ -151,10 +153,11 @@ class ECGSingleFragment : Fragment(R.layout.fragment_ecg_single) {
             allData.addAll(data)
             if (ecgData.frameNum == 0) {
                 countdown--
-                binding.tvCountdown.text = "${(countdown * 0.15f).toInt()}"
+                binding.tvCountdown.text = "${(countdown * 0.075f).toInt()}"
             } else { //30s正式开始后的心电数据
+                count++
                 binding.tvCountdown.isVisible = false
-                binding.tvStart.text = "${(ecgData.frameNum * 0.15f).toInt()}s/30s"
+                binding.tvStart.text = "${(count * 0.075f).toInt()}s/30s"
                 dataEcg.addAll(data)
             }
         }
