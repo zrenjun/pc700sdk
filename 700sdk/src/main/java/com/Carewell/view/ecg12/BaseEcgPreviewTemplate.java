@@ -259,38 +259,26 @@ public abstract class BaseEcgPreviewTemplate {
 
         float smallGridPx = gridSpace;
         float largeGridPx = gridSpace * 5;
-        Log.e("zrj", "smallGridPx:" + smallGridPx);
-        Log.e("zrj", "largeGridPx:" + largeGridPx);
-        Path path = new Path();
-        path.addCircle(0, 0, 1, Path.Direction.CW);
-
+        // 绘制小网格（使用圆点）
         Paint paintSmall = new Paint();
         paintSmall.setColor(EcgConfig.pdfGridWideColor);
-        paintSmall.setStrokeWidth(1);
-        paintSmall.setStyle(Paint.Style.STROKE);
+        paintSmall.setStrokeWidth(2);
+        paintSmall.setStyle(Paint.Style.FILL); // 使用填充模式绘制圆点
 
-
-        int numGrid = 0;
-        float i = 0;
-        for (i = gridRect.left; i <= gridRect.right; i += smallGridPx) {
-            if (numGrid % 5 == 0) {
-                paintSmall.setPathEffect(null);
-            } else {
-                paintSmall.setPathEffect(new PathDashPathEffect(path, 10, 0, PathDashPathEffect.Style.ROTATE));
+        int k = 0;
+        // 绘制水平小网格线（圆点）
+        for (float y = gridRect.top; y <= gridRect.bottom; y += smallGridPx) {
+            if (k % 5 != 0) {
+                int j = 0;
+                for (float x = gridRect.left; x <= gridRect.right; x += smallGridPx) {
+                    if(j % 5 != 0){
+                        // 绘制圆点，半径为1像素
+                        canvas.drawCircle(x, y, 1, paintSmall);
+                    }
+                    j++;
+                }
             }
-            canvas.drawLine(i, gridRect.top, i, gridRect.bottom, paintSmall);
-            numGrid++;
-        }
-
-        numGrid = 0;
-        for (i = gridRect.top; i <= gridRect.bottom; i += smallGridPx) {
-            if (numGrid % 5 == 0) {
-                paintSmall.setPathEffect(null);
-            } else {
-                paintSmall.setPathEffect(new PathDashPathEffect(path, 10, 0, PathDashPathEffect.Style.ROTATE));
-            }
-            canvas.drawLine(gridRect.left, i, gridRect.right, i, paintSmall);
-            numGrid++;
+            k++;
         }
 
         //
@@ -298,31 +286,12 @@ public abstract class BaseEcgPreviewTemplate {
         paintBig.setColor(EcgConfig.pdfGridWideColor);
         paintBig.setStrokeWidth(1);
         paintBig.setStyle(Paint.Style.STROKE);
-
-        numGrid = 0;
-        for (i = gridRect.left; i <= gridRect.right; i += largeGridPx) {
-            if (EcgConfig.LARGE_GRID_DIVIDER) {
-                if (numGrid % 5 == 0) {
-                    paintBig.setColor(Color.RED);
-                } else {
-                    paintBig.setColor(EcgConfig.pdfGridWideColor);
-                }
-            }
+        for (float i = gridRect.left; i <= gridRect.right; i += largeGridPx) {
             canvas.drawLine(i, gridRect.top, i, gridRect.bottom, paintBig);
-            numGrid++;
         }
 
-        numGrid = 0;
-        for (i = gridRect.top; i <= gridRect.bottom; i += largeGridPx) {
-            if (EcgConfig.LARGE_GRID_DIVIDER) {
-                if (numGrid % 5 == 0) {
-                    paintBig.setColor(Color.RED);
-                } else {
-                    paintBig.setColor(EcgConfig.pdfGridWideColor);
-                }
-            }
+        for (float i = gridRect.top; i <= gridRect.bottom; i += largeGridPx) {
             canvas.drawLine(gridRect.left, i, gridRect.right, i, paintBig);
-            numGrid++;
         }
     }
 
