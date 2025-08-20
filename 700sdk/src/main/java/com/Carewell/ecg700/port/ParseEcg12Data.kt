@@ -154,7 +154,7 @@ class ParseEcg12Data {
 
     companion object {
         private var time = 0
-        private val queue = LinkedBlockingQueue<ByteArray>(1000)
+        private val queue = LinkedBlockingQueue<ByteArray>()
         fun addData(bytes: ByteArray) {
             time++
             if (time % 10000 == 0) {

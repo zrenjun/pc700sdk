@@ -91,6 +91,7 @@ class SphThreads(
      */
     fun pause() {
         isRunning.set(false)
+        LogUtil.v("pause")
     }
 
     /**
@@ -98,6 +99,7 @@ class SphThreads(
      */
     fun reStart() {
         isRunning.set(true)
+        LogUtil.v("reStart")
     }
 
     /**

@@ -71,7 +71,7 @@ object JniTraditionalAnalysis {
             ecgDataArrayPart[0].size,
             aiResultBean,
             patientInfoBean,
-            1, //传统算法分析结果xml是否保存.1 保存；0 不保存
+            0, //传统算法分析结果xml是否保存.1 保存；0 不保存
             resultFilePath,
             leadType.value,
             0,
