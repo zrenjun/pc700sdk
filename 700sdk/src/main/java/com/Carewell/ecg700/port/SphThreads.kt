@@ -54,33 +54,35 @@ class SphThreads(
             // 临时缓冲区，用于从输入流读取数据
             val tempBuffer = ByteArray(4096)
             // 只要 isRunning 为 true，就持续读取数据
-            while (isRunning.get()) {
-                try {
-                    // 设置 100 毫秒的超时时间读取输入流数据
-                    val bytesRead = withTimeoutOrNull(100) {
-                        inputStream.read(tempBuffer)
-                    } ?: continue
+            while (scope.isActive) {
+                if (isRunning.get()){
+                    try {
+                        // 设置 100 毫秒的超时时间读取输入流数据
+                        val bytesRead = withTimeoutOrNull(100) {
+                            inputStream.read(tempBuffer)
+                        } ?: continue
 
-                    // 如果读取到有效数据
-                    if (bytesRead > 0) {
-                        // 同步操作，确保线程安全
-                        synchronized(syncObject) {
-                            // 如果缓冲区剩余空间不足，扩展缓冲区
-                            if (buffer.remaining() < bytesRead) {
-                                expandBuffer(buffer.position() + bytesRead)
+                        // 如果读取到有效数据
+                        if (bytesRead > 0) {
+                            // 同步操作，确保线程安全
+                            synchronized(syncObject) {
+                                // 如果缓冲区剩余空间不足，扩展缓冲区
+                                if (buffer.remaining() < bytesRead) {
+                                    expandBuffer(buffer.position() + bytesRead)
+                                }
+                                // 将临时缓冲区的数据写入主缓冲区
+                                buffer.put(tempBuffer, 0, bytesRead)
                             }
-                            // 将临时缓冲区的数据写入主缓冲区
-                            buffer.put(tempBuffer, 0, bytesRead)
+                            // 处理缓冲区中的数据
+                            processBuffer()
                         }
-                        // 处理缓冲区中的数据
-                        processBuffer()
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        // 记录数据处理错误日志
+                        LogUtil.e("Data processing error: ${e.message}")
+                        // 延迟 10 毫秒后继续尝试
+                        delay(10)
                     }
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    // 记录数据处理错误日志
-                    LogUtil.e("Data processing error: ${e.message}")
-                    // 延迟 10 毫秒后继续尝试
-                    delay(10)
                 }
             }
         }
