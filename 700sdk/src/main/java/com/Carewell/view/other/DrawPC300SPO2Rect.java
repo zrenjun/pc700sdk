@@ -143,4 +143,14 @@ public class DrawPC300SPO2Rect extends View {
     public void setStartOrStop(boolean startorstop ) {
         this.stop = startorstop;
     }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        this.stop = true;
+        if (mThread != null) {
+            mThread.interrupt(); // 中断线程（避免 sleep 阻塞）
+            mThread = null;      // 清除引用
+        }
+        super.onDetachedFromWindow();
+    }
 }
