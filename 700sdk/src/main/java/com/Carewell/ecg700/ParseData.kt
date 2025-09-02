@@ -48,10 +48,7 @@ import com.zkteco.android.IDReader.IDPhotoHelper
 import com.zkteco.android.IDReader.WLTService
 import java.io.UnsupportedEncodingException
 import java.math.BigDecimal
-import java.math.RoundingMode
 import java.nio.charset.Charset
-import java.text.DecimalFormat
-import java.util.Locale
 
 
 /**
@@ -61,12 +58,13 @@ import java.util.Locale
  *
  */
 object ParseData {
-
     init {
+        System.loadLibrary("sigleEcg")
         System.loadLibrary("online")
         System.loadLibrary("offline")
     }
 
+    external fun hpFilter(dataIn: Int, init: Int): Int
     external fun shortFilter(inShorts: ShortArray?): ShortArray
     external fun offlineFilter(f: Double, reset: Boolean): DoubleArray
 
@@ -188,6 +186,7 @@ object ParseData {
                 0x01 -> { // 握手
                     postEvent(ShakeHandsEvent())
                 }
+
                 0x02 -> { // 版本信息
                     //其中版本V_h:为硬件版本号；V_Sotf为软件版本号，均用压缩BCD码表示。例：V_Hard = 0x11,
                     //表示硬件版本号为V1.1
@@ -215,14 +214,17 @@ object ParseData {
                     val chargeLvl = temp1 and 0x07 //电量等级
                     postEvent(BatteryStatusEvent(chargeLvl, chargeStatus, ac))
                 }
+
                 0x06 -> { //重启子固件
                     postEvent(ChildRebootedEvent())
                     LogUtil.e("重启子固件")
                 }
+
                 0x07 -> { //设置身份证模块
                     postEvent(CardTypeEvent())
                     LogUtil.e("设置身份证模块成功")
                 }
+
                 0x08 -> { //设置USB模式
                     postEvent(USBModeEvent())
                     LogUtil.e("设置USB模式成功")
@@ -415,7 +417,14 @@ object ParseData {
                     if (filterCallBackCnt(glu_type)) {
                         if (gluType == 0x01) {
                             LogUtil.e("============怡成 血糖结果 $a  $dataMmol  $dataMgdl  $unit")
-                            postEvent(GetGLUResult(a, "$dataMmol", "${(dataMmol * 18).toInt()}", unit))
+                            postEvent(
+                                GetGLUResult(
+                                    a,
+                                    "$dataMmol",
+                                    "${(dataMmol * 18).toInt()}",
+                                    unit
+                                )
+                            )
                         }
                         if (gluType == 0x02) {
                             LogUtil.e("============百捷 血糖结果 $a  $dataMmol  $dataMgdl  $unit")  //设备显示L 直接给0值 aa, 55, e2, 05, 01, 01, 00, 00, d2,
@@ -437,7 +446,8 @@ object ParseData {
                             postEvent(GetUAResult(a, "$dataMmol", "$dataMgdl", unit))
                         }
                         if (gluType == 0x04) { //aa, 55, e2, 05, 02, 00, 06, 76, 7e    0.676  11.364 == 11.4
-                            dataMmol = "%.3f".format(dataMmol / 100f).toFloat()  // 设备展示的umol 通用解析已经除了1次10
+                            dataMmol =
+                                "%.3f".format(dataMmol / 100f).toFloat()  // 设备展示的umol 通用解析已经除了1次10
                             dataMgdl = "%.1f".format(dataMmol * 16.81f).toFloat()
                             LogUtil.e("============乐普 尿酸结果 $a  $dataMmol  $dataMgdl   $unit")
                             postEvent(GetUAResult(a, "$dataMmol", "$dataMgdl", unit))
@@ -541,7 +551,7 @@ object ParseData {
                     val temp2 = bytes[7 + j].toInt() and 0xff //波形数据
                     val flag = temp1 and 0x40 ushr 6
                     temp1 = temp1 and 0x0f
-                    val data = (temp1 shl 8) + temp2 - 2048
+                    val data = (temp1 shl 8) + temp2
                     ecgData.data.add(Wave(data, flag))
                 }
                 val temp3 =
@@ -653,7 +663,7 @@ object ParseData {
         val diaL = getLevelDIA(dia)
         if (sysL == 0 && diaL <= 2) return 0
         if (sysL <= 2 && diaL == 0) return 0
-        return if (sysL >= diaL)  sysL  else  diaL
+        return if (sysL >= diaL) sysL else diaL
     }
 
     //获取收缩压等级
