@@ -150,7 +150,25 @@ class ECGSingleFragment : Fragment(R.layout.fragment_ecg_single) {
             }
 
             val data = ecgData.data.map { it.data }
-            allData.addAll(data)
+            data.forEachIndexed { index, i ->
+                if (true) { //新算法
+                    val filterData = ParseData.newHpFilter(i, 133 - countdown)
+                    if (countdown <= 33) {//前5秒数据丢弃
+                        allData.add(filterData-2048)
+                    }
+                } else {
+                    val filterData = ParseData.hpFilter(i, 133 - countdown)
+                    val filter = ParseData.offlineFilter(
+                        filterData.toDouble(),
+                        index == 0 && countdown == 133
+                    )
+                    if (filter.isNotEmpty()) {
+                        if (countdown <= 33) {//前5秒数据丢弃
+                            allData.addAll(filter.map { item -> item.toInt() })
+                        }
+                    }
+                }
+            }
             if (ecgData.frameNum == 0) {
                 countdown--
                 binding.tvCountdown.text = "${(countdown * 0.075f).toInt()}"
