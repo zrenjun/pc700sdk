@@ -66,6 +66,7 @@ object ParseData {
     }
 
     external fun newHpFilter(dataIn: Int, init: Int): Int
+    external fun filter150(dataIn: Int): Short
     external fun hpFilter(dataIn: Int, init: Int): Int
     external fun shortFilter(inShorts: ShortArray?): ShortArray
     external fun offlineFilter(f: Double, reset: Boolean): DoubleArray

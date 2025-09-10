@@ -312,7 +312,7 @@ public class ECG1SurfaceView extends SurfaceView implements SurfaceHolder.Callba
         bViewed = false;
         mPosition = 0;
         mWaveFifo.clear();
-        mXScale = speed / 2f;
+        mXScale = speed;
         mBufSize = (int) ((mSurfaceWidth + 1) / mXScale);
         mWaveFifo = new Fifo<>(Float.class, mBufSize);
         screenClear();

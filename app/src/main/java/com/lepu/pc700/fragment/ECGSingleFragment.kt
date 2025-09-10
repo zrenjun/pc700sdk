@@ -12,6 +12,7 @@ import com.Carewell.ecg700.port.GetSingleECGRealTime
 import com.Carewell.ecg700.port.GetSingleECGResult
 import com.Carewell.ecg700.port.LogUtil
 import com.Carewell.ecg700.ParseData
+import com.Carewell.ecg700.port.Wave
 import com.Carewell.ecg700.port.observeEvent
 import com.Carewell.ecg700.port.toInt
 import com.lepu.pc700.App
@@ -139,6 +140,8 @@ class ECGSingleFragment : Fragment(R.layout.fragment_ecg_single) {
     }
 
 
+    private var last = ""
+
     @SuppressLint("SetTextI18n")
     private fun onECG1RealTimeData(ecgData: ECGData, leadOff: Boolean) {
         if (isStart) {
@@ -148,27 +151,41 @@ class ECGSingleFragment : Fragment(R.layout.fragment_ecg_single) {
                 //数据的最高位，1 代表导联脱落(false)，0 为不脱落(true)
                 binding.tvOff.isVisible = !leadOff
             }
-
+            if (last.isNotEmpty()){
+                ecgData.data.add(0, Wave(last.toInt(),0))
+                last = ""
+            }
             val data = ecgData.data.map { it.data }
-            data.forEachIndexed { index, i ->
-                if (true) { //新算法
+            if (false){ //新算法
+                data.forEachIndexed { index, i ->
                     val filterData = ParseData.newHpFilter(i, 133 - countdown)
-                    if (countdown <= 33) {//前5秒数据丢弃
-                        allData.add(filterData-2048)
+                    if (countdown <= 67) {//前5秒数据丢弃
+                        allData.add(filterData - 2048)
                     }
-                } else {
-                    val filterData = ParseData.hpFilter(i, 133 - countdown)
-                    val filter = ParseData.offlineFilter(
-                        filterData.toDouble(),
-                        index == 0 && countdown == 133
-                    )
-                    if (filter.isNotEmpty()) {
-                        if (countdown <= 33) {//前5秒数据丢弃
+                }
+            }else{
+                // 将数据分成每2个一组的列表
+                data.chunked(2) { pair ->
+                    // pair 是一个包含1个或2个元素的列表
+                    if (pair.size == 2) {
+                        // 正常处理一对数据
+                        val value = pair[0] // 或者您需要的处理方式
+                        val filter150 = ParseData.filter150(value)
+                        val filterHp = ParseData.hpFilter(filter150.toInt(), 0)
+                        val filter = ParseData.offlineFilter(
+                            filterHp.toDouble(),
+                            false
+                        )
+                        if (filter.isNotEmpty() && countdown <= 67) {
                             allData.addAll(filter.map { item -> item.toInt() })
                         }
+                    } else {
+                        // 处理最后一个单数据点（当数据长度为奇数时）
+                        last = pair[0].toString()
                     }
                 }
             }
+
             if (ecgData.frameNum == 0) {
                 countdown--
                 binding.tvCountdown.text = "${(countdown * 0.075f).toInt()}"
@@ -198,10 +215,9 @@ class ECGSingleFragment : Fragment(R.layout.fragment_ecg_single) {
             toast(ecgResult[index])
             return
         }
-        var data = dataEcg.take(4500).map { it.toShort() }.toShortArray()
-        data = ParseData.newShortFilter(data)
+        var data = dataEcg.take(9000).map { it.toShort() }.toShortArray()
+//        data = ParseData.newShortFilter(data)
         //回顾
-//        SingleEcgUploadDialog.newInstance(data).show(childFragmentManager, "")
     }
 
     override fun onStop() {
