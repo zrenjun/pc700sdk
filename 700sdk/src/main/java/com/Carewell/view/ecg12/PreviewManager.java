@@ -1,6 +1,7 @@
 package com.Carewell.view.ecg12;
 
 import android.content.Context;
+import android.util.Log;
 
 
 public class PreviewManager {
@@ -162,23 +163,29 @@ public class PreviewManager {
             firstIndex = 0;
             lastIndex = firstIndex + mScreenShowCount;
         }
+//        if (count < 0) {
+//            for (int i = firstIndex - count; i > firstIndex; i--) {
+//                for (int j = 0; j < data.length; j++) {
+//                    onePointData[j][0] = data[j][i];
+//                }
+//                baseEcgPreviewTemplate.addEcgData(onePointData);
+//            }
+//        }
+//        else {
+//            for (int i = lastIndex - count; i < lastIndex; i++) {
+//
+//                for (int j = 0; j < data.length; j++) {
+//                    onePointData[j][0] = data[j][i];
+//                }
+//                baseEcgPreviewTemplate.addEcgData(onePointData);
+//            }
+//        }
 
-        if (count < 0) {
-
-            for (int i = firstIndex - count; i > firstIndex; i--) {
-                for (int j = 0; j < data.length; j++) {
-                    onePointData[j][0] = data[j][i];
-                }
-                baseEcgPreviewTemplate.addEcgData(onePointData);
+        for (int i = firstIndex ; i < lastIndex; i++) {
+            for (int j = 0; j < data.length; j++) {
+                onePointData[j][0] = data[j][i];
             }
-        } else {
-            for (int i = lastIndex - count; i < lastIndex; i++) {
-
-                for (int j = 0; j < data.length; j++) {
-                    onePointData[j][0] = data[j][i];
-                }
-                baseEcgPreviewTemplate.addEcgData(onePointData);
-            }
+            baseEcgPreviewTemplate.addEcgData(onePointData);
         }
         dataRatio = firstIndex / ((float) data[0].length);
     }

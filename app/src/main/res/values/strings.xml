@@ -200,4 +200,5 @@
     <string name="bodyfat_parameter13">骨量(kg)</string>
     <string name="bodyfat_parameter14">去脂体重(kg)</string>
     <string name="save">保存</string>
+    <string name="ecg_replay">心电回放</string>
 </resources>
