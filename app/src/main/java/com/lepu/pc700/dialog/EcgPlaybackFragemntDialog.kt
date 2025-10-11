@@ -18,6 +18,7 @@ import com.lepu.pc700.viewBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import androidx.core.graphics.drawable.toDrawable
 
 /**
  * 12导上传提示
@@ -47,7 +48,7 @@ class EcgPlaybackFragemntDialog : DialogFragment(R.layout.dialog_ecg_upload) {
             (0.90 * resources.displayMetrics.heightPixels).toInt()
         )
         dialog?.window?.decorView?.setPadding(0, 0, 0, 0)
-        dialog?.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        dialog?.window?.setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

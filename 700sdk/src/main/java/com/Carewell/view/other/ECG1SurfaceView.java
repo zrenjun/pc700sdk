@@ -76,6 +76,7 @@ public class ECG1SurfaceView extends SurfaceView implements SurfaceHolder.Callba
         mGridSize = resx * 5; //5 mm 像素点
         ecgYOffset = ecgYOffsetCount * mGridSize;
 
+        //        refreshCurrentHardwareGain();
     }
 
     @Override
@@ -179,7 +180,7 @@ public class ECG1SurfaceView extends SurfaceView implements SurfaceHolder.Callba
     }
 
     private float mCalHeight = 0f;//第一行定标中心高度
-    public float mCalScale = 4f; //定标网格，默认4网格(5mm *4)
+    public float mCalScale = 2f; //定标网格，默认2网格(5mm *2)
 
     protected void drawGrid(int right, int bottom) {
         mPaint.setStrokeWidth(0.5f);
@@ -308,20 +309,29 @@ public class ECG1SurfaceView extends SurfaceView implements SurfaceHolder.Callba
         }
     }
 
+    private float speed = 0.982f;
+    private boolean isNew = false;
+
     public void setSpeed(float speed) {
+        this.speed = speed;
         bViewed = false;
         mPosition = 0;
         mWaveFifo.clear();
-        mXScale = speed;
+        mXScale = isNew ? speed : speed * 2;
         mBufSize = (int) ((mSurfaceWidth + 1) / mXScale);
         mWaveFifo = new Fifo<>(Float.class, mBufSize);
         screenClear();
         bViewed = true;
     }
 
+    public void setXScale(Boolean isNew) {
+        this.isNew = isNew;
+        setSpeed(speed);
+    }
+
     private float conversionFormula2(int ecgY) {
         float temp = ecgY * 2 / 355f;  //转mV
-        return ecgYOffset / 2 - temp * mGridSize * mCalScale / 2;
+        return ecgYOffset / 2 + mGridSize - temp * mGridSize * mCalScale ;
     }
 
     public void addWaveDate(int ecgData) {

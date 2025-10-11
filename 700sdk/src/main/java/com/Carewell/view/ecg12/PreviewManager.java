@@ -1,11 +1,8 @@
 package com.Carewell.view.ecg12;
 
-import android.content.Context;
-import android.util.Log;
-
 
 public class PreviewManager {
-    public static final int SAMPLE_RATE = 1000;
+    public static  int SAMPLE_RATE = 1000;
 
     private static PreviewManager instance = null;
 
@@ -61,7 +58,6 @@ public class PreviewManager {
      * @return
      */
     public synchronized short[][] getCurrentScrrenDrawData(short[][] ecgDataArrayAll, int ecgImageWidth, float length, LeadSpeedType leadSpeedType) {
-        mAllDrawEcgDataLen=ecgDataArrayAll[0].length;
 
         float speed=(float)leadSpeedType.getValue();
         float gridSpace = EcgConfig.SMALL_GRID_SPACE_FLOAT;
@@ -80,7 +76,6 @@ public class PreviewManager {
         } else {
             if (isFirst){
                 length = (ecgImageWidth - gridSpace * 5) / baseEcgPreviewTemplate.getLeadColumes() /  gridSpace;
-                mScreenDrawEcgDataLen= (int) (ecgDataArrayAll[0].length * (ecgImageWidth - gridSpace * 5) /   gridSpace / (speed* ecgDataArrayAll[0].length / SAMPLE_RATE));
             }
             else
                 length = length / gridSpace;
@@ -94,15 +89,6 @@ public class PreviewManager {
         return dataArray;
     }
 
-    /**
-     * 所画数据的总长度
-     */
-    private int mAllDrawEcgDataLen;
-    /**
-     * 整个屏幕能画的数据
-     */
-    private int mScreenDrawEcgDataLen;
-    private int firstIndex_rth,lastIndex_rth;
     private int firstIndex, lastIndex;
     private float dataRatio = 0;
     private int mScreenShowCount;
@@ -113,9 +99,6 @@ public class PreviewManager {
         firstIndex = 0;
         lastIndex = 0;
         isFirst = true;
-        mAllDrawEcgDataLen=0;
-        firstIndex_rth=0;
-        lastIndex_rth=0;
     }
 
     public float getDataRatio() {
@@ -163,24 +146,6 @@ public class PreviewManager {
             firstIndex = 0;
             lastIndex = firstIndex + mScreenShowCount;
         }
-//        if (count < 0) {
-//            for (int i = firstIndex - count; i > firstIndex; i--) {
-//                for (int j = 0; j < data.length; j++) {
-//                    onePointData[j][0] = data[j][i];
-//                }
-//                baseEcgPreviewTemplate.addEcgData(onePointData);
-//            }
-//        }
-//        else {
-//            for (int i = lastIndex - count; i < lastIndex; i++) {
-//
-//                for (int j = 0; j < data.length; j++) {
-//                    onePointData[j][0] = data[j][i];
-//                }
-//                baseEcgPreviewTemplate.addEcgData(onePointData);
-//            }
-//        }
-
         for (int i = firstIndex ; i < lastIndex; i++) {
             for (int j = 0; j < data.length; j++) {
                 onePointData[j][0] = data[j][i];

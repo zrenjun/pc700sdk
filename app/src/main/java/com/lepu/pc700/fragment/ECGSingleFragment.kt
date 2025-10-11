@@ -7,24 +7,38 @@ import android.widget.AdapterView
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import com.Carewell.OmniEcg.jni.toJson
 import com.Carewell.ecg700.port.ECGData
 import com.Carewell.ecg700.port.GetSingleECGRealTime
 import com.Carewell.ecg700.port.GetSingleECGResult
 import com.Carewell.ecg700.port.LogUtil
 import com.Carewell.ecg700.ParseData
+import com.Carewell.ecg700.port.GetSingleECGGain
 import com.Carewell.ecg700.port.Wave
 import com.Carewell.ecg700.port.observeEvent
+import com.Carewell.ecg700.port.postEvent
 import com.Carewell.ecg700.port.toInt
+import com.Carewell.view.ecg12.Const
+import com.Carewell.view.ecg12.EcgConfig
+import com.Carewell.view.ecg12.LeadType
+import com.Carewell.view.ecg12.MainEcgManager
+import com.Carewell.view.ecg12.PreviewManager
+import com.Carewell.view.other.LoadingForView
 import com.lepu.pc700.App
 import com.lepu.pc700.MainActivity
 import com.lepu.pc700.R
 import com.lepu.pc700.databinding.FragmentEcgSingleBinding
 import com.lepu.pc700.delayOnLifecycle
+import com.lepu.pc700.net.util.Constant
 import com.lepu.pc700.singleClick
 import com.lepu.pc700.toast
 import com.lepu.pc700.viewBinding
+import com.lepu.pc_700.widget.dialog.EcgPlaybackFragemntDialog
 import kotlinx.coroutines.*
+import java.io.File
 import java.util.*
+import kotlin.collections.get
+import kotlin.collections.toShortArray
 import kotlin.properties.Delegates
 
 /**
@@ -33,28 +47,33 @@ import kotlin.properties.Delegates
  *  zrj 2022/2/7 19:23
  *
  */
+@SuppressLint("SetTextI18n")
 class ECGSingleFragment : Fragment(R.layout.fragment_ecg_single) {
     private val binding by viewBinding(FragmentEcgSingleBinding::bind)
 
     private var dataEcg = mutableListOf<Int>() // 保存心电数据的列表
     private val allData = LinkedList<Int>()
-    private var count = 0 //0.0750*400 = 30s
-    private var countdown = 133 //0.0750*133 = 10s
+    private val allData2 = LinkedList<Int>()
+    private var time = 0
+    private var countdown = 133 //0.075*133 = 10s
     private var num = 0
     private var isStart: Boolean by Delegates.observable(false) { _, _, newValue ->
         if (newValue) {
-            if (dataEcg.size > 0) { //清除上一次的数据
+            if (dataEcg.isNotEmpty()) { //清除上一次的数据
                 dataEcg.clear()
                 allData.clear()
+                allData2.clear()
             }
             ParseData.resetFilter()
-            count = 0
+            time = 0
             countdown = 133
             binding.tvCountdown.text = "${(countdown * 0.075f).toInt()}"
             binding.ecg1Surfaceview.screenClear()
             App.serial.mAPI?.startSingleEcgMeasure()
         } else {
             App.serial.mAPI?.stopSingleEcgMeasure()
+            binding.tvOff.isVisible = false
+            binding.tvHr.text = "${getString(R.string.heart)}--"
         }
         val drawable = ContextCompat.getDrawable(
             requireContext(),
@@ -67,8 +86,11 @@ class ECGSingleFragment : Fragment(R.layout.fragment_ecg_single) {
         binding.tvCountdown.isVisible = newValue
         binding.spinnerGain.isEnabled = !newValue
         binding.spinnerSpeed.isEnabled = !newValue
+        binding.switchFilter.isEnabled = !newValue
     }
     private var updateTimer = Timer()
+
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         (activity as MainActivity).setMainTitle("单导心电")
@@ -77,33 +99,54 @@ class ECGSingleFragment : Fragment(R.layout.fragment_ecg_single) {
             LogUtil.v("App.serialStart")
         }
         binding.spinnerGain.onItemSelectedListener = onItemSelectedListener
-        binding.spinnerGain.setSelection(3, true) //设置Spinner默认选中的值
+        binding.spinnerGain.setSelection(2, true) //设置Spinner默认选中的值
         binding.spinnerSpeed.onItemSelectedListener = onItemSelectedListener
-        binding.spinnerSpeed.setSelection(2, true)
+        binding.spinnerSpeed.setSelection(4, true)
         binding.tvStart.singleClick {
-            binding.tvHr.text = getString(R.string.heart)
             isStart = !isStart
         }
+
+        binding.switchFilter.setOnCheckedChangeListener { _, isChecked ->
+            max = if (isChecked) 3 else 6
+            setPeriod()
+            binding.ecg1Surfaceview.setXScale(!isChecked)
+        }
+
+        MainEcgManager.getInstance().init()
+        MainEcgManager.getInstance().updateMainEcgShowStyle(LeadType.LEAD_II)
         initData()
     }
+
+    private var max = 3
 
     @OptIn(InternalCoroutinesApi::class)
     private fun initData() {
         observeEvent<GetSingleECGResult> { onECG1Result(it.nResult, it.nHR) }
         observeEvent<GetSingleECGRealTime> { onECG1RealTimeData(it.data, it.leadOff) }
+        observeEvent<GetSingleECGGain> {
+            LogUtil.e(it.toJson())
+        }
+        setPeriod()
+    }
+
+    private fun setPeriod() {
+        updateTimer.cancel()
         updateTimer = Timer()
         updateTimer.schedule(object : TimerTask() {
             override fun run() {
                 if (isStart) {
-                    val max = if (allData.size > 50) 8 else if (allData.size > 30) 4 else 2
-                    for (i in 0..max) {
+                    for (i in 0 until max) {
                         binding.ecg1Surfaceview.delayOnLifecycle {
-                            binding.ecg1Surfaceview.addWaveDate(if (allData.size > 0) allData.removeFirst() else 0)
+                            binding.ecg1Surfaceview.addWaveDate(
+                                if (allData.isNotEmpty()) allData.removeAt(
+                                    0
+                                ) else 0
+                            )
                         }
                     }
                 }
             }
-        }, 200, 30)
+        }, 200, 19)
     }
 
     private val onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
@@ -123,24 +166,26 @@ class ECGSingleFragment : Fragment(R.layout.fragment_ecg_single) {
                         else -> 8f
                     }
                     binding.ecg1Surfaceview.refreshCal()
+                    MainEcgManager.getInstance().updateMainGain(position)
                 }
 
-                R.id.spinnerSpeed -> binding.ecg1Surfaceview.setSpeed(
-                    when (position) {
-                        0 -> 0.245f
-                        1 -> 0.491f
-                        2 -> 0.982f
-                        else -> 1.964f
-                    }
-                )
+                R.id.spinnerSpeed -> {
+                    binding.ecg1Surfaceview.setSpeed(
+                        when (position) {
+                            0 -> 0.245f
+                            1 -> 0.491f
+                            2 -> 0.982f
+                            else -> 1.964f
+                        }
+                    )
+                    MainEcgManager.getInstance().updateMainSpeed(position)
+                }
             }
         }
 
         override fun onNothingSelected(parent: AdapterView<*>?) {}
     }
 
-
-    private var last = ""
 
     @SuppressLint("SetTextI18n")
     private fun onECG1RealTimeData(ecgData: ECGData, leadOff: Boolean) {
@@ -151,37 +196,23 @@ class ECGSingleFragment : Fragment(R.layout.fragment_ecg_single) {
                 //数据的最高位，1 代表导联脱落(false)，0 为不脱落(true)
                 binding.tvOff.isVisible = !leadOff
             }
-            if (last.isNotEmpty()){
-                ecgData.data.add(0, Wave(last.toInt(),0))
-                last = ""
-            }
             val data = ecgData.data.map { it.data }
-            if (false){ //新算法
-                data.forEachIndexed { index, i ->
-                    val filterData = ParseData.newHpFilter(i, 133 - countdown)
-                    if (countdown <= 67) {//前5秒数据丢弃
-                        allData.add(filterData - 2048)
-                    }
-                }
-            }else{
-                // 将数据分成每2个一组的列表
-                data.chunked(2) { pair ->
-                    // pair 是一个包含1个或2个元素的列表
-                    if (pair.size == 2) {
-                        // 正常处理一对数据
-                        val value = pair[0] // 或者您需要的处理方式
-                        val filter150 = ParseData.filter150(value)
+            data.forEachIndexed { index, i ->
+                if (binding.switchFilter.isChecked) {
+                    if (index % 2 == 0) {
+                        val filter150 = ParseData.filter150(i)
                         val filterHp = ParseData.hpFilter(filter150.toInt(), 0)
-                        val filter = ParseData.offlineFilter(
-                            filterHp.toDouble(),
-                            false
-                        )
+                        val filter = ParseData.offlineFilter(filterHp.toDouble(), countdown == 133)
                         if (filter.isNotEmpty() && countdown <= 67) {
                             allData.addAll(filter.map { item -> item.toInt() })
+                            allData2.addAll(filter.map { item -> item.toInt() })
                         }
-                    } else {
-                        // 处理最后一个单数据点（当数据长度为奇数时）
-                        last = pair[0].toString()
+                    }
+                } else { //新算法
+                    val filterData = ParseData.newHpFilter(i, 134 - countdown)
+                    if (countdown <= 67) {//前5秒数据丢弃
+                        allData.add(filterData - 2048)
+                        allData2.add(filterData - 2048)
                     }
                 }
             }
@@ -190,9 +221,9 @@ class ECGSingleFragment : Fragment(R.layout.fragment_ecg_single) {
                 countdown--
                 binding.tvCountdown.text = "${(countdown * 0.075f).toInt()}"
             } else { //30s正式开始后的心电数据
-                count++
+                time++
                 binding.tvCountdown.isVisible = false
-                binding.tvStart.text = "${(count * 0.075f).toInt()}s/30s"
+                binding.tvStart.text = "${(time * 0.075f).toInt()}s/30s"
                 dataEcg.addAll(data)
             }
         }
@@ -201,7 +232,7 @@ class ECGSingleFragment : Fragment(R.layout.fragment_ecg_single) {
     @SuppressLint("SetTextI18n")
     private fun onECG1Result(result: Int, hr: Int) {
         if (result == 0xee) {
-            binding.tvHr.text = "${getString(R.string.heart)}$hr"
+            binding.tvHr.text = "${getString(R.string.heart)}${if (hr in 30..250) hr else "--"}"
             return
         }
         isStart = false
@@ -215,13 +246,20 @@ class ECGSingleFragment : Fragment(R.layout.fragment_ecg_single) {
             toast(ecgResult[index])
             return
         }
-        var data = dataEcg.take(9000).map { it.toShort() }.toShortArray()
-//        data = ParseData.newShortFilter(data)
+        PreviewManager.SAMPLE_RATE = if (binding.switchFilter.isChecked) 150 else 300
+        EcgConfig.SPEED = if (binding.switchFilter.isChecked) 150 else 300
+        val size = if (binding.switchFilter.isChecked) 4500 else 9000
+        val data = allData2.takeLast(size)
+        LogUtil.e(data.size)
+        val dataList = Array(12) { ShortArray(size) }
+        dataList[1] = data.map { ((it* 2 / 355f)/ Const.SHORT_MV_GAIN).toInt().toShort() }.toShortArray()
         //回顾
+        EcgPlaybackFragemntDialog.newInstance(dataList).show(childFragmentManager, "")
     }
 
-    override fun onStop() {
-        super.onStop()
+    override fun onPause() {
+        super.onPause()
+        LogUtil.e("onPause")
         isStart = false
         updateTimer.cancel()
     }
