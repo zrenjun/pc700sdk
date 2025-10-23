@@ -6,6 +6,7 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PointF;
 import android.graphics.RectF;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Vector;
@@ -117,7 +118,6 @@ public class LeadManager {
 
                     if(++twoCnt >= 2){
                         twoCnt = 0;
-
                         if(minCnt < maxCnt){
                             addPoint(min);
                             addPoint(max);
@@ -139,6 +139,14 @@ public class LeadManager {
             } else {
                 addPoint(val);
             }
+        }
+
+        public void clearFilter() {
+            min = Integer.MAX_VALUE;
+            max = Integer.MIN_VALUE;
+            minCnt = 0;
+            maxCnt = 0;
+            cnt = 0;
         }
 
         private void addPoint(int val) {
@@ -329,6 +337,13 @@ public class LeadManager {
         if(leadList != null && leadList.size() > 0){
             for (int i = 0; i < leadList.size(); i++) {
                 leadList.get(i).clear();
+            }
+        }
+    }
+    public synchronized void clearFilter() {
+        if(leadList != null && leadList.size() > 0){
+            for (int i = 0; i < leadList.size(); i++) {
+                leadList.get(i).clearFilter();
             }
         }
     }

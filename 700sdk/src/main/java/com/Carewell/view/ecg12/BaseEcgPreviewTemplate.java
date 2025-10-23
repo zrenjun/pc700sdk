@@ -557,6 +557,12 @@ public abstract class BaseEcgPreviewTemplate {
         }
         leadManager.clearEcgData();
     }
+    public void clearFilter() {
+        if (leadManager == null) {
+            return;
+        }
+        leadManager.clearFilter();
+    }
 
     /**
      * 设置走速

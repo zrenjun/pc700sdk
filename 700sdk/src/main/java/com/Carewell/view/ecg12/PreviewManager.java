@@ -55,26 +55,24 @@ public class PreviewManager {
 
     /**
      * 获取当前屏幕可画的数据
-     *
-     * @return
      */
     public synchronized void getCurrentScrrenDrawData(short[][] ecgDataArrayAll, int ecgImageWidth, float length, LeadSpeedType leadSpeedType) {
 
-        float speed = (float) leadSpeedType.getValue();
+        float speed = leadSpeedType.getValue();
         float gridSpace = EcgConfig.SMALL_GRID_SPACE_FLOAT;
         float screenCanDrawSecond = (ecgImageWidth - gridSpace * 5) / baseEcgPreviewTemplate.getLeadColumes() / gridSpace / speed;
         int needData = (int) (SAMPLE_RATE * screenCanDrawSecond);
         //内存中的数据不够，屏幕画的数据
         if (ecgDataArrayAll[0].length <= needData) {
             needData = ecgDataArrayAll[0].length;
-            refreshData(needData / (float) SAMPLE_RATE * speed, true, ecgDataArrayAll, speed);
+            refreshData(needData / (float) SAMPLE_RATE * speed, ecgDataArrayAll, speed);
         } else {
             if (isFirst) {
                 length = (ecgImageWidth - gridSpace * 5) / baseEcgPreviewTemplate.getLeadColumes() / gridSpace;
             } else {
                 length = length / gridSpace;
             }
-            refreshData(length, isFirst, ecgDataArrayAll, speed);
+            refreshData(length, ecgDataArrayAll, speed);
         }
         isFirst = false;
     }
@@ -97,14 +95,8 @@ public class PreviewManager {
 
     /**
      * 刷新正常导联数据
-     *
-     * @param length
-     * @param isFirst
-     * @param data
-     * @param speed
-     * @return
      */
-    private void refreshData(float length, boolean isFirst, short[][] data, float speed) {
+    private void refreshData(float length, short[][] data, float speed) {
         int count = (int) (data[0].length * length / (speed * data[0].length / SAMPLE_RATE));
         if (count == 0)
             return;
@@ -120,9 +112,7 @@ public class PreviewManager {
             lastIndex = data[0].length;
             firstIndex = data[0].length - count;
             mScreenShowCount = count;
-
         } else {
-
             firstIndex += count;
             lastIndex += count;
         }
@@ -137,12 +127,29 @@ public class PreviewManager {
             firstIndex = 0;
             lastIndex = firstIndex + mScreenShowCount;
         }
-        for (int i = firstIndex; i < lastIndex; i++) {
-            for (int j = 0; j < data.length; j++) {
-                onePointData[j][0] = data[j][i];
+
+
+        if (count < 0) {
+            for (int i = firstIndex - count; i > firstIndex; i--) {
+                for (int j = 0; j < data.length; j++) {
+                    onePointData[j][0] = data[j][i];
+                }
+                baseEcgPreviewTemplate.addEcgData(onePointData);
             }
-            baseEcgPreviewTemplate.addEcgData(onePointData);
+        } else {
+            for (int i = lastIndex - count; i < lastIndex; i++) {
+                for (int j = 0; j < data.length; j++) {
+                    onePointData[j][0] = data[j][i];
+                }
+                baseEcgPreviewTemplate.addEcgData(onePointData);
+            }
         }
+
+        if (firstIndex == 0 || lastIndex == data[0].length) {
+            baseEcgPreviewTemplate.clearFilter();
+        }
+
+
         dataRatio = firstIndex / ((float) data[0].length);
     }
 }
