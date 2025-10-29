@@ -252,7 +252,7 @@ class ECGSingleFragment : Fragment(R.layout.fragment_ecg_single) {
         val data = allData2.takeLast(size)
         LogUtil.e(data.size)
         val dataList = Array(12) { ShortArray(size) }
-        dataList[1] = data.map { ((it  / 2f / 355f)/ Const.SHORT_MV_GAIN).toInt().toShort() }.toShortArray()
+        dataList[1] = data.map { ((it / 355f)/ Const.SHORT_MV_GAIN).toInt().toShort() }.toShortArray()
         //回顾
         EcgPlaybackFragemntDialog.newInstance(dataList).show(childFragmentManager, "")
     }

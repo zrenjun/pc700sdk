@@ -44,13 +44,13 @@ class MainFragment : Fragment(R.layout.fragment_main) {
         binding.tv1.singleClick { findNavController().navigate(R.id.routineExaminationFragment) }
         binding.tv2.singleClick { findNavController().navigate(R.id.ecg12Fragment) }
         binding.tv3.singleClick { findNavController().navigate(R.id.eCGSingleFragment) }
-//        binding.tv4.singleClick { findNavController().navigate(R.id.idCardInputFragment) }
-        binding.tv4.singleClick { findNavController().navigate(R.id.newIdCardInputFragment) }
+        binding.tv4.singleClick { findNavController().navigate(R.id.idCardInputFragment) }
+//        binding.tv4.singleClick { findNavController().navigate(R.id.newIdCardInputFragment) }
         binding.tv5.singleClick { findNavController().navigate(R.id.settingFragment) }
         binding.tv6.singleClick {
             MainEcgManager.getInstance().updateMainEcgShowStyle(LeadType.LEAD_12)
             //读文件的二维数组 赋值
-          getECGDataFromFile(Environment.getExternalStorageDirectory().absolutePath + "/PC700/ECG12/120107199910274210/20251009144207.txt")?.let {
+          getECGDataFromFile(Environment.getExternalStorageDirectory().absolutePath + "/PC700/ECG12/61042319861220639X/20251028171042.txt")?.let {
               EcgPlaybackFragemntDialog.newInstance(it).show(childFragmentManager, "")
           }
 

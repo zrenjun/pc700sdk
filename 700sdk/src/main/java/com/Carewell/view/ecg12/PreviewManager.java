@@ -1,8 +1,5 @@
 package com.Carewell.view.ecg12;
 
-
-import android.util.Log;
-
 public class PreviewManager {
     public static int SAMPLE_RATE = 1000;
 
@@ -144,11 +141,6 @@ public class PreviewManager {
                 baseEcgPreviewTemplate.addEcgData(onePointData);
             }
         }
-
-        if (firstIndex == 0 || lastIndex == data[0].length) {
-            baseEcgPreviewTemplate.clearFilter();
-        }
-
 
         dataRatio = firstIndex / ((float) data[0].length);
     }
