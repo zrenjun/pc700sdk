@@ -330,7 +330,7 @@ public class ECG1SurfaceView extends SurfaceView implements SurfaceHolder.Callba
     }
 
     private float conversionFormula2(int ecgY) {
-        float temp = ecgY / 355f;  //转mV
+        float temp = ecgY *2/ 355f;  //转mV
         return ecgYOffset / 2 - temp * mGridSize * mCalScale / 2;
     }
 

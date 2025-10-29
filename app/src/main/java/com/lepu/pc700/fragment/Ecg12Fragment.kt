@@ -1,6 +1,7 @@
 package com.lepu.pc700.fragment
 
 import android.annotation.SuppressLint
+import android.app.ProgressDialog.show
 import android.graphics.Bitmap
 import android.os.Bundle
 import android.view.View
@@ -29,11 +30,13 @@ import com.lepu.pc700.net.bean.Device
 import com.lepu.pc700.net.bean.Ecg
 import com.lepu.pc700.net.bean.EcgInfo
 import com.lepu.pc700.net.bean.User
+import com.lepu.pc700.net.util.Constant
 import com.lepu.pc700.net.vm.GetPDFViewModel
 import com.lepu.pc700.onItemSelectedListener
 import com.lepu.pc700.singleClick
 import com.lepu.pc700.toast
 import com.lepu.pc700.viewBinding
+import com.lepu.pc_700.widget.dialog.EcgPlaybackFragemntDialog
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
@@ -92,7 +95,8 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
         updateSpeed(speed, true)
         MainEcgManager.getInstance().updateMainEcgShowStyle(leadType)
         MainEcgManager.getInstance().drawEcgRealView = binding.drawEcgRealView
-
+        PreviewManager.SAMPLE_RATE = 1000
+        EcgConfig.SPEED = 1000
         loading = LoadingForView(requireContext(), binding.viewGroup)
         loading.show()
         binding.btnStartMeasure.singleClick {
@@ -196,12 +200,18 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
             binding.spinnerShow.isEnabled = true
             binding.spinnerTime.isEnabled = true
             //测量完成分析
-            getLocalXML(saveDataList)
+//            getLocalXML(saveDataList)
 //            getAiPdf(saveDataList)
+
+            EcgPlaybackFragemntDialog.newInstance(saveDataList).show(childFragmentManager, "")
+
+
         }, onStart = {
 
         })
     }
+
+
 
     /**
      * 更新增益
