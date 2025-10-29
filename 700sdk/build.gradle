@@ -13,7 +13,7 @@ android {
         minSdk 24
         targetSdk 32
         versionCode 1
-        versionName "1.7.3"
+        versionName "1.7.4"
     }
     sourceSets {
         main {

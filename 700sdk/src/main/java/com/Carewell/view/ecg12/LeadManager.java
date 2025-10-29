@@ -63,15 +63,19 @@ public class LeadManager {
             } else {
                 filterSpeed = EcgConfig.SPEED;
             }
-
-            addX = 1.0f * speedPixels / filterSpeed;
-            length = (int) (1.0f * (rect.right - rect.left) * filterSpeed / speedPixels + 0.5f);
-            filterSweepClear = (int) (sweepClear * 1.0f * filterSpeed / EcgConfig.SPEED);//test
-            if (rate < 1) {
-                filterNum = new int[filterSpeed];
-                for (int i = 0; i < filterSpeed; i++) {
-                    filterNum[i] = i * EcgConfig.SPEED / filterSpeed;
+            if (ecgShowModeEnum == EcgShowModeEnum.MODE_SWEEP) {
+                addX = 1.0f * speedPixels / filterSpeed;
+                length = (int) (1.0f * (rect.right - rect.left) * filterSpeed / speedPixels + 0.5f);
+                filterSweepClear = (int) (sweepClear * 1.0f * filterSpeed / EcgConfig.SPEED);//test
+                if (rate < 1) {
+                    filterNum = new int[filterSpeed];
+                    for (int i = 0; i < filterSpeed; i++) {
+                        filterNum[i] = i * EcgConfig.SPEED / filterSpeed;
+                    }
                 }
+            } else {
+                addX = 6.0f * speedPixels / EcgConfig.SPEED;
+                length = (int) (1.0f * (rect.right - rect.left) * EcgConfig.SPEED / speedPixels + 0.5f) / 6;
             }
         }
 
@@ -84,16 +88,15 @@ public class LeadManager {
         private int cnt = 0;
 
         /**
-         *
          * @param val
          */
-        public void addFilterPoint(int val,boolean chestLead) {
+        public void addFilterPoint(int val, boolean chestLead) {
             float mvValue = val * Const.SHORT_EXTRA_VALUE * Const.SHORT_MV_GAIN;
             //增益
-            if(chestLead){
+            if (chestLead) {
                 //胸导联v1-v6
                 mvValue *= gainArray[1];
-            }else{
+            } else {
                 //肢体导联I - aVF
                 mvValue *= gainArray[0];
             }
@@ -101,7 +104,7 @@ public class LeadManager {
             float tmpValue = mvValue * 10 * mRangeRate;
             val = (int) (0 - tmpValue);
 
-            if (rate < 1) {
+            if (rate < 1 && ecgShowModeEnum == EcgShowModeEnum.MODE_SWEEP) {
                 cnt++;
                 if (val < min) {
                     min = val;
@@ -116,9 +119,9 @@ public class LeadManager {
                         filterCnt = 0;
                     }
 
-                    if(++twoCnt >= 2){
+                    if (++twoCnt >= 2) {
                         twoCnt = 0;
-                        if(minCnt < maxCnt){
+                        if (minCnt < maxCnt) {
                             addPoint(min);
                             addPoint(max);
                         } else {
@@ -137,17 +140,14 @@ public class LeadManager {
                     addCnt = 0;
                 }
             } else {
-                addPoint(val);
+                if (++index % 6 == 0) {
+                    addPoint(val);
+                    index = 0;
+                }
             }
         }
 
-        public void clearFilter() {
-            min = Integer.MAX_VALUE;
-            max = Integer.MIN_VALUE;
-            minCnt = 0;
-            maxCnt = 0;
-            cnt = 0;
-        }
+        private int index = 0;
 
         private void addPoint(int val) {
             //val = (int) (val * mRangeRate);
@@ -163,12 +163,12 @@ public class LeadManager {
                 }
             } else if (ecgShowModeEnum == EcgShowModeEnum.MODE_SCROLL) {
                 //数据添加区分左右方向
-                if(mDirection==EcgScrollDirection.RIGHT){
+                if (mDirection == EcgScrollDirection.RIGHT) {
                     if (buffer.size() == length) {
                         buffer.remove(length - 1);
                     }
                     buffer.add(0, val);
-                }else {
+                } else {
                     if (buffer.size() == length) {
                         buffer.remove(0);
                     }
@@ -199,14 +199,14 @@ public class LeadManager {
                         pathSweep.reset();
                         path.reset();
 
-                        if(buffer.size() > 0){
+                        if (buffer.size() > 0) {
                             path.moveTo(origin.x, origin.y + buffer.get(0));
                             float curX = origin.x;
                             for (int i = 1; i < buffer.size(); i++) {
                                 curX += addX;
-                                if(i < buffer.size()){
+                                if (i < buffer.size()) {
                                     path.lineTo(curX, origin.y + buffer.get(i));
-                                }else{
+                                } else {
                                     break;
                                 }
                             }
@@ -215,7 +215,7 @@ public class LeadManager {
                     } else {
                         int orderSweepTemp = orderSweep;
                         path.reset();
-                        if(buffer.size() == 0){
+                        if (buffer.size() == 0) {
                             return;
                         }
                         path.moveTo(origin.x, origin.y + buffer.get(0));
@@ -271,20 +271,21 @@ public class LeadManager {
     private float sweepClearCm = 0.2f;
     private int sweepClear = 0;
 
-    private EcgScrollDirection mDirection=EcgScrollDirection.LEFT;
+    private EcgScrollDirection mDirection = EcgScrollDirection.LEFT;
 
     public LeadManager() {
         this.leadList = new ArrayList<>();
     }
 
-    public void setRangeLen(float rate){
+    public void setRangeLen(float rate) {
         mRangeRate = rate;
     }
 
     public void addLead(Lead lead) {
         this.leadList.add(lead);
     }
-    public void setEcgScrollDirection(EcgScrollDirection direction){
+
+    public void setEcgScrollDirection(EcgScrollDirection direction) {
         mDirection = direction;
     }
 
@@ -293,15 +294,14 @@ public class LeadManager {
     }
 
     public synchronized void clearLeads() {
-        if(this.leadList != null){
+        if (this.leadList != null) {
             this.leadList.clear();
             this.leadList = null;
         }
     }
 
     public synchronized void calcPath() {
-        if(leadList == null)
-        {
+        if (leadList == null) {
             return;
         }
         for (int i = 0; i < leadList.size(); i++) {
@@ -310,20 +310,20 @@ public class LeadManager {
     }
 
     public synchronized void drawEcgPath(Canvas canvas, Paint paint) {
-        if(leadList == null){
+        if (leadList == null) {
             return;
         }
 
         for (int i = 0; i < leadList.size(); i++) {
             Lead lead = leadList.get(i);
-            if(lead != null){
+            if (lead != null) {
                 Path path = lead.path;
-                if(path != null){
+                if (path != null) {
                     canvas.drawPath(path, paint);
                 }
 
                 Path pathSweep = lead.pathSweep;
-                if(pathSweep != null){
+                if (pathSweep != null) {
                     canvas.drawPath(pathSweep, paint);
                 }
             }
@@ -334,22 +334,16 @@ public class LeadManager {
      * 清理心电数据
      */
     public synchronized void clearEcgData() {
-        if(leadList != null && leadList.size() > 0){
+        if (leadList != null && leadList.size() > 0) {
             for (int i = 0; i < leadList.size(); i++) {
                 leadList.get(i).clear();
-            }
-        }
-    }
-    public synchronized void clearFilter() {
-        if(leadList != null && leadList.size() > 0){
-            for (int i = 0; i < leadList.size(); i++) {
-                leadList.get(i).clearFilter();
             }
         }
     }
 
     /**
      * 设置ecg显示模式
+     *
      * @param ecgShowModeEnum
      */
     public synchronized void setEcgMode(EcgShowModeEnum ecgShowModeEnum) {
@@ -359,15 +353,17 @@ public class LeadManager {
 
     /**
      * 设置增益
+     *
      * @param gainArray
      */
-    public synchronized  void setSensitivity(float[] gainArray){
+    public synchronized void setSensitivity(float[] gainArray) {
         this.gainArray = gainArray;
         clearEcgData();
     }
 
     /**
      * 设置走速
+     *
      * @param leadSpeedType
      */
     public synchronized void setSpeed(LeadSpeedType leadSpeedType) {
@@ -377,6 +373,7 @@ public class LeadManager {
 
     /**
      * 获取走速转换的像素
+     *
      * @param leadSpeedType
      * @return
      */
