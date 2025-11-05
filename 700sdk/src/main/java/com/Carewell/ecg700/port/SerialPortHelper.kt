@@ -19,29 +19,47 @@ import java.util.concurrent.PriorityBlockingQueue
  *  zrj 2022/3/25 15:13
  *
  */
-class SerialPortHelper : OnSerialPortDataListener {
+class SerialPortHelper private constructor() : OnSerialPortDataListener {
     //命令队列
     private val pendingQueue = PriorityBlockingQueue(20, compareBy<WriteData> { it.priority })
 
     // 发送串口命令的协程
     private var sendScope = CoroutineScope(Dispatchers.IO)
 
+    companion object {
+        @Volatile
+        private var INSTANCE: SerialPortHelper? = null
+
+        fun getInstance(): SerialPortHelper {
+            return INSTANCE ?: synchronized(this) {
+                INSTANCE ?: SerialPortHelper().also { INSTANCE = it }
+            }
+        }
+    }
+
     fun setEcgListener(listener: OnECG12DataListener?) {
         parseEcg12Data.setOnECGDataListener(listener)
     }
 
-    val serialPort: SerialPort by lazy { SerialPort(File("/dev/ttyMT1"), 460800, 0) }
+    private lateinit var serialPort: SerialPort
     private var sphThreads: SphThreads? = null
     private var parseEcg12Data = ParseEcg12Data()
+
+    private var isStart = false
 
     /**
      * 开启读写线程
      */
-    fun start(isDebug: Boolean = false) {
-        sphThreads = SphThreads(serialPort.inputStream, isDebug, this)
+    fun start() {
+        if (isStart) {
+            return
+        }
+        serialPort = SerialPort(File("/dev/ttyMT1"), 460800, 0)
+        sphThreads = SphThreads(serialPort.inputStream, this)
         parseEcg12Data.start()
         wakeUp()
         JniFilterNew.getInstance().InitDCRecover(0)
+        isStart = true
     }
 
     fun pause() {
@@ -55,6 +73,7 @@ class SerialPortHelper : OnSerialPortDataListener {
     //当前是否可以发送命令
     @Volatile
     private var canSend = true
+
     @Volatile
     private var cmd: WriteData? = null
     private val mTimeoutHandler = Handler(Looper.getMainLooper())
@@ -118,6 +137,7 @@ class SerialPortHelper : OnSerialPortDataListener {
         serialPort.inputStream.close()
         serialPort.outputStream.close()
         serialPort.close()
+        isStart = false
         LogUtil.v("关闭串口")
     }
 

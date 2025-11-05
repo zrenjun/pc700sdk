@@ -28,7 +28,7 @@ class SerialViewModel(app: App) : AndroidViewModel(app) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 try {
-                    mAPI = SerialPortHelper()
+                    mAPI = SerialPortHelper.getInstance()
                     mAPI?.start()
                     App.serialStart = true
                     LogUtil.v("App.serialStart")

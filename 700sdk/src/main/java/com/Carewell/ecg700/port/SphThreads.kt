@@ -13,7 +13,6 @@ import kotlin.math.min
  */
 class SphThreads(
     private val inputStream: InputStream,
-    private val isDebug: Boolean = false,
     private val listener: OnSerialPortDataListener
 ) {
     companion object {
