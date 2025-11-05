@@ -21,7 +21,7 @@ class ParseEcg12Data {
     private var scope = CoroutineScope(Dispatchers.IO + Job())
 
     fun start() {
-        queue.clear()
+        clearQueue()
         scope.launch {
             while (this.isActive) {
                 try {
@@ -36,7 +36,10 @@ class ParseEcg12Data {
 
     fun stop() {
         scope.cancel()
+        clearQueue()
+        onECGDataListener = null
     }
+
 
     private val leadData = ShortArray(8)
     private val ecgData = IntArray(12)
@@ -44,7 +47,9 @@ class ParseEcg12Data {
 
     @Volatile
     private var count = 2
-
+    private var filterWave = Array(8) { ShortArray(1) }
+    private var hrWave = ShortArray(1)
+    private var leadOffArr = IntArray(8)
     private fun checkPack(curByteBuffer: ByteArray) {
         if (curByteBuffer.size < 22) return
         val frameHead = curByteBuffer[0].toInt() and 0xff
@@ -66,19 +71,19 @@ class ParseEcg12Data {
 
             val leadNames = checkLeadOff(leadOff)
 
-            var filterWave = Array(8) { ShortArray(1) }
+            filterWave = Array(8) { ShortArray(1) }
             var j = 0
             for (i in 0 until 8) {
                 filterWave[j][0] = leadData[i]
                 j++
             }
-            val hrWave = ShortArray(1) { if (isLeadII) leadData[1] else leadData[0] }
+            hrWave = ShortArray(1) { if (isLeadII) leadData[1] else leadData[0] }
 
             // 提前定义布尔数组，避免多次访问成员变量
             val fallFlags =
                 booleanArrayOf(iFall, iiFall, v1Fall, v2Fall, v3Fall, v4Fall, v5Fall, v6Fall)
             // 直接初始化 Int 数组，避免 map 操作
-            val leadOffArr = IntArray(8) { if (fallFlags[it]) 1 else 0 }
+            leadOffArr = IntArray(8) { if (fallFlags[it]) 1 else 0 }
 
             waveFilter?.let {
                 filterWave = it.filterControl(configBean, filterWave, leadOffArr)
@@ -155,6 +160,11 @@ class ParseEcg12Data {
     companion object {
         private var time = 0
         private val queue = LinkedBlockingQueue<ByteArray>()
+
+        fun clearQueue() {
+            queue.clear()
+        }
+
         fun addData(bytes: ByteArray) {
             time++
             if (time % 10000 == 0) {

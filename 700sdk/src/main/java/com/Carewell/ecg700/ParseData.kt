@@ -235,11 +235,34 @@ object ParseData {
             }
             //MCU固件版本查询
             (0xf0).toByte() -> if (type == 1) {
-                val state = bytes[5].toInt()
-                if (state and 0xf0 == 0x00) { //高4位MCU序号,单个MCU,主MCU
-                    analyseVersion(bytes, state)
-                } else if (state shr 4 and 0x01 == 0x01) { //高4位第2个MCU序号,子MCU
-                    analyseVersion(bytes, state)
+                //获取主固件版本
+                //aa, 55, f0, 07, 01, 02, 00, 00, 13, 17, 88,
+                //获取子固件版本
+                //aa, 55, f0, 07, 01, 12, 00, 00, 13, 20, c9,
+                if (len > 3 ) {
+                    var temp1: Int
+                    var temp2: Int
+                    //主软件版本
+                    var s1 = bytes[8]
+                    var s2 = bytes[9]
+                    temp1 = getH4(s1)
+                    temp2 = getL4(s1)
+                    var verSoft = temp1 * 1000 + temp2 * 100
+                    temp1 = getH4(s2)
+                    temp2 = getL4(s2)
+                    verSoft += temp1 * 10 + temp2
+
+                    //下位机新修改子固件版本
+                    s1 = bytes[6]
+                    s2 = bytes[7]
+                    temp1 = getH4(s1)
+                    temp2 = getL4(s1)
+                    var verSoft2 = temp1 * 1000 + temp2 * 100
+                    temp1 = getH4(s2)
+                    temp2 = getL4(s2)
+                    verSoft2 += temp1 * 10 + temp2
+
+                    postEvent(IAPVersionEvent(verSoft2, verSoft, bytes[5]))
                 }
             }
             // 血压命令
@@ -615,35 +638,6 @@ object ParseData {
                 }
             }
         }
-    }
-
-    private fun analyseVersion(bytes: ByteArray, state: Int) {
-        if (bytes.size < 10) return
-        var temp1: Int
-        var temp2: Int
-        //硬件版本
-        val h1 = bytes[6]
-        val h2 = bytes[7]
-        temp1 = getH4(h1)
-        temp2 = getL4(h1)
-        var verHard = temp1 * 1000 + temp2 * 100
-        temp1 = getH4(h2)
-        temp2 = getL4(h2)
-        verHard += temp1 * 10 + temp2
-        //软件版本
-        val s1 = bytes[8]
-        val s2 = bytes[9]
-        temp1 = getH4(s1)
-        temp2 = getL4(s1)
-        var verSoft = temp1 * 1000 + temp2 * 100
-        temp1 = getH4(s2)
-        temp2 = getL4(s2)
-        verSoft += temp1 * 10 + temp2
-        val response = (state and 0x0f).toByte() //低4位
-//        if (response.toInt() == 0x01) { //下位机已经准备好
-//        } else if (response.toInt() == 0x02) { //只获取版本号
-//        }
-        postEvent(IAPVersionEvent(verHard, verSoft, response))
     }
 
     /**
