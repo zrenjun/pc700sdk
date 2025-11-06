@@ -11,11 +11,7 @@ import kotlin.math.min
  * SphThreads 类用于从输入流中读取数据，对数据进行解析和处理。
  * 该类使用协程进行异步数据读取，并通过缓冲区管理数据。
  */
-class SphThreads(
-    private val inputStream: InputStream,
-    private val isDebug: Boolean = false,
-    private val listener: OnSerialPortDataListener
-) {
+class SphThreads(private val inputStream: InputStream, private val listener: OnSerialPortDataListener) {
     companion object {
         // 初始缓冲区大小
         private const val INITIAL_BUFFER_SIZE = 4096

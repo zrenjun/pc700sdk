@@ -43,7 +43,7 @@ class IPAThreads(inputStream: InputStream, outputStream: OutputStream) {
                             delay(3)
                         }
                     } catch (e: Exception) {
-                        LogUtil.e(e.message?:"")
+                        LogUtil.e(e.message ?: "")
                         e.printStackTrace()
                     }
                 }
@@ -58,7 +58,7 @@ class IPAThreads(inputStream: InputStream, outputStream: OutputStream) {
                 scope.cancel()
             }
         } catch (e: Exception) {
-            LogUtil.e(e.message?:"")
+            LogUtil.e(e.message ?: "")
             e.printStackTrace()
         }
     }
@@ -244,11 +244,12 @@ class IPAThreads(inputStream: InputStream, outputStream: OutputStream) {
     /**
      * 获取固件版本号
      */
-    fun getIAPVer(isMain: Boolean) {
+    fun getIAPVer(isMain: Boolean, retry: Int = 2) {
         send(
             WriteData(
                 if (isMain) Cmd.getMainVer else Cmd.getSubVer,
-                method = if (isMain) "获取主固件版本" else "获取子固件版本", delay = 200
+                method = if (isMain) "获取主固件版本" else "获取子固件版本", delay = 200,
+                retry = retry
             )
         )
     }
@@ -302,7 +303,15 @@ class IPAThreads(inputStream: InputStream, outputStream: OutputStream) {
             )
         )
         //发送握手包,激活下位机
-        send(WriteData(Cmd.handShake, method = "握手", delay = 1500, priority = Priority.HIGH, commandTimeoutMill = 1000))
+        send(
+            WriteData(
+                Cmd.handShake,
+                method = "握手",
+                delay = 1500,
+                priority = Priority.HIGH,
+                commandTimeoutMill = 1000
+            )
+        )
     }
 
 
@@ -341,7 +350,7 @@ class IPAThreads(inputStream: InputStream, outputStream: OutputStream) {
                 processCommand()
             }
         } catch (e: Exception) {
-            LogUtil.e(e.message?:"")
+            LogUtil.e(e.message ?: "")
             e.printStackTrace()
         }
     }
@@ -359,7 +368,7 @@ class IPAThreads(inputStream: InputStream, outputStream: OutputStream) {
                 }
             }
         } catch (e: Exception) {
-            LogUtil.e(e.message?:"")
+            LogUtil.e(e.message ?: "")
             e.printStackTrace()
         }
     }
@@ -404,7 +413,7 @@ class IPAThreads(inputStream: InputStream, outputStream: OutputStream) {
                     }
                     LogUtil.v(it.method + "  ---->  " + HexUtil.bytesToHexString(it.bytes))
                 } catch (e: Exception) {
-                    LogUtil.e(e.message?:"")
+                    LogUtil.e(e.message ?: "")
                     e.printStackTrace()
                 }
                 if (it.retry < 1) {

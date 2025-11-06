@@ -34,14 +34,21 @@ class SerialPortHelper : OnSerialPortDataListener {
     private var sphThreads: SphThreads? = null
     private var parseEcg12Data = ParseEcg12Data()
 
+    companion object {
+        var isWakeUp = false
+    }
+
     /**
      * 开启读写线程
      */
-    fun start(isDebug: Boolean = false) {
-        sphThreads = SphThreads(serialPort.inputStream, isDebug, this)
+    fun start(cmdWakeUp: Boolean = false) {  // 启动串口  cmdWakeUp是否发送唤醒指令
+        sphThreads = SphThreads(serialPort.inputStream, this)
         parseEcg12Data.start()
-        wakeUp()
         JniFilterNew.getInstance().InitDCRecover(0)
+        if (!isWakeUp || cmdWakeUp) {
+            wakeUp()
+            isWakeUp = true
+        }
     }
 
     fun pause() {
@@ -55,6 +62,7 @@ class SerialPortHelper : OnSerialPortDataListener {
     //当前是否可以发送命令
     @Volatile
     private var canSend = true
+
     @Volatile
     private var cmd: WriteData? = null
     private val mTimeoutHandler = Handler(Looper.getMainLooper())
