@@ -1,6 +1,5 @@
 package com.Carewell.view.ecg12;
 
-import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;
@@ -79,7 +78,8 @@ public class LeadManager {
                     length = (int) (1.0f * (rect.right - rect.left) * EcgConfig.SPEED / speedPixels + 0.5f) / 6;
                 } else {
                     addX = 1.0f * speedPixels / EcgConfig.SPEED;
-                    length = (int) (1.0f * (rect.right - rect.left) * EcgConfig.SPEED / speedPixels + 0.5f);
+                    float temp = (rect.right - rect.left) / EcgConfig.SMALL_GRID_SPACE_FLOAT;
+                    length = (int) (temp * 4500 / ((MainEcgManager.getInstance().getLeadSpeedType().getValue() * 4500) / PreviewManager.SAMPLE_RATE));
                 }
             }
         }
@@ -145,12 +145,12 @@ public class LeadManager {
                     addCnt = 0;
                 }
             } else {
-                if (EcgConfig.SPEED == 1000){
+                if (EcgConfig.SPEED == 1000) {
                     if (++index % 6 == 0) {
                         addPoint(val);
                         index = 0;
                     }
-                }else {
+                } else {
                     addPoint(val);
                 }
             }
