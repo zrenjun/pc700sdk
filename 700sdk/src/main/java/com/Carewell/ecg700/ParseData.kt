@@ -60,14 +60,12 @@ import java.nio.charset.Charset
 object ParseData {
     init {
         System.loadLibrary("traditionalSingleEcg")
-        System.loadLibrary("newSigleEcg")
         System.loadLibrary("sigleEcg")
         System.loadLibrary("online")
         System.loadLibrary("offline")
     }
     external fun traditionalSingleEcg(dataIn: Int, init: Int): Int
-    external fun newHpFilter(dataIn: Int, init: Int): Int
-    external fun filter150(dataIn: Int): Short
+    external fun filter150(dataIn: Int, init: Int): Short
     external fun hpFilter(dataIn: Int, init: Int): Int
     external fun shortFilter(inShorts: ShortArray?): ShortArray
     external fun offlineFilter(f: Double, reset: Boolean): DoubleArray
