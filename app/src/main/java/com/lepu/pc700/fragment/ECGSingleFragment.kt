@@ -70,6 +70,8 @@ class ECGSingleFragment : Fragment(R.layout.fragment_ecg_single) {
             binding.tvCountdown.text = "${(countdown * 0.084f).toInt()}"
             binding.ecg1Surfaceview.screenClear()
             App.serial.mAPI?.startSingleEcgMeasure()
+            ParseData.hpf05(0, 1)
+            setPeriod()
         } else {
             App.serial.mAPI?.stopSingleEcgMeasure()
             binding.tvOff.isVisible = false
@@ -106,13 +108,8 @@ class ECGSingleFragment : Fragment(R.layout.fragment_ecg_single) {
             isStart = !isStart
         }
 
-        binding.switchFilter.setOnCheckedChangeListener { _, isChecked ->
-            setPeriod()
-            binding.ecg1Surfaceview.setXScale(!isChecked)
-        }
-
         MainEcgManager.getInstance().init()
-        MainEcgManager.getInstance().updateMainEcgShowStyle(LeadType.LEAD_II)
+        MainEcgManager.getInstance().updateMainEcgShowStyle(LeadType.LEAD_I)
         initData()
     }
 
@@ -125,7 +122,7 @@ class ECGSingleFragment : Fragment(R.layout.fragment_ecg_single) {
         observeEvent<GetSingleECGGain> {
             LogUtil.e(it.toJson())
         }
-        setPeriod()
+
     }
 
     private fun setPeriod() {
@@ -202,16 +199,17 @@ class ECGSingleFragment : Fragment(R.layout.fragment_ecg_single) {
                         val filter150 = ParseData.filter150(i, if (countdown == 120) 1 else 0)
                         val filterHp = ParseData.hpFilter(filter150.toInt(), 0)
                         val filter = ParseData.offlineFilter(filterHp.toDouble(), countdown == 120)
-                        if (filter.isNotEmpty() && countdown <= 67) {
-                            allData.addAll(filter.map { item -> item.toInt() })
-                            allData2.addAll(filter.map { item -> item.toInt() })
+                        if (filter.isNotEmpty() && countdown <= 60) {
+                            val result = filter.map { item -> ParseData.hpf05(item.toInt(), 0) }
+                            allData.addAll(result)
+                            allData2.addAll(result)
                         }
                     }
                 } else { //新算法
                     val filterData =
                         ParseData.traditionalSingleEcg(i, if (countdown == 120) 1 else 0)
-                    if (index % 2 == 0){
-                        if (countdown <= 67) {//前5秒数据丢弃
+                    if (index % 2 == 0) {
+                        if (countdown <= 60) {//前5秒数据丢弃
                             allData.add(filterData - 2048)
                             allData2.add(filterData - 2048)
                         }
@@ -237,6 +235,8 @@ class ECGSingleFragment : Fragment(R.layout.fragment_ecg_single) {
             binding.tvHr.text = "${getString(R.string.heart)}${if (hr in 30..250) hr else "--"}"
             return
         }
+        LogUtil.e(dataEcg.size)
+        LogUtil.e(allData2.size)
         isStart = false
         val ecgResult = resources.getStringArray(R.array.ecg_result)
         var index = result
@@ -248,13 +248,12 @@ class ECGSingleFragment : Fragment(R.layout.fragment_ecg_single) {
             toast(ecgResult[index])
             return
         }
-        PreviewManager.SAMPLE_RATE = if (binding.switchFilter.isChecked) 150 else 300
-        EcgConfig.SPEED = if (binding.switchFilter.isChecked) 150 else 300
-        val size = if (binding.switchFilter.isChecked) 4500 else 9000
-        val data = allData2.takeLast(size)
+        PreviewManager.SAMPLE_RATE = 150
+        EcgConfig.SPEED = 150
+        val data = allData2.takeLast(4500)
         LogUtil.e(data.size)
-        val dataList = Array(12) { ShortArray(size) }
-        dataList[1] =
+        val dataList = Array(12) { ShortArray(4500) }
+        dataList[0] =
             data.map { ((it / 355f) / Const.SHORT_MV_GAIN).toInt().toShort() }.toShortArray()
         //回顾
         EcgPlaybackFragemntDialog.newInstance(dataList).show(childFragmentManager, "")

@@ -65,6 +65,7 @@ object ParseData {
         System.loadLibrary("offline")
     }
     external fun traditionalSingleEcg(dataIn: Int, init: Int): Int
+    external fun hpf05(dataIn: Int, init: Int): Int
     external fun filter150(dataIn: Int, init: Int): Short
     external fun hpFilter(dataIn: Int, init: Int): Int
     external fun shortFilter(inShorts: ShortArray?): ShortArray
