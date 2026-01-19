@@ -216,6 +216,10 @@ class SerialPortHelper : OnSerialPortDataListener {
         send(WriteData(Cmd.queryBattery, method = "查询电量", retry = 0, isCRC = false))
     }
 
+    fun setPatientsMode(mode: Int) {
+        Cmd.bNIBP_SetPatientsMode[5] = mode.toByte()
+        send(WriteData(Cmd.bNIBP_SetPatientsMode, method = "设置血压患者类型"))
+    }
     fun setPressureMode(mode: Int) {
         Cmd.bNIBP_SetPressureMode[5] = mode.toByte()
         send(WriteData(Cmd.bNIBP_SetPressureMode, method = "设置血压模块类型"))

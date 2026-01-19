@@ -192,6 +192,47 @@
         tools:ignore="HardcodedText" />
 
 
+    <RadioGroup
+        android:id="@+id/rg"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:orientation="horizontal"
+        app:layout_constraintStart_toStartOf="@+id/ll_map"
+        app:layout_constraintTop_toBottomOf="@+id/ll_map">
+
+        <RadioButton
+            android:id="@+id/rb1"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:text="成人"
+            android:checked="true"
+            android:textColor="@color/text_666"
+            android:textSize="20sp" />
+
+
+        <RadioButton
+            android:id="@+id/rb2"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:text="儿童"
+            android:textColor="@color/text_666"
+            android:textSize="20sp" />
+
+
+        <RadioButton
+            android:id="@+id/rb3"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:text="婴儿"
+            android:textColor="@color/text_666"
+            android:textSize="20sp" />
+
+
+    </RadioGroup>
+
+
+
     <com.Carewell.view.other.InstrumentView
         android:id="@+id/ins_View"
         android:layout_width="@dimen/dp_300"

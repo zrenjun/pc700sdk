@@ -75,8 +75,23 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
         (activity as MainActivity).setMainTitle("常规检测")
         //0：科瑞康血压模块 ,1：景新浩血压
         App.serial.mAPI?.setPressureMode(1)  //咨询销售确认设备模块供应商
+        App.serial.mAPI?.setPatientsMode(0) //默认成人
         App.serial.mAPI?.setGluType(gluDeviceType + 1)
         with(binding) {
+            rg.setOnCheckedChangeListener { _, checkedId ->
+                when (checkedId) {
+                    R.id.rb1 -> {
+                        App.serial.mAPI?.setPatientsMode(0)
+                    }
+                    R.id.rb2 -> {
+                        App.serial.mAPI?.setPatientsMode(1)
+                    }
+                    R.id.rb3 -> {
+                        App.serial.mAPI?.setPatientsMode(2)
+                    }
+                }
+            }
+
             setUnitSp()
             spoView.setScope(150, 0)
             spoView.Start()

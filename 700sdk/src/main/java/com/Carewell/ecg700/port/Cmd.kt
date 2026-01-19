@@ -111,6 +111,19 @@ object Cmd {
     )
 
     /**
+     * 血压命令————设置患者类型
+     */
+    val bNIBP_SetPatientsMode = byteArrayOf(
+        0xAA.toByte(),
+        0x55.toByte(),
+        0x40.toByte(),
+        0x03.toByte(),
+        0x04.toByte(),
+        0x00.toByte(),
+        0x00.toByte()
+    )
+
+    /**
      * 血压命令————设置血压模块
      */
     val bNIBP_SetPressureMode = byteArrayOf(
@@ -122,6 +135,7 @@ object Cmd {
         0x00.toByte(),
         0x00.toByte()
     )
+
     /**
      * 血压命令————获取血压模块
      */
