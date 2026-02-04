@@ -28,6 +28,7 @@ import com.Carewell.ecg700.port.NIBPGetModuleEvent
 import com.Carewell.ecg700.port.NIBPGetRealDataEvent
 import com.Carewell.ecg700.port.NIBPGetStateEvent
 import com.Carewell.ecg700.port.NIBPPressureSetEvent
+import com.Carewell.ecg700.port.NIBPRawDataEvent
 import com.Carewell.ecg700.port.NIBPSetModeResultEvent
 import com.Carewell.ecg700.port.NIBPStartCheckLeakageEvent
 import com.Carewell.ecg700.port.NIBPStartDynamicAdjustingEvent
@@ -318,6 +319,20 @@ object ParseData {
                 val temp1 = bytes[5].toInt() and 0xFF //数据高字节
                 val temp2 = bytes[6].toInt() and 0xFF //数据低字节
                 postEvent(NIBPGetRealDataEvent((temp1 and 0x0f shl 8) + temp2))
+            }
+            //血压原始数据    OxAA 0x55 0x44 0x0b 0x02 .. ................ CRC
+            (0x44).toByte() -> {
+                postEvent(NIBPRawDataEvent(listOf(
+                    bytes[5].toInt() and 0xFF,
+                    bytes[6].toInt() and 0xFF,
+                    bytes[7].toInt() and 0xFF,
+                    bytes[8].toInt() and 0xFF,
+                    bytes[9].toInt() and 0xFF,
+                    bytes[10].toInt() and 0xFF,
+                    bytes[11].toInt() and 0xFF,
+                    bytes[12].toInt() and 0xFF,
+                    bytes[13].toInt() and 0xFF,
+                    )))
             }
             // 血氧工作模式
             (0x50).toByte() -> if (type == 0x01) {

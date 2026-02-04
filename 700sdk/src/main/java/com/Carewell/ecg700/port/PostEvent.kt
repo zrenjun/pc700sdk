@@ -221,6 +221,11 @@ object NIBP_RESULT {
 data class NIBPGetRealDataEvent(val realData: Int)
 
 /**
+ *  血压原始数据
+ */
+data class NIBPRawDataEvent(val rawData: List<Int>)
+
+/**
  * 血压漏气检测结果
  *   10秒的漏气量,单位mmHg 下位机返回结果无效
  */

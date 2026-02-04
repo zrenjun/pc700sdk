@@ -26,6 +26,7 @@ import com.Carewell.ecg700.port.LogUtil
 import com.Carewell.ecg700.port.NIBPGetMeasureErrorEvent
 import com.Carewell.ecg700.port.NIBPGetMeasureResultEvent
 import com.Carewell.ecg700.port.NIBPGetRealDataEvent
+import com.Carewell.ecg700.port.NIBPRawDataEvent
 import com.Carewell.ecg700.port.NIBPStopMeasureEvent
 import com.Carewell.ecg700.port.SPOGetParamEvent
 import com.Carewell.ecg700.port.SPOGetWaveEvent
@@ -74,7 +75,7 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
         super.onViewCreated(view, savedInstanceState)
         (activity as MainActivity).setMainTitle("常规检测")
         //0：科瑞康血压模块 ,1：景新浩血压
-        App.serial.mAPI?.setPressureMode(1)  //咨询销售确认设备模块供应商
+        App.serial.mAPI?.setPressureMode(0)  //咨询销售确认设备模块供应商
         App.serial.mAPI?.setPatientsMode(0) //默认成人
         App.serial.mAPI?.setGluType(gluDeviceType + 1)
         with(binding) {
@@ -346,6 +347,9 @@ class RoutineExaminationFragment : Fragment(R.layout.fragment_routineexamination
             } else {
                 binding.realplayPc300TvSys.text = "- -"
             }
+        }
+        observeEvent<NIBPRawDataEvent> {
+            LogUtil.e(it.toJson())
         }
         observeEvent<NIBPStopMeasureEvent> {
             LogUtil.e(it.toJson())
