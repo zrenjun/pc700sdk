@@ -85,9 +85,9 @@ class ParseEcg12Data {
             // 直接初始化 Int 数组，避免 map 操作
             leadOffArr = IntArray(8) { if (fallFlags[it]) 1 else 0 }
 
-            waveFilter?.let {
-                filterWave = it.filterControl(configBean, filterWave, leadOffArr)
-            }
+//            waveFilter?.let {
+//                filterWave = it.filterControl(configBean, filterWave, leadOffArr)
+//            }
 
             if (pace == 1 && count == 0) {
                 count = 2
