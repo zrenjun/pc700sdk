@@ -6,6 +6,7 @@ import android.os.Handler
 import android.os.Looper
 import android_serialport_api.SerialPort
 import androidx.annotation.IntDef
+import com.Carewell.OmniEcg.jni.JniDCRecover
 import com.Carewell.OmniEcg.jni.JniFilterNew
 import kotlinx.coroutines.*
 import java.io.File
@@ -44,7 +45,7 @@ class SerialPortHelper : OnSerialPortDataListener {
     fun start(cmdWakeUp: Boolean = false) {  // 启动串口  cmdWakeUp是否发送唤醒指令
         sphThreads = SphThreads(serialPort.inputStream, this)
         parseEcg12Data.start()
-        JniFilterNew.getInstance().InitDCRecover(0)
+        JniDCRecover.getInstance().InitDCRecover(0)
         if (!isWakeUp || cmdWakeUp) {
             wakeUp()
             isWakeUp = true

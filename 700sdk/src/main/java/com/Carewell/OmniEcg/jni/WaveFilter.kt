@@ -26,13 +26,7 @@ class WaveFilter {
         val inputDataCount = ecgDataArray[0].size
         val jniFilter = JniFilterNew.getInstance()
         notifyFilterBean.outDataLen = inputDataCount
-        jniFilter.DCRecover(
-            ecgDataArray,
-            ecgDataArray[0].size,
-            notifyFilterBean,
-            Const.FILTER_LEAD_MUN_8,
-            leadOffArr
-        )
+        JniDCRecover.getInstance().DCRecover(ecgDataArray, ecgDataArray[0].size, notifyFilterBean, Const.FILTER_LEAD_MUN_8, leadOffArr)
         //DC后数值位数变化，需要用int接收
         var tmpDataArray = notifyFilterBean.intDataArray
         if (configBean == null) {

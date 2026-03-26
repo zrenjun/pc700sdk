@@ -23,8 +23,7 @@ public class JniFilterNew {
         }
         return instance;
     }
-    //=============================DC 基线跳变问题，添加
-    public native void DCRecover(short[][] ecgDataArray, int dataLen,NotifyFilterBean notifyFilterBean,int filterLeadNum,int[] leadOffArr);
+    //=============================
 
     
     /**
@@ -37,13 +36,6 @@ public class JniFilterNew {
      * @return
      */
     public native int[] getAlgorithmVersion();
-
-    /**
-     * 初始化滤波器
-     * @param versionFlag  1 old version;0 new version
-     * @return
-     */
-    public native int InitDCRecover(int versionFlag);
 
 
     //==================================================交流 工频
