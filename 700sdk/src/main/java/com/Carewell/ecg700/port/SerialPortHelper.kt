@@ -45,7 +45,7 @@ class SerialPortHelper : OnSerialPortDataListener {
     fun start(cmdWakeUp: Boolean = false) {  // 启动串口  cmdWakeUp是否发送唤醒指令
         sphThreads = SphThreads(serialPort.inputStream, this)
         parseEcg12Data.start()
-        JniDCRecover.getInstance().InitDCRecover(0)
+        JniDCRecover.getInstance().InitDCRecover(1)
         if (!isWakeUp || cmdWakeUp) {
             wakeUp()
             isWakeUp = true
