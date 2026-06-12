@@ -52,6 +52,7 @@ public class LeadManager {
             minCnt = 0;
             maxCnt = 0;
             cnt = 0;
+            index = 0;
             curXStart = 0;//wuxd add
 
             rate = 1.0f * speedPixels / EcgConfig.SPEED;
@@ -74,8 +75,8 @@ public class LeadManager {
                 }
             } else {
                 if (EcgConfig.SPEED == 1000) {
-                    addX = 6.0f * speedPixels / EcgConfig.SPEED;
-                    length = (int) (1.0f * (rect.right - rect.left) * EcgConfig.SPEED / speedPixels + 0.5f) / 6;
+                    addX = 3.0f * speedPixels / EcgConfig.SPEED;
+                    length = (int) (1.0f * (rect.right - rect.left) * EcgConfig.SPEED / speedPixels + 0.5f) / 3;
                 } else {
                     addX = 1.0f * speedPixels / EcgConfig.SPEED;
                     float temp = (rect.right - rect.left) / EcgConfig.SMALL_GRID_SPACE_FLOAT;
@@ -146,9 +147,30 @@ public class LeadManager {
                 }
             } else {
                 if (EcgConfig.SPEED == 1000) {
-                    if (++index % 6 == 0) {
-                        addPoint(val);
+                    // 使用峰谷抽样，保留每组中的最大值和最小值，避免丢失QRS尖峰
+                    cnt++;
+                    if (val < min) {
+                        min = val;
+                        minCnt = cnt;
+                    }
+                    if (val > max) {
+                        max = val;
+                        maxCnt = cnt;
+                    }
+                    if (++index >= 6) {
                         index = 0;
+                        if (minCnt < maxCnt) {
+                            addPoint(min);
+                            addPoint(max);
+                        } else {
+                            addPoint(max);
+                            addPoint(min);
+                        }
+                        min = Integer.MAX_VALUE;
+                        max = Integer.MIN_VALUE;
+                        minCnt = 0;
+                        maxCnt = 0;
+                        cnt = 0;
                     }
                 } else {
                     addPoint(val);
