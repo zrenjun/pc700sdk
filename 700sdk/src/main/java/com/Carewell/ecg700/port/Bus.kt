@@ -49,8 +49,12 @@ class EventBusCore : ViewModel() {
         lifecycleOwner.launchWhenStateAtLeast(minState) {
             try {
                 getEventFlow(eventName, isSticky).collect { value ->
-                    this.launch(dispatcher) {
+                    if (dispatcher == Dispatchers.Main.immediate || dispatcher == Dispatchers.Main) {
                         invokeReceived(value, onReceived)
+                    } else {
+                        withContext(dispatcher) {
+                            invokeReceived(value, onReceived)
+                        }
                     }
                 }
             } catch (e: Throwable) {
