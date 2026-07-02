@@ -440,6 +440,17 @@ interface OnSerialPortDataListener {
 
 interface OnECG12DataListener {
     fun onECG12DataReceived(ecg12Data: IntArray)
+
+    /**
+     * 批量数据回调，一次传多帧数据减少回调次数
+     * 默认实现逐帧调用 onECG12DataReceived 保持向后兼容
+     */
+    fun onECG12BatchDataReceived(batchData: List<IntArray>) {
+        for (data in batchData) {
+            onECG12DataReceived(data)
+        }
+    }
+
     fun onHrReceived(hr: Int)
     fun onLeadFailReceived(leadFail: String, fall: Boolean)
 }

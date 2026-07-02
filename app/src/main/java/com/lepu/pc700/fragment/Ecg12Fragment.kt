@@ -302,17 +302,26 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
 
     private var ecg12DataListener = object : OnECG12DataListener {
         override fun onECG12DataReceived(ecg12Data: IntArray) {
-            val ecgDataArray = Array(12) { ShortArray(1) }
-            ecg12Data.forEachIndexed { index, i ->
-                ecgDataArray[index][0] = i.toShort()
-                if (isStart && subscript < saveDataList[0].size) {
-                    saveDataList[index][subscript] = i.toShort()
+            // 已由 onECG12BatchDataReceived 批量处理，此方法不再被调用
+        }
+
+        override fun onECG12BatchDataReceived(batchData: List<IntArray>) {
+            if (batchData.isEmpty()) return
+            // 构建批量数据数组: short[12][N]
+            val batchSize = batchData.size
+            val ecgDataArray = Array(12) { ShortArray(batchSize) }
+            for (j in 0 until batchSize) {
+                val data = batchData[j]
+                for (i in 0 until 12) {
+                    ecgDataArray[i][j] = data[i].toShort()
+                    if (isStart && subscript < saveDataList[0].size) {
+                        saveDataList[i][subscript] = data[i].toShort()
+                    }
+                }
+                if (isStart) {
+                    subscript++
                 }
             }
-            if (isStart) {
-                subscript++
-            }
-
             if (loading.isShow) {
                 activity?.runOnUiThread { loading.dismiss() }
             }

@@ -118,38 +118,49 @@ class SphThreads(private val inputStream: InputStream, private val listener: OnS
 
     /**
      * 核心处理逻辑，处理缓冲区中的数据。
-     * 该方法在 Default 调度器中运行，确保线程安全。
+     * 直接在 IO 协程中执行，避免不必要的线程切换。
      */
-    private suspend fun processBuffer() {
-        withContext(Dispatchers.Default) {
-            synchronized(syncObject) {
-                // 将缓冲区切换到读模式
-                buffer.flip()
-                try {
-                    // 只要缓冲区中至少有 2 个字节，就继续处理
-                    while (buffer.remaining() >= 2) {
-                        // 读取 2 字节作为帧头
-                        when (val header = buffer.short.toInt() and 0xFFFF) {
-                            ROUTINE_HEADER -> handleRoutineFrame()
-                            ECG12_HEADER, ECG12_RESPONSE_HEADER -> handleEcg12Frame(header)
-                            else -> findNextHeader()
+    private fun processBuffer() {
+        synchronized(syncObject) {
+            // 将缓冲区切换到读模式
+            buffer.flip()
+            try {
+                // 只要缓冲区中至少有 2 个字节，就继续处理
+                while (buffer.remaining() >= 2) {
+                    // 标记当前位置，用于数据不足时回退
+                    val mark = buffer.position()
+                    // 读取 2 字节作为帧头
+                    when (val header = buffer.short.toInt() and 0xFFFF) {
+                        ROUTINE_HEADER -> {
+                            if (!handleRoutineFrame()) {
+                                buffer.position(mark) // 数据不足，回退等待拼接
+                                break
+                            }
                         }
+                        ECG12_HEADER, ECG12_RESPONSE_HEADER -> {
+                            if (!handleEcg12Frame(header)) {
+                                buffer.position(mark) // 数据不足，回退等待拼接
+                                break
+                            }
+                        }
+                        else -> findNextHeader()
                     }
-                } finally {
-                    // 压缩缓冲区，准备下一次写入
-                    buffer.compact()
                 }
+            } finally {
+                // 压缩缓冲区，准备下一次写入
+                buffer.compact()
             }
         }
     }
 
     /**
      * 处理常规数据帧。 普通命令 aa, 55, 30, 02, 01, c6,
+     * @return true 处理成功，false 数据不足需等待
      */
-    private fun handleRoutineFrame() {
+    private fun handleRoutineFrame(): Boolean {
         // 如果缓冲区剩余数据不足 4 字节，直接返回 等待拼接
         if (buffer.remaining() < 4) {
-            return
+            return false
         }
         // 记录当前 position
         val currentPos = buffer.position()
@@ -157,7 +168,7 @@ class SphThreads(private val inputStream: InputStream, private val listener: OnS
         val length = buffer.get(currentPos + 1).toInt() and 0xFF
         // 如果缓冲区剩余数据不足指定长度，等待拼接
         if (buffer.remaining() < length + 2) {  //position 没有移动 + 2 = cmd + length
-            return
+            return false
         }
         // 从缓冲区中提取数据帧
         val frameData = ByteArray(length + 4).apply {
@@ -168,17 +179,19 @@ class SphThreads(private val inputStream: InputStream, private val listener: OnS
         ParseData.processingOrdinaryData(frameData)
         // 调用监听器的回调方法，通知数据接收
         listener.onDataReceived(frameData)
+        return true
     }
 
     /**
      * 处理 12 导联心电图数据帧。
      *
      * @param header 数据帧头
+     * @return true 处理成功，false 数据不足需等待
      */
-    private fun handleEcg12Frame(header: Int) {
+    private fun handleEcg12Frame(header: Int): Boolean {
         // 如果缓冲区剩余数据不足指定长度，直接返回 等待拼接
         if (buffer.remaining() < FRAME_SIZE_12LEAD - 2) {
-            return
+            return false
         }
         // 记录当前 position
         val currentPos = buffer.position()
@@ -199,6 +212,7 @@ class SphThreads(private val inputStream: InputStream, private val listener: OnS
             // 校验失败，回退   去掉2个头
             buffer.position(currentPos)
         }
+        return true
     }
 
     /**

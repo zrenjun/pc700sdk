@@ -18,17 +18,27 @@ class ParseEcg12Data {
         this.onECGDataListener = onECGDataListener
     }
 
-    private var scope = CoroutineScope(Dispatchers.IO + Job())
+    private var scope = CoroutineScope(Dispatchers.Default + Job())
 
     fun start() {
         clearQueue()
         scope.launch {
-            while (this.isActive) {
+            val batch = ArrayList<ByteArray>(128)
+            while (isActive) {
                 try {
-                    queue.take()?.let { checkPack(it) }
+                    // runInterruptible 让 take() 在协程取消时可被中断
+                    val first = runInterruptible(Dispatchers.IO) { queue.take() }
+                    batch.add(first)
+                    // 把队列中当前所有可用帧全部取出，一次性处理
+                    queue.drainTo(batch)
+                    // 批量处理
+                    processBatch(batch)
+                    batch.clear()
                 } catch (e: Exception) {
+                    if (e is CancellationException) throw e
                     LogUtil.e(e.message ?: "")
                     e.printStackTrace()
+                    batch.clear()
                 }
             }
         }
@@ -40,87 +50,126 @@ class ParseEcg12Data {
         onECGDataListener = null
     }
 
-
     private val leadData = ShortArray(8)
     private val ecgData = IntArray(12)
     private val waveFilter = instance
 
     @Volatile
     private var count = 2
-    private var filterWave = Array(8) { ShortArray(1) }
-    private var hrWave = ShortArray(1)
-    private var leadOffArr = IntArray(8)
-    private fun checkPack(curByteBuffer: ByteArray) {
-        if (curByteBuffer.size < 22) return
+    // 复用数组，避免每帧分配
+    private val filterWave = Array(8) { ShortArray(1) }
+    private val hrWave = ShortArray(1)
+    private val leadOffArr = IntArray(8)
+    private val fallFlags = BooleanArray(8)
+
+    /**
+     * 批量处理多帧数据，一次性回调给 UI 减少回调开销
+     */
+    private fun processBatch(batch: List<ByteArray>) {
+        // 收集所有有效帧的计算结果
+        val batchEcgData = ArrayList<IntArray>(batch.size)
+        var lastHr = -1
+        var lastLeadStr = ""
+        var lastLeadFall = false
+
+        for (frame in batch) {
+            val result = processFrame(frame) ?: continue
+            batchEcgData.add(result.ecgData.clone())
+            // 心率检测需要逐帧喂数据，hrWave 已在 processFrame 中更新
+            waveFilter?.let { lastHr = it.getRate(hrWave) }
+            lastLeadStr = result.leadStr
+            lastLeadFall = result.leadFall
+        }
+
+        if (batchEcgData.isEmpty()) return
+
+        // 批量回调：一次性发送所有点
+        onECGDataListener?.onECG12BatchDataReceived(batchEcgData)
+        // 心率和导联状态只需要回调一次最新值
+        onECGDataListener?.onHrReceived(lastHr)
+        onECGDataListener?.onLeadFailReceived(lastLeadStr, lastLeadFall)
+    }
+
+    private class FrameResult(
+        val ecgData: IntArray,
+        val leadStr: String,
+        val leadFall: Boolean
+    )
+
+    private fun processFrame(curByteBuffer: ByteArray): FrameResult? {
+        if (curByteBuffer.size < 22) return null
         val frameHead = curByteBuffer[0].toInt() and 0xff
         val frameType = curByteBuffer[1].toInt() and 0xff
-        if (frameHead == 0x7f && frameType == TYPE1) {
-            for (i in 0 until 8) {
-                val index = 3 + i * 2
-                leadData[i] =
-                    toInt(byteArrayOf(curByteBuffer[index], curByteBuffer[index + 1])).toShort()
-            }
+        if (frameHead != 0x7f || frameType != TYPE1) return null
 
-            var leadOff = curByteBuffer[19].toInt() and 0xFF
-            var pace = curByteBuffer[20].toInt() and 0xFF
-
-            val arr = feed(leadData, leadOff, pace) ?: return
-            System.arraycopy(arr, 0, leadData, 0, leadData.size)
-            leadOff = arr[arr.size - 2].toInt()
-            pace = arr[arr.size - 1].toInt()
-
-            val leadNames = checkLeadOff(leadOff)
-
-            filterWave = Array(8) { ShortArray(1) }
-            var j = 0
-            for (i in 0 until 8) {
-                filterWave[j][0] = leadData[i]
-                j++
-            }
-            hrWave = ShortArray(1) { if (isLeadII) leadData[1] else leadData[0] }
-
-            // 提前定义布尔数组，避免多次访问成员变量
-            val fallFlags =
-                booleanArrayOf(iFall, iiFall, v1Fall, v2Fall, v3Fall, v4Fall, v5Fall, v6Fall)
-            // 直接初始化 Int 数组，避免 map 操作
-            leadOffArr = IntArray(8) { if (fallFlags[it]) 1 else 0 }
-
-            waveFilter?.let {
-                filterWave = it.filterControl(configBean, filterWave, leadOffArr)
-            }
-
-            if (pace == 1 && count == 0) {
-                count = 2
-            }
-
-            if (isAddPacemaker && count > 0) {
-                for (i in 0 until 8) {
-                    filterWave[i][0] = if (!fallFlags[i]) PACE_MAKER_VALUE else filterWave[i][0]
-                }
-                count--
-            }
-
-            val filterWaveSize = filterWave[0].size
-            for (k in 0 until filterWaveSize) {
-                ecgData[0] = filterWave[0][k].toInt() // I
-                ecgData[1] = filterWave[1][k].toInt() // II
-                ecgData[2] = filterWave[1][k] - filterWave[0][k] // III
-                ecgData[3] = -(filterWave[0][k] + filterWave[1][k]) shr 1 // AVR
-                ecgData[4] = filterWave[0][k] - (filterWave[1][k].toInt() shr 1) // AVL
-                ecgData[5] = filterWave[1][k] - (filterWave[0][k].toInt() shr 1) // AVF
-                ecgData[6] = filterWave[2][k].toInt()
-                ecgData[7] = filterWave[3][k].toInt()
-                ecgData[8] = filterWave[4][k].toInt()
-                ecgData[9] = filterWave[5][k].toInt()
-                ecgData[10] = filterWave[6][k].toInt()
-                ecgData[11] = filterWave[7][k].toInt()
-            }
-            //不可切换线程
-            onECGDataListener?.onECG12DataReceived(ecgData)
-            waveFilter?.let { onECGDataListener?.onHrReceived(it.getRate(hrWave)) }
-            val leadStr = leadNames.joinToString(" ")
-            onECGDataListener?.onLeadFailReceived(leadStr, leadNames.isNotEmpty())
+        for (i in 0 until 8) {
+            val index = 3 + i * 2
+            // 内联 toInt，避免每帧创建临时 ByteArray
+            val low = curByteBuffer[index].toInt() and 0xFF
+            val high = curByteBuffer[index + 1].toInt() and 0xFF
+            leadData[i] = ((high shl 8) or low).toShort()
         }
+
+        var leadOff = curByteBuffer[19].toInt() and 0xFF
+        var pace = curByteBuffer[20].toInt() and 0xFF
+
+        val arr = feed(leadData, leadOff, pace) ?: return null
+        System.arraycopy(arr, 0, leadData, 0, leadData.size)
+        leadOff = arr[arr.size - 2].toInt()
+        pace = arr[arr.size - 1].toInt()
+
+        val leadNames = checkLeadOff(leadOff)
+
+        // 复用 filterWave 数组
+        for (i in 0 until 8) {
+            filterWave[i][0] = leadData[i]
+        }
+        hrWave[0] = if (isLeadII) leadData[1] else leadData[0]
+
+        // 复用 fallFlags 和 leadOffArr
+        fallFlags[0] = iFall
+        fallFlags[1] = iiFall
+        fallFlags[2] = v1Fall
+        fallFlags[3] = v2Fall
+        fallFlags[4] = v3Fall
+        fallFlags[5] = v4Fall
+        fallFlags[6] = v5Fall
+        fallFlags[7] = v6Fall
+        for (i in 0 until 8) {
+            leadOffArr[i] = if (fallFlags[i]) 1 else 0
+        }
+
+        val filtered = waveFilter?.filterControl(configBean, filterWave, leadOffArr) ?: filterWave
+
+        if (pace == 1 && count == 0) {
+            count = 2
+        }
+
+        if (isAddPacemaker && count > 0) {
+            for (i in 0 until 8) {
+                filtered[i][0] = if (!fallFlags[i]) PACE_MAKER_VALUE else filtered[i][0]
+            }
+            count--
+        }
+
+        val filterWaveSize = filtered[0].size
+        for (k in 0 until filterWaveSize) {
+            ecgData[0] = filtered[0][k].toInt() // I
+            ecgData[1] = filtered[1][k].toInt() // II
+            ecgData[2] = filtered[1][k] - filtered[0][k] // III
+            ecgData[3] = -(filtered[0][k] + filtered[1][k]) shr 1 // AVR
+            ecgData[4] = filtered[0][k] - (filtered[1][k].toInt() shr 1) // AVL
+            ecgData[5] = filtered[1][k] - (filtered[0][k].toInt() shr 1) // AVF
+            ecgData[6] = filtered[2][k].toInt()
+            ecgData[7] = filtered[3][k].toInt()
+            ecgData[8] = filtered[4][k].toInt()
+            ecgData[9] = filtered[5][k].toInt()
+            ecgData[10] = filtered[6][k].toInt()
+            ecgData[11] = filtered[7][k].toInt()
+        }
+
+        val leadStr = leadNames.joinToString(" ")
+        return FrameResult(ecgData, leadStr, leadNames.isNotEmpty())
     }
 
     private var iFall = false
@@ -166,12 +215,12 @@ class ParseEcg12Data {
         }
 
         fun addData(bytes: ByteArray) {
+            queue.put(bytes)
             time++
-            if (time % 10000 == 0) {
+            if (time % 3000 == 0) {
                 time = 0
                 LogUtil.v("待处理队列大小:${queue.size}")
             }
-            queue.put(bytes)
         }
 
         private const val TYPE1 = 0x81 //12导联数据帧
