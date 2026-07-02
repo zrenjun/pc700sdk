@@ -114,6 +114,7 @@ class ParseEcg12Data {
         var pace = curByteBuffer[20].toInt() and 0xFF
 
         val arr = feed(leadData, leadOff, pace) ?: return null
+        if (arr.size < leadData.size + 2) return null // feed 返回异常数据，跳过该帧
         System.arraycopy(arr, 0, leadData, 0, leadData.size)
         leadOff = arr[arr.size - 2].toInt()
         pace = arr[arr.size - 1].toInt()
