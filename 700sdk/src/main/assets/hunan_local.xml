@@ -48,7 +48,7 @@
     </componentOf>
     <component>
         <!--数据序列组-->
-        <series>
+        <series classCode="OBSSER">
             <!--相关编码(心电波)-->
             <code code="RHYTHM" codeSystem="2.16.840.1.113883.5.4" codeSystemName="ActCode"
                 codeSystemVersion="" displayName="Rhythm Waveforms" />
