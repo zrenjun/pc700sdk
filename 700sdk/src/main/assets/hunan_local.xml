@@ -132,7 +132,7 @@
             <component>
                 <!--每个序列集存储一个或多个同步记录的序列  -->
                 <!--这个例子中，包含一个12导同步记录的序列集  -->
-                <sequenceSet>
+                <sequenceSet classCode="OBSCOR">
                     <!--单个数据序列，第一个描述基本信息-->
                     <component>
                         <sequence>
