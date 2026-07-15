@@ -509,7 +509,7 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
                     phone = "18627222014"
                     gender = "1"
                     birthday = "1986-12-06"
-                    id_number = "421023198902223431"
+                    id_number = "61042319861220639x"
                 }
                 device = Device().apply {
                     sn = "519d9ccb40a0d478"
