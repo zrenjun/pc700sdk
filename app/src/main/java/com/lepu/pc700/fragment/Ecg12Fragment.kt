@@ -70,6 +70,7 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
         }
     }
     private var countDownJob: Job? = null
+    private var autoGainJob: Job? = null
     private var saveDataList = Array(12) { ShortArray(time * 1000) }
     private var lowPassHz = 35
     private var hpHz = 0.67f
@@ -89,7 +90,7 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
         MainEcgManager.getInstance().init()
         //默认增益
         val gain = "auto"
-//        updateGain(gain, true)
+        updateGain(gain, true)
         //默认走速
         val speed = 25.0f
         updateSpeed(speed, true)
@@ -231,6 +232,27 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
                 MainEcgManager.getInstance().updateMainGain(it.ordinal)
             }
         }
+        // 自动增益：选择 auto 时启动定时计算，否则取消
+        if (gain == LeadGainType.GAIN_AUTO.value.toString()) {
+            startAutoGain()
+        } else {
+            stopAutoGain()
+        }
+    }
+
+    private fun startAutoGain() {
+        autoGainJob?.cancel()
+        autoGainJob = lifecycleScope.launch {
+            while (isActive) {
+                delay(2000)
+                MainEcgManager.getInstance().realCalculateAutoSensitivity()
+            }
+        }
+    }
+
+    private fun stopAutoGain() {
+        autoGainJob?.cancel()
+        autoGainJob = null
     }
 
     /**
@@ -393,6 +415,7 @@ class Ecg12Fragment : Fragment(R.layout.fragment_ecg12) {
 
     override fun onDestroy() {
         super.onDestroy()
+        stopAutoGain()
         MainEcgManager.getInstance().drawEcgRealView = null
         App.serial.mAPI?.setEcgListener(null)
         App.serial.mAPI?.stopTransfer()

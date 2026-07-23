@@ -153,7 +153,7 @@ public class MainEcgManager {
     /**
      * 添加数据
      */
-    public void addEcgData(short[][] ecgDataArray) {  //12 x 1
+    public void addEcgData(short[][] ecgDataArray) {  //12 x N
         if (drawEcgRealView == null) {
             return;
         }
@@ -170,17 +170,20 @@ public class MainEcgManager {
 
         drawEcgRealView.getBaseEcgPreviewTemplate().addEcgData(ecgDataArray);
 
+        int dataLen = ecgDataArray[0].length;
         for (int i = 0; i < ecgDataArray.length; i++) {
-            float tempValue = Math.abs(ecgDataArray[i][0] * Const.SHORT_MV_GAIN);
-            if (i < 2) {
-                //I II
-                if (tempValue > bodyMaxValue) {
-                    bodyMaxValue = tempValue;
-                }
-            } else {
-                //v1-v6
-                if (tempValue > chestMaxValue) {
-                    chestMaxValue = tempValue;
+            for (int j = 0; j < dataLen; j++) {
+                float tempValue = Math.abs(ecgDataArray[i][j] * Const.SHORT_MV_GAIN);
+                if (i < 2) {
+                    //I II
+                    if (tempValue > bodyMaxValue) {
+                        bodyMaxValue = tempValue;
+                    }
+                } else {
+                    //v1-v6
+                    if (tempValue > chestMaxValue) {
+                        chestMaxValue = tempValue;
+                    }
                 }
             }
         }
@@ -244,12 +247,30 @@ public class MainEcgManager {
     /**
      *实时计算自动增益
      */
+    private int gainStableCount = 0;
+    private float[] pendingGain = null;
+
     public void realCalculateAutoSensitivity(){
         if (drawEcgRealView != null) {
             float[] newGain = calculateAutoSensitivity( 12);
             if (newGain[0] != gainArray[0] || newGain[1] != gainArray[1]) {
-                gainArray = newGain;
-                resetDrawEcg();
+                // 检查是否与上次待切换的增益一致
+                if (pendingGain != null && pendingGain[0] == newGain[0] && pendingGain[1] == newGain[1]) {
+                    gainStableCount++;
+                } else {
+                    pendingGain = newGain;
+                    gainStableCount = 1;
+                }
+                // 连续2次相同结果才切换，避免临界值来回跳动
+                if (gainStableCount >= 2) {
+                    gainArray = newGain;
+                    resetDrawEcg();
+                    gainStableCount = 0;
+                    pendingGain = null;
+                }
+            } else {
+                gainStableCount = 0;
+                pendingGain = null;
             }
         }
     }

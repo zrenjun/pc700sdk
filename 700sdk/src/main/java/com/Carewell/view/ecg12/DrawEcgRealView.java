@@ -137,7 +137,10 @@ public class DrawEcgRealView extends SurfaceView implements SurfaceHolder.Callba
      * 重绘波形
      */
     public void resetDrawEcg() {
-        stopDrawEcg();
+        stopDrawWaveThread();
+        clearData();
+        // 不调用 clearScreen()，避免黑屏闪烁
+        // 新模板初始化后第一帧 drawWave 会直接覆盖旧画面
         resetInitParams();
         startDrawWaveThread();
     }
