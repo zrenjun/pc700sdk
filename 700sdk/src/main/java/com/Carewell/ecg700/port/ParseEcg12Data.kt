@@ -62,45 +62,100 @@ class ParseEcg12Data {
     private val leadOffArr = IntArray(8)
     private val fallFlags = BooleanArray(8)
 
+    // ---- 结果对象池，避免高频小对象分配造成 GC 压力 ----
+    // 按需增长；同时支持在负载降低后动态收缩，避免峰值内存永久占用
+    private var ecgDataPool: Array<IntArray> = Array(INITIAL_POOL_SIZE) { IntArray(12) }
+    // 复用的批量结果列表，避免每批新建 ArrayList
+    private val batchEcgData = ArrayList<IntArray>(INITIAL_POOL_SIZE)
+
+    // ---- 动态收缩相关状态 ----
+    // 当前统计窗口内观察到的最大实际使用量
+    private var windowMaxUsage = 0
+    private var windowStartTime = System.currentTimeMillis()
+    // 连续多少个窗口都处于低使用量，用于消抖，避免频繁扩容/收缩抖动
+    private var lowUsageWindowCount = 0
+
+    private fun ensurePoolCapacity(requiredSize: Int) {
+        if (requiredSize > ecgDataPool.size) {
+            val old = ecgDataPool
+            // 容量倍增而不是刚好等于需求，减少后续再次触发扩容的次数
+            val newSize = maxOf(requiredSize, old.size * 2)
+            ecgDataPool = Array(newSize) { i -> if (i < old.size) old[i] else IntArray(12) }
+        }
+    }
+
+    /**
+     * 根据最近一个统计窗口内的实际使用峰值，决定是否收缩对象池。
+     * 收缩目标为「窗口内峰值 * 2」和「初始容量」中的较大值，保留一定余量，
+     * 避免刚收缩完就因为下一批数据量稍大而立刻又扩容。
+     * 需要连续 [REQUIRED_LOW_WINDOWS] 个窗口都判定为低使用量才会真正收缩，
+     * 防止负载在临界值附近抖动时反复扩容/收缩。
+     */
+    private fun maybeShrinkPool(actualUsage: Int) {
+        if (actualUsage > windowMaxUsage) windowMaxUsage = actualUsage
+
+        val now = System.currentTimeMillis()
+        if (now - windowStartTime < SHRINK_CHECK_INTERVAL_MS) return
+
+        val target = maxOf(INITIAL_POOL_SIZE, windowMaxUsage * 2)
+        if (target < ecgDataPool.size) {
+            lowUsageWindowCount++
+            if (lowUsageWindowCount >= REQUIRED_LOW_WINDOWS) {
+                // 保留前 target 个已有对象，丢弃多余部分交给 GC 回收，
+                // 而不是重新分配新对象（那样会失去对象池的意义）
+                val old = ecgDataPool
+                ecgDataPool = Array(target) { i -> old[i] }
+                // 释放批量列表底层数组的多余容量，避免其容量一直停留在历史峰值
+                batchEcgData.trimToSize()
+                lowUsageWindowCount = 0
+            }
+        } else {
+            lowUsageWindowCount = 0
+        }
+        windowMaxUsage = 0
+        windowStartTime = now
+    }
+
     /**
      * 批量处理多帧数据，一次性回调给 UI 减少回调开销
+     *
+     * 注意：batchEcgData 中的数组来自复用对象池，
+     * 监听方必须在回调内同步处理完数据，不能跨批次持有引用。
      */
     private fun processBatch(batch: List<ByteArray>) {
-        // 收集所有有效帧的计算结果
-        val batchEcgData = ArrayList<IntArray>(batch.size)
+        ensurePoolCapacity(batch.size)
+        batchEcgData.clear()
         var lastHr = -1
-        var lastLeadStr = ""
-        var lastLeadFall = false
 
         for (frame in batch) {
-            val result = processFrame(frame) ?: continue
-            batchEcgData.add(result.ecgData.clone())
+            if (!processFrame(frame)) continue
+            val pooled = ecgDataPool[batchEcgData.size]
+            System.arraycopy(ecgData, 0, pooled, 0, ecgData.size)
+            batchEcgData.add(pooled)
             // 心率检测需要逐帧喂数据，hrWave 已在 processFrame 中更新
             waveFilter?.let { lastHr = it.getRate(hrWave) }
-            lastLeadStr = result.leadStr
-            lastLeadFall = result.leadFall
         }
 
+        // 无论本批是否有效帧，都参与收缩统计，保证空闲期能被感知到
+        maybeShrinkPool(batchEcgData.size)
+
         if (batchEcgData.isEmpty()) return
+
+        // 导联脱落展示字符串只在状态发生变化时才重新拼接
+        buildLeadFailStringIfNeeded()
 
         // 批量回调：一次性发送所有点
         onECGDataListener?.onECG12BatchDataReceived(batchEcgData)
         // 心率和导联状态只需要回调一次最新值
         onECGDataListener?.onHrReceived(lastHr)
-        onECGDataListener?.onLeadFailReceived(lastLeadStr, lastLeadFall)
+        onECGDataListener?.onLeadFailReceived(cachedLeadStr, cachedLeadFall)
     }
 
-    private class FrameResult(
-        val ecgData: IntArray,
-        val leadStr: String,
-        val leadFall: Boolean
-    )
-
-    private fun processFrame(curByteBuffer: ByteArray): FrameResult? {
-        if (curByteBuffer.size < 22) return null
+    private fun processFrame(curByteBuffer: ByteArray): Boolean {
+        if (curByteBuffer.size < 22) return false
         val frameHead = curByteBuffer[0].toInt() and 0xff
         val frameType = curByteBuffer[1].toInt() and 0xff
-        if (frameHead != 0x7f || frameType != TYPE1) return null
+        if (frameHead != 0x7f || frameType != TYPE1) return false
 
         for (i in 0 until 8) {
             val index = 3 + i * 2
@@ -113,13 +168,15 @@ class ParseEcg12Data {
         var leadOff = curByteBuffer[19].toInt() and 0xFF
         var pace = curByteBuffer[20].toInt() and 0xFF
 
-        val arr = feed(leadData, leadOff, pace) ?: return null
-        if (arr.size < leadData.size + 2) return null // feed 返回异常数据，跳过该帧
+        val arr = feed(leadData, leadOff, pace) ?: return false
+        if (arr.size < leadData.size + 2) return false // feed 返回异常数据，跳过该帧
         System.arraycopy(arr, 0, leadData, 0, leadData.size)
         leadOff = arr[arr.size - 2].toInt()
         pace = arr[arr.size - 1].toInt()
 
-        val leadNames = checkLeadOff(leadOff)
+        checkLeadOff(leadOff)
+        // 记录最后一帧的导联签名，供批次结束后按需重建展示字符串
+        lastLeadOffSignature = leadOff
 
         // 复用 filterWave 数组
         for (i in 0 until 8) {
@@ -169,8 +226,7 @@ class ParseEcg12Data {
             ecgData[11] = filtered[7][k].toInt()
         }
 
-        val leadStr = leadNames.joinToString(" ")
-        return FrameResult(ecgData, leadStr, leadNames.isNotEmpty())
+        return true
     }
 
     private var iFall = false
@@ -181,7 +237,9 @@ class ParseEcg12Data {
     private var v4Fall = false
     private var v5Fall = false
     private var v6Fall = false
-    private fun checkLeadOff(leadOff: Int): List<String> {
+
+    // 仅更新脱落标志位，不做任何分配
+    private fun checkLeadOff(leadOff: Int) {
         iFall = (leadOff and 0b00000001) != 0
         iiFall = (leadOff and 0b00000010) != 0
         v1Fall = (leadOff and 0b00000100) != 0
@@ -190,21 +248,46 @@ class ParseEcg12Data {
         v4Fall = (leadOff and 0b00100000) != 0
         v5Fall = (leadOff and 0b01000000) != 0
         v6Fall = (leadOff and 0b10000000) != 0
+    }
 
-        val leadNames = mutableListOf<String>()
-        if (iFall) leadNames.add("LA")
-        if (iiFall) leadNames.add("LL")
-        if (v1Fall) leadNames.add("V1")
-        if (v2Fall) leadNames.add("V2")
-        if (v3Fall) leadNames.add("V3")
-        if (v4Fall) leadNames.add("V4")
-        if (v5Fall) leadNames.add("V5")
-        if (v6Fall) leadNames.add("V6")
-        if (iFall && iiFall && v1Fall && v2Fall && v3Fall && v4Fall && v5Fall && v6Fall) {
-            leadNames.add("RA")
-            leadNames.add("RL")
+    // 批次内最后一帧的导联脱落位模式（-1 表示本批次没有有效帧）
+    private var lastLeadOffSignature = -1
+    // 上次已生成展示字符串对应的签名，用于判断是否需要重建
+    private var cachedLeadOffSignature = -2
+    private var cachedLeadStr = ""
+    private var cachedLeadFall = false
+    private val leadStrBuilder = StringBuilder(32)
+
+    /**
+     * 仅当导联脱落状态相比上次回调发生变化时，才重新拼接展示字符串，
+     * 避免每帧/每批都创建 List<String> 和字符串对象。
+     */
+    private fun buildLeadFailStringIfNeeded() {
+        val signature = lastLeadOffSignature
+        if (signature == cachedLeadOffSignature) return
+        cachedLeadOffSignature = signature
+
+        leadStrBuilder.setLength(0)
+        var any = false
+        fun append(name: String) {
+            if (any) leadStrBuilder.append(' ')
+            leadStrBuilder.append(name)
+            any = true
         }
-        return leadNames
+        if (iFall) append("LA")
+        if (iiFall) append("LL")
+        if (v1Fall) append("V1")
+        if (v2Fall) append("V2")
+        if (v3Fall) append("V3")
+        if (v4Fall) append("V4")
+        if (v5Fall) append("V5")
+        if (v6Fall) append("V6")
+        if (iFall && iiFall && v1Fall && v2Fall && v3Fall && v4Fall && v5Fall && v6Fall) {
+            append("RA")
+            append("RL")
+        }
+        cachedLeadStr = leadStrBuilder.toString()
+        cachedLeadFall = any
     }
 
     companion object {
@@ -226,6 +309,12 @@ class ParseEcg12Data {
 
         private const val TYPE1 = 0x81 //12导联数据帧
         private const val PACE_MAKER_VALUE: Short = 1000
+        // 批处理结果对象池初始大小/收缩下限，按运行期实际 batch 大小自动增长
+        private const val INITIAL_POOL_SIZE = 256
+        // 收缩判定的统计窗口时长
+        private const val SHRINK_CHECK_INTERVAL_MS = 2000L
+        // 需要连续多少个低使用量窗口才真正收缩，避免抖动
+        private const val REQUIRED_LOW_WINDOWS = 3
         private var isLeadII = true
         fun setLeadHrMode(leadII: Boolean) {
             isLeadII = leadII
