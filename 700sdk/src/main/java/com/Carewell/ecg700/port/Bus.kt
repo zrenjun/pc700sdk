@@ -13,6 +13,20 @@ import java.util.concurrent.ConcurrentHashMap
 
 class EventBusCore : ViewModel() {
 
+    companion object {
+        /**
+         * 每个事件类型（非粘性事件）在 SharedFlow 中最多缓存的条数。
+         * 原实现用 Int.MAX_VALUE（近似无界），当某个页面处于后台（生命周期低于
+         * observeEvent 要求的 minState）时，若仍有高频事件（如心电/血氧波形、
+         * 血压实时数据等）持续 postEvent，会在缓冲区中无限堆积；页面恢复到前台后，
+         * collect() 恢复消费会一次性把堆积的所有事件同步重放，可能在主线程造成
+         * 明显卡顿甚至 ANR（已在实际 ANR dump 中观察到该现象）。
+         * 改为有限容量 + BufferOverflow.DROP_OLDEST：超出容量时丢弃最旧的事件，
+         * emit() 仍然是非阻塞的，正常前台使用时行为不变，仅在后台堆积场景下生效。
+         */
+        private const val EVENT_BUFFER_CAPACITY = 64
+    }
+
     //正常事件
     private val eventFlows: ConcurrentHashMap<String, MutableSharedFlow<Any>> = ConcurrentHashMap()
 
@@ -27,7 +41,7 @@ class EventBusCore : ViewModel() {
             eventFlows[eventName]
         } ?: MutableSharedFlow<Any>(
             replay = if (isSticky) 1 else 0,
-            extraBufferCapacity = Int.MAX_VALUE,
+            extraBufferCapacity = EVENT_BUFFER_CAPACITY,
             onBufferOverflow = BufferOverflow.DROP_OLDEST
         ).also {
             if (isSticky) {

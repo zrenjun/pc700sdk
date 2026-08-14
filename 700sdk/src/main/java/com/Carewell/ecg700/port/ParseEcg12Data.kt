@@ -257,6 +257,15 @@ class ParseEcg12Data {
     private var cachedLeadStr = ""
     private var cachedLeadFall = false
     private val leadStrBuilder = StringBuilder(32)
+    // 提升为字段而非局部变量，避免局部函数捕获可变局部变量时
+    // 被编译器装箱为 Ref.BooleanRef 造成的额外分配
+    private var hasAppendedLead = false
+
+    private fun appendLead(name: String) {
+        if (hasAppendedLead) leadStrBuilder.append(' ')
+        leadStrBuilder.append(name)
+        hasAppendedLead = true
+    }
 
     /**
      * 仅当导联脱落状态相比上次回调发生变化时，才重新拼接展示字符串，
@@ -268,26 +277,21 @@ class ParseEcg12Data {
         cachedLeadOffSignature = signature
 
         leadStrBuilder.setLength(0)
-        var any = false
-        fun append(name: String) {
-            if (any) leadStrBuilder.append(' ')
-            leadStrBuilder.append(name)
-            any = true
-        }
-        if (iFall) append("LA")
-        if (iiFall) append("LL")
-        if (v1Fall) append("V1")
-        if (v2Fall) append("V2")
-        if (v3Fall) append("V3")
-        if (v4Fall) append("V4")
-        if (v5Fall) append("V5")
-        if (v6Fall) append("V6")
+        hasAppendedLead = false
+        if (iFall) appendLead("LA")
+        if (iiFall) appendLead("LL")
+        if (v1Fall) appendLead("V1")
+        if (v2Fall) appendLead("V2")
+        if (v3Fall) appendLead("V3")
+        if (v4Fall) appendLead("V4")
+        if (v5Fall) appendLead("V5")
+        if (v6Fall) appendLead("V6")
         if (iFall && iiFall && v1Fall && v2Fall && v3Fall && v4Fall && v5Fall && v6Fall) {
-            append("RA")
-            append("RL")
+            appendLead("RA")
+            appendLead("RL")
         }
         cachedLeadStr = leadStrBuilder.toString()
-        cachedLeadFall = any
+        cachedLeadFall = hasAppendedLead
     }
 
     companion object {

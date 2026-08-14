@@ -12,8 +12,8 @@ import android.view.View;
 import android.view.WindowManager;
 import com.Carewell.ecg700.port.Wave;
 import com.creative.sdkpack.R;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.LinkedBlockingDeque;
 
 /**
  * 血氧竖直柱状图
@@ -99,12 +99,25 @@ public class DrawPC300SPO2Rect extends View {
     }
 
     /**
+     * 数据队列最大容量。原实现用无界 ArrayList.remove(0) 出队，是 O(n) 操作，
+     * 一旦生产速度长期大于消费速度（队列堆积），remove(0) 的耗时会随队列长度线性增长，
+     * 长时间运行会显著占用 CPU（曾在 ANR dump 中观察到该线程 CPU 占用异常高）。
+     * 改为 LinkedBlockingDeque 实现 O(1) 出队且线程安全，同时限制最大长度避免无界堆积。
+     */
+    private static final int MAX_QUEUE_SIZE = 200;
+
+    /**
      * 设置新数据
      */
-    public   List<Wave> mSPORect = new ArrayList<>();
+    public final LinkedBlockingDeque<Wave> mSPORect = new LinkedBlockingDeque<>();
 
     public void setSPORect(List<Wave> waves) {
-        mSPORect.addAll(waves);
+        for (Wave wave : waves) {
+            if (mSPORect.size() >= MAX_QUEUE_SIZE) {
+                mSPORect.pollFirst(); // 队列已满，丢弃最旧的数据，给新数据让位
+            }
+            mSPORect.offerLast(wave);
+        }
     }
 
     private class MyThread extends Thread {
@@ -113,15 +126,11 @@ public class DrawPC300SPO2Rect extends View {
             super.run();
                 while (!stop) {
                     try {
-                        if (!mSPORect.isEmpty()) {
-                            Wave data = mSPORect.remove(0);
+                        Wave data = mSPORect.pollFirst(); // O(1)，线程安全，取不到返回null
+                        if (data != null) {
                             spo = data.getData();
                             postInvalidate();
-                            if (mSPORect.size() > 25) {
-                                Thread.sleep(17);
-                            } else {
-                                Thread.sleep(20);
-                            }
+                            Thread.sleep(mSPORect.size() > 25 ? 17 : 20);
                         } else {
                             Thread.sleep(100);
                         }
@@ -151,6 +160,7 @@ public class DrawPC300SPO2Rect extends View {
             mThread.interrupt(); // 中断线程（避免 sleep 阻塞）
             mThread = null;      // 清除引用
         }
+        mSPORect.clear(); // 清空残留数据，避免下次重新附着窗口时消费到过期波形
         super.onDetachedFromWindow();
     }
 }
