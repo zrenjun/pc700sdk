@@ -210,14 +210,25 @@ class ParseEcg12Data {
             count--
         }
 
+        // III/AVR/AVL/AVF 由 I、II 共同计算得出，只要 I 或 II 任意一个脱落，
+        // 这几个导联的计算结果就不可信，需要展示为直线（置零）
+        val limbDerivedFall = iFall || iiFall
+
         val filterWaveSize = filtered[0].size
         for (k in 0 until filterWaveSize) {
-            ecgData[0] = filtered[0][k].toInt() // I
-            ecgData[1] = filtered[1][k].toInt() // II
-            ecgData[2] = filtered[1][k] - filtered[0][k] // III
-            ecgData[3] = -(filtered[0][k] + filtered[1][k]) shr 1 // AVR
-            ecgData[4] = filtered[0][k] - (filtered[1][k].toInt() shr 1) // AVL
-            ecgData[5] = filtered[1][k] - (filtered[0][k].toInt() shr 1) // AVF
+            ecgData[0] = if (iFall) 0 else filtered[0][k].toInt() // I
+            ecgData[1] = if (iiFall) 0 else filtered[1][k].toInt() // II
+            if (limbDerivedFall) {
+                ecgData[2] = 0 // III
+                ecgData[3] = 0 // AVR
+                ecgData[4] = 0 // AVL
+                ecgData[5] = 0 // AVF
+            } else {
+                ecgData[2] = filtered[1][k] - filtered[0][k] // III
+                ecgData[3] = -(filtered[0][k] + filtered[1][k]) shr 1 // AVR
+                ecgData[4] = filtered[0][k] - (filtered[1][k].toInt() shr 1) // AVL
+                ecgData[5] = filtered[1][k] - (filtered[0][k].toInt() shr 1) // AVF
+            }
             ecgData[6] = filtered[2][k].toInt()
             ecgData[7] = filtered[3][k].toInt()
             ecgData[8] = filtered[4][k].toInt()
