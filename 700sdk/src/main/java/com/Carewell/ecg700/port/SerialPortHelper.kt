@@ -8,6 +8,7 @@ import android_serialport_api.SerialPort
 import androidx.annotation.IntDef
 import com.Carewell.OmniEcg.jni.JniDCRecover
 import com.Carewell.OmniEcg.jni.JniFilterNew
+import com.Carewell.OmniEcg.jni.WaveFilter
 import kotlinx.coroutines.*
 import java.io.File
 import java.io.IOException
@@ -303,6 +304,7 @@ class SerialPortHelper : OnSerialPortDataListener {
     }
 
     fun startTransfer() {
+        WaveFilter.instance?.initHeartRateDetect()
         JniDCRecover.getInstance().InitDCRecover(1)
         pendingQueue.removeIf { it.bytes.contentEquals(Cmd.stopECG12Measure) }
         pendingQueue.removeIf { it.bytes.contentEquals(Cmd.stopTransfer) }

@@ -24,20 +24,15 @@ public class JniHeartRateDetect {
     /**
      * 初始化心率检测
      * @param sampleRate 采样率
+     * @param thresh     基线位置，c120 传200.其它项目先传200，看看准确度怎么样
      */
-    public native void initHeartRateDetect(int sampleRate);
+    public native void initHeartRateDetect(int sampleRate, int thresh);
 
-    /**
-     * 释放心率检测
-     */
-    public native void closeHeartRateDetect();
 
     /**
      * 获取心率
      * @param ecgDataArray
-     * @return
+     * @return 数组：0 心率值 ；1 qrsposlen
      */
-    public native int getDataHeartRate(short[] ecgDataArray);
-
-
+    public native int[] getDataHeartRate(int[] ecgDataArray);
 }

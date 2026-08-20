@@ -194,50 +194,22 @@ class WaveFilter {
         return filterDataArray
     }
 
-    /**
-     * 干扰信号检测
-     */
-    fun checkNoiseDetect(ecgDataArray: Array<ShortArray>): LeadSignalEnum {
-        val noiseStateNormal = LeadSignalEnum.NOISE_NORMAL.value as Int
-        var noiseStateValue = 0
-        var value: Short
-        val noiseResetFlag = '0'
-        //-2 是由于最后是导联脱落通道，起搏通道。最后2个通道不用添加
-        for (i in 0 until ecgDataArray.size - 2) {
-            for (element in ecgDataArray[i]) {
-                value = element
-                noiseStateValue =
-                    JniNoiseDetect.getInstance().noiseDetection(value, i.toShort(), noiseResetFlag)
-                if (noiseStateValue != noiseStateNormal) {
-                    break
-                }
-            }
-        }
-        return LeadSignalEnum.getLeadSignalEnumByValue(noiseStateValue)
-    }
 
     fun initHeartRateDetect() {
         isHeartRate = true
-        jniHeartRateDetect.initHeartRateDetect(SAMPLE_RATE)
+        jniHeartRateDetect.initHeartRateDetect(SAMPLE_RATE,200)
     }
 
     /**
      * 计算心率
      */
-    fun getRate(ecgDataArray: ShortArray): Int {
+    fun getRate(ecgDataArray: IntArray): Int {
         return if (isHeartRate) {
-            jniHeartRateDetect.getDataHeartRate(ecgDataArray)
+            jniHeartRateDetect.getDataHeartRate(ecgDataArray)[0]
         } else {
             -1
         }
     }
-
-    fun closeHeartRateDetect() {
-        isHeartRate = false
-        jniHeartRateDetect.closeHeartRateDetect()
-    }
-
-
     companion object {
         private var waveFilter: WaveFilter? = null
         val instance: WaveFilter?
@@ -245,9 +217,5 @@ class WaveFilter {
                 if (waveFilter == null) waveFilter = WaveFilter()
                 return waveFilter
             }
-    }
-
-    init {
-        jniHeartRateDetect.initHeartRateDetect(SAMPLE_RATE)
     }
 }

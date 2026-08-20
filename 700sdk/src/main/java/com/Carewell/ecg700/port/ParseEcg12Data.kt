@@ -2,7 +2,7 @@ package com.Carewell.ecg700.port
 
 import com.Carewell.OmniEcg.jni.ConfigBean
 import com.Carewell.OmniEcg.jni.PaceClearArr.feed
-import com.Carewell.OmniEcg.jni.WaveFilter.Companion.instance
+import com.Carewell.OmniEcg.jni.WaveFilter
 import kotlinx.coroutines.*
 import java.util.concurrent.LinkedBlockingQueue
 
@@ -52,13 +52,12 @@ class ParseEcg12Data {
 
     private val leadData = ShortArray(8)
     private val ecgData = IntArray(12)
-    private val waveFilter = instance
 
     @Volatile
     private var count = 2
     // 复用数组，避免每帧分配
     private val filterWave = Array(8) { ShortArray(1) }
-    private val hrWave = ShortArray(1)
+    private val hrWave = IntArray(1)
     private val leadOffArr = IntArray(8)
     private val fallFlags = BooleanArray(8)
 
@@ -133,7 +132,7 @@ class ParseEcg12Data {
             System.arraycopy(ecgData, 0, pooled, 0, ecgData.size)
             batchEcgData.add(pooled)
             // 心率检测需要逐帧喂数据，hrWave 已在 processFrame 中更新
-            waveFilter?.let { lastHr = it.getRate(hrWave) }
+            WaveFilter.instance?.let { lastHr = it.getRate(hrWave) }
         }
 
         // 无论本批是否有效帧，都参与收缩统计，保证空闲期能被感知到
@@ -182,7 +181,7 @@ class ParseEcg12Data {
         for (i in 0 until 8) {
             filterWave[i][0] = leadData[i]
         }
-        hrWave[0] = if (isLeadII) leadData[1] else leadData[0]
+        hrWave[0] = if (isLeadII) leadData[1].toInt() else leadData[0].toInt()
 
         // 复用 fallFlags 和 leadOffArr
         fallFlags[0] = iFall
@@ -197,7 +196,7 @@ class ParseEcg12Data {
             leadOffArr[i] = if (fallFlags[i]) 1 else 0
         }
 
-        val filtered = waveFilter?.filterControl(configBean, filterWave, leadOffArr) ?: filterWave
+        val filtered =  WaveFilter.instance?.filterControl(configBean, filterWave, leadOffArr) ?: filterWave
 
         if (pace == 1 && count == 0) {
             count = 2
