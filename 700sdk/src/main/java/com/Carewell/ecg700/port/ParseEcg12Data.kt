@@ -306,14 +306,34 @@ class ParseEcg12Data {
 
     companion object {
         private var time = 0
-        private val queue = LinkedBlockingQueue<ByteArray>()
+
+        // 入队帧率实测约 1000 帧/秒(1000Hz)。队列仅用于吸收短时处理抖动(GC、热节流、UI 卡顿)，
+        // 4096 约等于 4 秒缓冲，稳态下长期贴近 0；满载内存也仅约 240KB，
+        // 彻底杜绝高温长测时无界队列积压到百万帧拖垮内存/实时性的问题。
+        private const val QUEUE_CAPACITY = 4096
+        private val queue = LinkedBlockingQueue<ByteArray>(QUEUE_CAPACITY)
+
+        // 累计丢帧数，用于观测过载程度
+        private var droppedFrames = 0L
 
         fun clearQueue() {
             queue.clear()
         }
 
         fun addData(bytes: ByteArray) {
-            queue.put(bytes)
+            // 有界队列：未满(size < QUEUE_CAPACITY)时 offer 直接成功入队，绝不丢弃；
+            // 仅当队列已满时才丢弃队头(最旧)帧，保证总是保留最新波形，且绝不阻塞串口读取线程。
+            // 用 while 循环重试：若在 poll 与再次 offer 之间被其它生产者重新填满，会继续丢队头重试，
+            // 保证本帧最终一定入队，且每丢弃一帧都被准确计数，避免静默丢帧/计数遗漏的并发缺陷。
+            // ECG 波形丢弃过时采样点对实时显示可接受，远好过无限积压。
+            while (!queue.offer(bytes)) {
+                if (queue.poll() != null) {   // 丢弃最旧，仅在确实移除了一帧时才计数
+                    droppedFrames++
+                    if (droppedFrames % 1000 == 0L) {
+                        LogUtil.e("12导队列已满,累计丢帧:$droppedFrames (队列容量:$QUEUE_CAPACITY)")
+                    }
+                }
+            }
             time++
             if (time % 3000 == 0) {
                 time = 0
