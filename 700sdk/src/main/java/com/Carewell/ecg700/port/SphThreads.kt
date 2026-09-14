@@ -30,6 +30,39 @@ class SphThreads(private val inputStream: InputStream, private val listener: OnS
 
         // 12 导联心电图数据帧大小
         private const val FRAME_SIZE_12LEAD = 22
+
+        // 当前全局唯一的活跃读线程实例。
+        // 背景：数据帧最终写入的是 ParseEcg12Data 的【静态全局 queue】，而 SphThreads 是实例级的。
+        // APP 侧在页面快速切换时 start()/stop() 可能不配对（start 多、stop 少），
+        // 导致多个 SphThreads 读线程同时存活、同时往同一个静态 queue 灌数据，
+        // 生产速率变成 N 倍而消费仍是单协程，队列必然爆炸到百万帧 → OOM。
+        // 因此这里强制“生产者全局唯一”：每启动一个新的读线程，先把上一个停掉，
+        // 不依赖 APP 是否正确配对调用 stop。
+        @Volatile
+        private var activeInstance: SphThreads? = null
+
+        @Synchronized
+        private fun registerActive(instance: SphThreads) {
+            // 顶掉上一个仍在运行的读线程，杜绝多生产者并存灌爆静态队列
+            activeInstance?.let {
+                if (it !== instance) {
+                    // 定位日志：出现即说明 APP 侧串口 start/stop 未配对，旧读线程被新实例顶替。
+                    // 频繁出现 = 存在读线程反复创建（这正是历史上多生产者灌爆静态队列的信号）。
+                    LogUtil.e(
+                        "检测到已有活跃串口读线程，顶替：旧实例=${System.identityHashCode(it)} → 新实例=${System.identityHashCode(instance)}",
+                        "EcgLife"
+                    )
+                    it.stop()
+                }
+            }
+            activeInstance = instance
+            LogUtil.e("串口读线程注册为活跃：实例=${System.identityHashCode(instance)}", "EcgLife")
+        }
+
+        @Synchronized
+        private fun unregisterActive(instance: SphThreads) {
+            if (activeInstance === instance) activeInstance = null
+        }
     }
 
     // 协程作用域，使用 IO 调度器和 SupervisorJob
@@ -45,12 +78,26 @@ class SphThreads(private val inputStream: InputStream, private val listener: OnS
     private var isRunning = AtomicBoolean(true)
 
     init {
-        // 在 IO 线程中启动一个协程，持续读取输入流数据
-        scope.launch(Dispatchers.IO) {
+        // 把“顶掉旧实例(registerActive)”与“启动本实例读协程(scope.launch)”放进同一把 Companion 锁，
+        // 原子完成，避免两个实例并发构造时出现“旧实例已被顶掉、但本实例 launch 尚未执行”的窄窗口，
+        // 该窗口会短暂产生两条读线程同时往静态 queue 灌数据。registerActive 本身也是 @Synchronized(Companion)，
+        // 同一线程重入可重入锁，无死锁。
+        synchronized(Companion) {
+            // 启动读循环前先注册为全局唯一活跃实例，顶掉上一个可能未被 stop 的旧读线程，
+            // 防止多个读线程并存往静态 queue 灌数据导致积压爆炸。
+            registerActive(this)
+            // 在 IO 线程中启动一个协程，持续读取输入流数据
+            scope.launch(Dispatchers.IO) {
             // 临时缓冲区，用于从输入流读取数据
             val tempBuffer = ByteArray(4096)
             // 只要 isRunning 为 true，就持续读取数据
             while (scope.isActive) {
+                if (!isRunning.get()) {
+                    // 暂停状态下必须让出 CPU，否则空的 while 循环会 100% 占满一个 IO 线程忙等，
+                    // 白白发热并抢占 CPU，间接拖慢心电消费协程。休眠一小段后再检查运行标志。
+                    delay(50)
+                    continue
+                }
                 if (isRunning.get()){
                     try {
                         // 设置 100 毫秒的超时时间读取输入流数据
@@ -81,7 +128,8 @@ class SphThreads(private val inputStream: InputStream, private val listener: OnS
                     }
                 }
             }
-        }
+            } // end scope.launch
+        } // end synchronized(Companion)
     }
 
     /**
@@ -104,7 +152,10 @@ class SphThreads(private val inputStream: InputStream, private val listener: OnS
      * 停止数据读取操作，取消协程并关闭输入流。
      */
     fun stop() {
+        LogUtil.e("串口读线程 stop：实例=${System.identityHashCode(this)}", "EcgLife")
         isRunning.set(false)
+        // 从全局活跃引用中注销自己（仅当自己确实是当前活跃实例）
+        unregisterActive(this)
         // 取消协程作用域
         scope.cancel()
         try {

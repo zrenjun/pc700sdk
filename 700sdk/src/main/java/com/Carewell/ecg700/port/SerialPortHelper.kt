@@ -125,10 +125,21 @@ class SerialPortHelper : OnSerialPortDataListener {
         }
         parseEcg12Data.stop()
         sphThreads?.stop()
-        serialPort.inputStream.close()
-        serialPort.outputStream.close()
-        serialPort.close()
+        // 每个 close 独立 try-catch：SphThreads.stop() 内部可能已关闭 inputStream，
+        // 若此处任一 close 抛异常，不能中断后续 close，否则 outputStream / serialPort 的
+        // 文件描述符会泄漏，长期反复启停将耗尽 fd。
+        closeQuietly("inputStream") { serialPort.inputStream.close() }
+        closeQuietly("outputStream") { serialPort.outputStream.close() }
+        closeQuietly("serialPort") { serialPort.close() }
         LogUtil.v("关闭串口")
+    }
+
+    private inline fun closeQuietly(name: String, block: () -> Unit) {
+        try {
+            block()
+        } catch (e: Exception) {
+            LogUtil.e("关闭 $name 出错: ${e.message}")
+        }
     }
 
     override fun onDataReceived(bytes: ByteArray) {

@@ -18,36 +18,74 @@ class ParseEcg12Data {
         this.onECGDataListener = onECGDataListener
     }
 
-    private var scope = CoroutineScope(Dispatchers.Default + Job())
+    // 消费协程作用域。cancel() 之后 Job 进入终态无法复用，因此每次 start() 都按需重建，
+    // 保证 stop() 之后仍能重新 start()，避免 "stop 后 start 静默失效导致再也没有消费者"。
+    private var scope: CoroutineScope? = null
+    // 显式持有消费协程 Job，用于幂等控制：重复 start() 时先取消旧协程，
+    // 保证全局始终只有一条活跃消费协程在消费静态 queue，杜绝多消费者抢队列导致的消费稀释与协程泄漏。
+    private var consumeJob: Job? = null
 
+    // 注意：start()/stop() 统一用 companion(Companion) 作为锁对象，而非实例锁。
+    // 因为“顶掉旧的全局活跃消费者”和“启动本实例消费协程”必须对同一把锁原子完成，
+    // 否则两个实例并发 start 时，会出现“旧实例已被顶掉、但其协程 launch 语句已执行”的窄窗口，
+    // 短暂产生两条消费协程抢同一个静态 queue。用 Companion 单锁把整段串行化即可根治。
     fun start() {
-        clearQueue()
-        scope.launch {
-            val batch = ArrayList<ByteArray>(128)
-            while (isActive) {
-                try {
-                    // runInterruptible 让 take() 在协程取消时可被中断
-                    val first = runInterruptible(Dispatchers.IO) { queue.take() }
-                    batch.add(first)
-                    // 把队列中当前所有可用帧全部取出，一次性处理
-                    queue.drainTo(batch)
-                    // 批量处理
-                    processBatch(batch)
-                    batch.clear()
-                } catch (e: Exception) {
-                    if (e is CancellationException) throw e
-                    LogUtil.e(e.message ?: "")
-                    e.printStackTrace()
-                    batch.clear()
+        synchronized(Companion) {
+            // 定位日志：打印本实例标识，便于在日志中核对“是否存在多实例反复 start”。
+            LogUtil.e("ParseEcg12Data.start 实例=${System.identityHashCode(this)} 队列当前=${queue.size} 累计丢帧=$droppedFrames", "EcgLife")
+            // 把“当前待处理队列大小”提供给 LogUtil 资源采样器（此处 queue 已初始化，无前向引用问题）。
+            // 采样日志里就能看到队列随时间的变化，配合线程数/内存判断 OOM 类型。多次注册是幂等的。
+            LogUtil.setQueueSizeProvider { queue.size }
+            // 消费者全局唯一：queue 是静态全局的，而消费协程是实例级。APP 每次进页面 new 一个新的
+            // SerialPortHelper → 新的 ParseEcg12Data 实例，若旧实例未被 stop（APP 侧 start/stop 常不配对），
+            // 多个实例的消费协程会同时抢同一个静态 queue，并各自钩住旧监听器/UI 造成泄漏。
+            // 这里在启动本实例消费协程前，先顶掉上一个活跃实例，保证全局只有一条消费协程。
+            registerActiveConsumer(this)
+            // 幂等：若本实例已有活跃消费协程，先彻底停掉旧的，避免重复 start() 累积出多条协程。
+            stopInternal()
+            clearQueue()
+            val newScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+            scope = newScope
+            consumeJob = newScope.launch {
+                val batch = ArrayList<ByteArray>(128)
+                while (isActive) {
+                    try {
+                        // runInterruptible 让 take() 在协程取消时可被中断
+                        val first = runInterruptible(Dispatchers.IO) { queue.take() }
+                        batch.add(first)
+                        // 把队列中当前所有可用帧全部取出，一次性处理
+                        queue.drainTo(batch)
+                        // 批量处理
+                        processBatch(batch)
+                        batch.clear()
+                    } catch (e: Exception) {
+                        if (e is CancellationException) throw e
+                        LogUtil.e(e.message ?: "")
+                        e.printStackTrace()
+                        batch.clear()
+                    }
                 }
             }
         }
     }
 
     fun stop() {
-        scope.cancel()
-        clearQueue()
-        onECGDataListener = null
+        synchronized(Companion) {
+            LogUtil.e("ParseEcg12Data.stop 实例=${System.identityHashCode(this)} 队列当前=${queue.size} 累计丢帧=$droppedFrames", "EcgLife")
+            unregisterActiveConsumer(this)
+            stopInternal()
+            clearQueue()
+            onECGDataListener = null
+        }
+    }
+
+    // 仅负责停掉当前消费协程与作用域，可被 start()/stop() 复用。
+    // 幂等：多次调用安全，不会抛异常。
+    private fun stopInternal() {
+        consumeJob?.cancel()
+        consumeJob = null
+        scope?.cancel()
+        scope = null
     }
 
     private val leadData = ShortArray(8)
@@ -307,6 +345,33 @@ class ParseEcg12Data {
     companion object {
         private var time = 0
 
+        // 当前全局唯一的活跃消费者实例。理由同 SphThreads 的生产者唯一：
+        // queue 是静态全局单例，消费协程却是实例级，多实例并存会抢队列 + 泄漏旧监听器/UI。
+        @Volatile
+        private var activeConsumer: ParseEcg12Data? = null
+
+        @Synchronized
+        private fun registerActiveConsumer(instance: ParseEcg12Data) {
+            activeConsumer?.let {
+                if (it !== instance) {
+                    // 定位日志：出现这条即说明 APP 侧 start/stop 未配对，旧消费者被新实例顶替。
+                    // 频繁出现 = 存在实例反复创建（潜在泄漏/积压诱因）。
+                    LogUtil.e(
+                        "检测到已有活跃12导消费者，顶替：旧实例=${System.identityHashCode(it)} → 新实例=${System.identityHashCode(instance)}",
+                        "EcgLife"
+                    )
+                    it.stopInternal()
+                    it.onECGDataListener = null
+                }
+            }
+            activeConsumer = instance
+        }
+
+        @Synchronized
+        private fun unregisterActiveConsumer(instance: ParseEcg12Data) {
+            if (activeConsumer === instance) activeConsumer = null
+        }
+
         // 入队帧率实测约 1000 帧/秒(1000Hz)。队列仅用于吸收短时处理抖动(GC、热节流、UI 卡顿)，
         // 4096 约等于 4 秒缓冲，稳态下长期贴近 0；满载内存也仅约 240KB，
         // 彻底杜绝高温长测时无界队列积压到百万帧拖垮内存/实时性的问题。
@@ -315,6 +380,10 @@ class ParseEcg12Data {
 
         // 累计丢帧数，用于观测过载程度
         private var droppedFrames = 0L
+        // 是否已打过“首次丢帧”告警。队列首次被打满(开始丢帧)是消费追不上生产的决定性信号，
+        // 单独打一条，便于在日志里精确定位积压“从何时开始”。
+        @Volatile
+        private var everDropped = false
 
         fun clearQueue() {
             queue.clear()
@@ -329,15 +398,25 @@ class ParseEcg12Data {
             while (!queue.offer(bytes)) {
                 if (queue.poll() != null) {   // 丢弃最旧，仅在确实移除了一帧时才计数
                     droppedFrames++
+                    if (!everDropped) {
+                        everDropped = true
+                        // 首次丢帧：积压已顶到队列上限(4096)。出现这条=消费开始追不上生产，是根因排查的关键时间点。
+                        LogUtil.e("12导队列首次打满开始丢帧(容量=$QUEUE_CAPACITY)，消费已追不上生产，请关注该时刻前后的消费端表现", "EcgLife")
+                    }
                     if (droppedFrames % 1000 == 0L) {
                         LogUtil.e("12导队列已满,累计丢帧:$droppedFrames (队列容量:$QUEUE_CAPACITY)")
                     }
                 }
             }
             time++
-            if (time % 3000 == 0) {
+            // 仅在积压偏大时才周期性告警，稳态(队列贴近0)下完全不打日志，
+            // 避免生产热路径上的无谓日志 I/O 反过来拖慢消费、诱发积压。
+            if (time % 5000 == 0) {
                 time = 0
-                LogUtil.v("待处理队列大小:${queue.size}")
+                val size = queue.size
+                if (size > QUEUE_CAPACITY / 4) {
+                    LogUtil.v("待处理队列大小:$size")
+                }
             }
         }
 
