@@ -3,7 +3,6 @@ package com.Carewell.ecg700.port
 import com.Carewell.OmniEcg.jni.ConfigBean
 import com.Carewell.OmniEcg.jni.PaceClearArr.feed
 import com.Carewell.OmniEcg.jni.WaveFilter
-import kotlinx.coroutines.*
 import java.util.concurrent.LinkedBlockingQueue
 
 /**
@@ -18,12 +17,13 @@ class ParseEcg12Data {
         this.onECGDataListener = onECGDataListener
     }
 
-    // 消费协程作用域。cancel() 之后 Job 进入终态无法复用，因此每次 start() 都按需重建，
-    // 保证 stop() 之后仍能重新 start()，避免 "stop 后 start 静默失效导致再也没有消费者"。
-    private var scope: CoroutineScope? = null
-    // 显式持有消费协程 Job，用于幂等控制：重复 start() 时先取消旧协程，
-    // 保证全局始终只有一条活跃消费协程在消费静态 queue，杜绝多消费者抢队列导致的消费稀释与协程泄漏。
-    private var consumeJob: Job? = null
+    // 消费线程。改用专用线程直接阻塞在 queue.take()，而不是协程里 runInterruptible(Dispatchers.IO) 逐批
+    // 从 Dispatchers.Default 跳到 Dispatchers.IO 再跳回。
+    // 原因：1000Hz 下批次很小、循环极频繁，每批一次线程切换 + runInterruptible 的中断处理器安装/拆卸
+    // 是纯开销，实测导致消费长期比生产慢约 10%（日志中队列长期贴近满、约 90 帧/秒被丢弃）。
+    // 专用线程整段跑在同一线程上，直接 take() 阻塞，取消靠 interrupt()，消除逐批切换开销。
+    @Volatile
+    private var consumeThread: Thread? = null
 
     // 注意：start()/stop() 统一用 companion(Companion) 作为锁对象，而非实例锁。
     // 因为“顶掉旧的全局活跃消费者”和“启动本实例消费协程”必须对同一把锁原子完成，
@@ -41,30 +41,56 @@ class ParseEcg12Data {
             // 多个实例的消费协程会同时抢同一个静态 queue，并各自钩住旧监听器/UI 造成泄漏。
             // 这里在启动本实例消费协程前，先顶掉上一个活跃实例，保证全局只有一条消费协程。
             registerActiveConsumer(this)
-            // 幂等：若本实例已有活跃消费协程，先彻底停掉旧的，避免重复 start() 累积出多条协程。
+            // 幂等：若本实例已有活跃消费线程，先彻底停掉旧的，避免重复 start() 累积出多条消费者。
             stopInternal()
             clearQueue()
-            val newScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
-            scope = newScope
-            consumeJob = newScope.launch {
-                val batch = ArrayList<ByteArray>(128)
-                while (isActive) {
-                    try {
-                        // runInterruptible 让 take() 在协程取消时可被中断
-                        val first = runInterruptible(Dispatchers.IO) { queue.take() }
-                        batch.add(first)
-                        // 把队列中当前所有可用帧全部取出，一次性处理
-                        queue.drainTo(batch)
-                        // 批量处理
-                        processBatch(batch)
-                        batch.clear()
-                    } catch (e: Exception) {
-                        if (e is CancellationException) throw e
-                        LogUtil.e(e.message ?: "")
-                        e.printStackTrace()
-                        batch.clear()
-                    }
+            val t = Thread({ consumeLoop() }, "ecg12-consumer").apply { isDaemon = true }
+            consumeThread = t
+            t.start()
+        }
+    }
+
+    // 消费主循环：整段跑在专用线程上，直接阻塞在 queue.take()，无逐批线程切换。
+    // 取消方式：stopInternal() 调用 interrupt()，take()/drainTo 抛出 InterruptedException 或线程中断标志置位后退出循环。
+    private fun consumeLoop() {
+        val batch = ArrayList<ByteArray>(128)
+        // 消费吞吐统计：每 10 秒打印一次这段时间实际处理的帧数换算成"帧/秒"。
+        // 生产端约 1000 帧/秒，若这里长期明显低于 1000(且队列不为 0)，即消费追不上生产，
+        // 是高温降频下定位"到底还差多少算力"的直接判据，无需再靠丢帧数反推。
+        var framesInWindow = 0L
+        var windowStart = System.currentTimeMillis()
+        while (!Thread.currentThread().isInterrupted) {
+            try {
+                val first = queue.take() // 阻塞直到有帧；被 interrupt() 时抛 InterruptedException 退出
+                batch.add(first)
+                // 把队列中当前所有可用帧全部取出，一次性处理
+                queue.drainTo(batch)
+                framesInWindow += batch.size
+                // 批量处理
+                processBatch(batch)
+                batch.clear()
+
+                val now = System.currentTimeMillis()
+                val elapsed = now - windowStart
+                if (elapsed >= STAT_INTERVAL_MS) {
+                    val fps = framesInWindow * 1000.0 / elapsed
+                    LogUtil.e(
+                        "12导消费吞吐: ${"%.1f".format(fps)}帧/秒 (窗口${elapsed}ms内处理${framesInWindow}帧) " +
+                            "队列=${queue.size} 累计丢帧=$droppedFrames",
+                        "EcgStat"
+                    )
+                    framesInWindow = 0
+                    windowStart = now
                 }
+            } catch (e: InterruptedException) {
+                // 收到取消信号：恢复中断标志并退出循环
+                Thread.currentThread().interrupt()
+                batch.clear()
+                break
+            } catch (e: Exception) {
+                LogUtil.e(e.message ?: "")
+                e.printStackTrace()
+                batch.clear()
             }
         }
     }
@@ -79,13 +105,11 @@ class ParseEcg12Data {
         }
     }
 
-    // 仅负责停掉当前消费协程与作用域，可被 start()/stop() 复用。
-    // 幂等：多次调用安全，不会抛异常。
+    // 仅负责停掉当前消费线程，可被 start()/stop() 复用。
+    // 幂等：多次调用安全，不会抛异常。interrupt() 会中断阻塞中的 queue.take() 使循环退出。
     private fun stopInternal() {
-        consumeJob?.cancel()
-        consumeJob = null
-        scope?.cancel()
-        scope = null
+        consumeThread?.interrupt()
+        consumeThread = null
     }
 
     private val leadData = ShortArray(8)
@@ -377,6 +401,9 @@ class ParseEcg12Data {
         // 彻底杜绝高温长测时无界队列积压到百万帧拖垮内存/实时性的问题。
         private const val QUEUE_CAPACITY = 4096
         private val queue = LinkedBlockingQueue<ByteArray>(QUEUE_CAPACITY)
+
+        // 消费吞吐统计打印间隔：每 10 秒一次。仅一条日志，开销可忽略。
+        private const val STAT_INTERVAL_MS = 10_000L
 
         // 累计丢帧数，用于观测过载程度
         private var droppedFrames = 0L

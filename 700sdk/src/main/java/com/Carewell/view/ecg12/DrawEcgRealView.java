@@ -226,7 +226,10 @@ public class DrawEcgRealView extends SurfaceView implements SurfaceHolder.Callba
                 drawWave();
 
                 try {
-                    Thread.sleep(2);
+                    // 原来 sleep(2) 约等于每秒重绘 500 次，而屏幕刷新率通常只有 60Hz，
+                    // 绝大部分重绘都是白画，还持续占满一个 CPU 核心，和心电解析线程抢算力
+                    // （高温降频时尤其明显）。改为 sleep(16) 约 60fps，肉眼无差别，但大幅降负。
+                    Thread.sleep(16);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
