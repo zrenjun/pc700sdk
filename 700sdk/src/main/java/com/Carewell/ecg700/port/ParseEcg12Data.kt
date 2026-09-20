@@ -1,5 +1,6 @@
 package com.Carewell.ecg700.port
 
+import android.os.Process
 import com.Carewell.OmniEcg.jni.ConfigBean
 import com.Carewell.OmniEcg.jni.PaceClearArr.feed
 import com.Carewell.OmniEcg.jni.WaveFilter
@@ -53,11 +54,28 @@ class ParseEcg12Data {
     // 消费主循环：整段跑在专用线程上，直接阻塞在 queue.take()，无逐批线程切换。
     // 取消方式：stopInternal() 调用 interrupt()，take()/drainTo 抛出 InterruptedException 或线程中断标志置位后退出循环。
     private fun consumeLoop() {
+        // 提升本消费线程的调度优先级。日志显示高温下本线程的 10 秒统计窗口常被拉长到 12~13 秒，
+        // 即线程被系统周期性延迟调度(拿不到 CPU 时间片)，导致队列积压、显示延迟不稳定(观感卡顿)。
+        // 用 Android 的 Process.setThreadPriority(设置 Linux nice 值)才能真正影响调度——
+        // Java 的 Thread.priority 在 Android 上几乎无效。
+        // 选用 URGENT_AUDIO(-19)：心电是硬实时的连续采样流，需要与音频同级的调度保障，
+        // 确保 CPU 紧张(高温降频/其它线程繁忙)时本线程优先被执行，减少窗口被拉长的情况。
+        try {
+            Process.setThreadPriority(Process.THREAD_PRIORITY_URGENT_AUDIO)
+        } catch (t: Throwable) {
+            // 某些定制系统可能限制该调用，失败不影响功能，仅记录
+            LogUtil.e("设置消费线程优先级失败: ${t.message}", "EcgLife")
+        }
         val batch = ArrayList<ByteArray>(128)
         // 消费吞吐统计：每 10 秒打印一次这段时间实际处理的帧数换算成"帧/秒"。
         // 生产端约 1000 帧/秒，若这里长期明显低于 1000(且队列不为 0)，即消费追不上生产，
         // 是高温降频下定位"到底还差多少算力"的直接判据，无需再靠丢帧数反推。
         var framesInWindow = 0L
+        // 本窗口内 processBatch 的累计纯处理耗时(纳秒)。只计处理、不含 queue.take() 的阻塞等待，
+        // 因此能反映"每帧真正花了多少 CPU 时间"——这才是衡量优化效果的指标：
+        // 帧/秒被生产端 1000Hz 封顶看不出余量，而"每帧 μs"和"处理占用率"会随代码变快而下降。
+        // 高温降频时每帧 μs 会上升，正好量化降频吃掉了多少余量、以及优化补回了多少。
+        var processNanosInWindow = 0L
         var windowStart = System.currentTimeMillis()
         while (!Thread.currentThread().isInterrupted) {
             try {
@@ -66,20 +84,28 @@ class ParseEcg12Data {
                 // 把队列中当前所有可用帧全部取出，一次性处理
                 queue.drainTo(batch)
                 framesInWindow += batch.size
-                // 批量处理
+                // 批量处理(计时：仅纯处理耗时)
+                val t0 = System.nanoTime()
                 processBatch(batch)
+                processNanosInWindow += System.nanoTime() - t0
                 batch.clear()
 
                 val now = System.currentTimeMillis()
                 val elapsed = now - windowStart
                 if (elapsed >= STAT_INTERVAL_MS) {
                     val fps = framesInWindow * 1000.0 / elapsed
-                    LogUtil.e(
-                        "12导消费吞吐: ${"%.1f".format(fps)}帧/秒 (窗口${elapsed}ms内处理${framesInWindow}帧) " +
+                    // 每帧平均处理耗时(微秒)
+                    val usPerFrame = if (framesInWindow > 0) processNanosInWindow / 1000.0 / framesInWindow else 0.0
+                    // 处理占用率：本窗口花在处理上的时间 / 窗口总时长。越低说明消费端越空闲、余量越大。
+                    val busyPct = processNanosInWindow / 1_000_000.0 / elapsed * 100.0
+                    LogUtil.v(
+                        "12导消费吞吐: ${"%.1f".format(fps)}帧/秒 每帧${"%.1f".format(usPerFrame)}μs " +
+                            "处理占用${"%.1f".format(busyPct)}% (窗口${elapsed}ms内处理${framesInWindow}帧) " +
                             "队列=${queue.size} 累计丢帧=$droppedFrames",
                         "EcgStat"
                     )
                     framesInWindow = 0
+                    processNanosInWindow = 0
                     windowStart = now
                 }
             } catch (e: InterruptedException) {
@@ -97,7 +123,7 @@ class ParseEcg12Data {
 
     fun stop() {
         synchronized(Companion) {
-            LogUtil.e("ParseEcg12Data.stop 实例=${System.identityHashCode(this)} 队列当前=${queue.size} 累计丢帧=$droppedFrames", "EcgLife")
+            LogUtil.v("ParseEcg12Data.stop 实例=${System.identityHashCode(this)} 队列当前=${queue.size} 累计丢帧=$droppedFrames", "EcgLife")
             unregisterActiveConsumer(this)
             stopInternal()
             clearQueue()
@@ -122,6 +148,14 @@ class ParseEcg12Data {
     private val hrWave = IntArray(1)
     private val leadOffArr = IntArray(8)
     private val fallFlags = BooleanArray(8)
+
+    // ---- 心率批量计算缓冲 ----
+    // 原实现每帧调一次 JNI getDataHeartRate(每次只喂 1 个点)，1000Hz 下每秒 1000 次 JNI 跨界。
+    // 心率检测是流式有状态算法，只要把整批采样点按原始顺序一个不漏地喂进去，native 内部看到的
+    // 采样序列与逐点喂完全一致，心率结果不变——省的纯粹是 JNI 跨界固定开销。
+    // hrBatch 收集本批每帧的心率输入点(滤波前，与原 hrWave 赋值时机一致)，批末一次性喂给 native。
+    private var hrBatch = IntArray(INITIAL_POOL_SIZE)
+    private var hrBatchSize = 0
 
     // ---- 结果对象池，避免高频小对象分配造成 GC 压力 ----
     // 按需增长；同时支持在负载降低后动态收缩，避免峰值内存永久占用
@@ -188,13 +222,26 @@ class ParseEcg12Data {
         batchEcgData.clear()
         var lastHr = -1
 
+        // 本批心率输入点收集器复位；容量不足时按批大小增长(与对象池同策略)
+        if (hrBatch.size < batch.size) hrBatch = IntArray(maxOf(batch.size, hrBatch.size * 2))
+        hrBatchSize = 0
+
         for (frame in batch) {
             if (!processFrame(frame)) continue
             val pooled = ecgDataPool[batchEcgData.size]
             System.arraycopy(ecgData, 0, pooled, 0, ecgData.size)
             batchEcgData.add(pooled)
-            // 心率检测需要逐帧喂数据，hrWave 已在 processFrame 中更新
-            WaveFilter.instance?.let { lastHr = it.getRate(hrWave) }
+            // 收集本帧心率输入点(processFrame 已在滤波前写入 hrWave[0])，批末一次性喂给 native
+            hrBatch[hrBatchSize++] = hrWave[0]
+        }
+
+        // 心率批量计算：把本批所有采样点按原始顺序一次性喂给 native，等价于逐点喂但只跨界一次。
+        // 传入精确长度的数组，避免复用缓冲的尾部残留被 native 当作有效数据处理。
+        if (hrBatchSize > 0) {
+            WaveFilter.instance?.let {
+                val input = if (hrBatchSize == hrBatch.size) hrBatch else hrBatch.copyOf(hrBatchSize)
+                lastHr = it.getRate(input)
+            }
         }
 
         // 无论本批是否有效帧，都参与收缩统计，保证空闲期能被感知到
@@ -380,7 +427,7 @@ class ParseEcg12Data {
                 if (it !== instance) {
                     // 定位日志：出现这条即说明 APP 侧 start/stop 未配对，旧消费者被新实例顶替。
                     // 频繁出现 = 存在实例反复创建（潜在泄漏/积压诱因）。
-                    LogUtil.e(
+                    LogUtil.v(
                         "检测到已有活跃12导消费者，顶替：旧实例=${System.identityHashCode(it)} → 新实例=${System.identityHashCode(instance)}",
                         "EcgLife"
                     )

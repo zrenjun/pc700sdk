@@ -16,13 +16,21 @@ class WaveFilter {
     @Volatile
     private var isHeartRate: Boolean = true
 
+    // ---- 复用对象，避免 filterControl 每帧(1000次/秒)分配 ----
+    // filterControl 由 12 导消费单线程唯一调用，成员复用无多线程竞争。
+    // 复用 NotifyFilterBean 外壳与返回数组，消除每帧 new NotifyFilterBean + new Array(8){ShortArray(1)} 的分配。
+    // 注意：返回的 reusableFilterOut 是复用数组，调用方必须在本帧内同步取值(processFrame 会立即 toInt/arraycopy)，
+    // 不能跨帧持有其引用。
+    private val reusableNotifyBean = NotifyFilterBean()
+    private val reusableFilterOut = Array(8) { ShortArray(1) }
+
     //	滤波检测
     fun filterControl(
         configBean: ConfigBean?,
         ecgDataArray: Array<ShortArray>,
         leadOffArr: IntArray?
     ): Array<ShortArray> {
-        val notifyFilterBean = NotifyFilterBean()
+        val notifyFilterBean = reusableNotifyBean
         val inputDataCount = ecgDataArray[0].size
         val jniFilter = JniFilterNew.getInstance()
         notifyFilterBean.outDataLen = inputDataCount
@@ -184,8 +192,8 @@ class WaveFilter {
             }
             tmpDataArray = notifyFilterBean.intDataArray
         }
-        //重新转成short类型丢出
-        val filterDataArray = Array(8) { ShortArray(1) }
+        //重新转成short类型丢出（复用返回数组，调用方需在本帧内同步取值）
+        val filterDataArray = reusableFilterOut
         //这里每次只过滤一个导联点的数据，这里只接一个循环就可以
         //丢入滤波数据变化这里需要修改
         for (i in 0..7) {
