@@ -470,6 +470,13 @@ interface OnECG12DataListener {
 
     fun onHrReceived(hr: Int)
     fun onLeadFailReceived(leadFail: String, fall: Boolean)
+
+    /**
+     * 滤波旁路状态变化回调（默认空实现，旧监听方无需改动）。
+     * @param bypassed true=消费端持续过载，已自动旁路滤波，当前波形为未滤波的原始信号（含基线漂移/工频干扰，
+     *                 不适合诊断），APP 宜提示“高负载，波形已降级”；false=负载缓解，已恢复滤波。
+     */
+    fun onFilterBypassChanged(bypassed: Boolean) {}
 }
 
 

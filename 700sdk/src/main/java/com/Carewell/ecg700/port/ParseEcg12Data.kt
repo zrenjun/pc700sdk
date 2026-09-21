@@ -19,6 +19,16 @@ class ParseEcg12Data {
         this.onECGDataListener = onECGDataListener
     }
 
+    // 通知 APP 滤波旁路状态发生变化(true=已自动旁路滤波，波形降级为未滤波；false=已恢复滤波)。
+    // 在消费线程回调，与波形/心率回调同线程；APP 可据此提示"高负载，波形已降级"。
+    private fun notifyBypassChanged(bypassed: Boolean) {
+        try {
+            onECGDataListener?.onFilterBypassChanged(bypassed)
+        } catch (t: Throwable) {
+            LogUtil.e("onFilterBypassChanged 回调异常: ${t.message}", "EcgLife")
+        }
+    }
+
     // 消费线程。改用专用线程直接阻塞在 queue.take()，而不是协程里 runInterruptible(Dispatchers.IO) 逐批
     // 从 Dispatchers.Default 跳到 Dispatchers.IO 再跳回。
     // 原因：1000Hz 下批次很小、循环极频繁，每批一次线程切换 + runInterruptible 的中断处理器安装/拆卸
@@ -87,9 +97,43 @@ class ParseEcg12Data {
         var gcCountAtWindowStart = readGcCount()
         // 各线程在窗口开始时的 CPU 时间快照，用于窗口异常拉长时点名"谁抢了 CPU"。
         var threadCpuSnapshot = snapshotAllThreadCpu()
+        // 窗口开始时的累计丢帧数，差值即本窗口新增丢帧，用于判定是否过载。
+        var droppedAtWindowStart = droppedFrames
+        // ---- 过载自动旁路滤波的探测状态(仅本消费线程读写) ----
+        // 下次允许探测恢复滤波的时间戳；进入旁路后需等到该时刻才试探恢复。
+        var bypassProbeAtMs = 0L
+        // 当前旁路时长(退避)：反复过载时翻倍，负载稳定后重置。
+        var bypassBackoffMs = AUTO_BYPASS_BASE_MS
+        // 最近一次恢复滤波的时间，用于判断"探测恢复后是否很快又过载"。
+        var lastRecoverMs = 0L
+        // 进入旁路的统一入口(窗口级判定和实时水位判定复用)：计算退避时长、置位、通知 APP。
+        fun enterBypass(nowMs: Long, reason: String) {
+            // 距上次恢复很近就又过载 => 上次探测恢复失败，旁路退避时间翻倍(上限封顶)；否则重置为基准。
+            bypassBackoffMs = if (nowMs - lastRecoverMs < bypassBackoffMs * 2)
+                minOf(bypassBackoffMs * 2, AUTO_BYPASS_MAX_MS) else AUTO_BYPASS_BASE_MS
+            autoFilterBypass = true
+            bypassProbeAtMs = nowMs + bypassBackoffMs
+            notifyBypassChanged(true)
+            LogUtil.e("$reason，自动旁路滤波保实时；${bypassBackoffMs / 1000}s 后探测恢复", "EcgLife")
+        }
         while (!Thread.currentThread().isInterrupted) {
             try {
+                // 记录在 take() 上阻塞等待的时长：队列为空(设备没在发12导数据)时这里会长时间阻塞。
+                val waitStart = System.currentTimeMillis()
                 val first = queue.take() // 阻塞直到有帧；被 interrupt() 时抛 InterruptedException 退出
+                val waitedMs = System.currentTimeMillis() - waitStart
+                // 空闲跳过：若本次是等了很久才等到数据(如启动后还没进测量页、设备尚未推送12导)，
+                // 这段时间纯粹是空闲阻塞、并非“消费线程被抢CPU/拉长”。若把它算进统计窗口，
+                // 会得到 fps≈0、窗口≈几十秒的假“窗口异常拉长”告警(实测启动首窗口 42s/2帧)。
+                // 稳态 1000Hz 下每次 take() 阻塞仅约 1ms，远低于该阈值，不受影响。
+                if (waitedMs >= IDLE_GAP_MS) {
+                    windowStart = System.currentTimeMillis()
+                    framesInWindow = 0
+                    processNanosInWindow = 0
+                    cpuJiffiesAtWindowStart = readThreadCpuJiffies(myTid)
+                    gcCountAtWindowStart = readGcCount()
+                    threadCpuSnapshot = snapshotAllThreadCpu()
+                }
                 batch.add(first)
                 // 把队列中当前所有可用帧全部取出，一次性处理
                 queue.drainTo(batch)
@@ -99,6 +143,14 @@ class ParseEcg12Data {
                 processBatch(batch)
                 processNanosInWindow += System.nanoTime() - t0
                 batch.clear()
+
+                // 实时水位触发：每处理完一批就查一次队列，逼近满(高水位)即立刻旁路，
+                // 不必等到 10s 统计窗口，尽量赶在大量丢帧之前反应。
+                if (autoFilterFallbackEnabled && isFilterEnabled && !autoFilterBypass &&
+                    queue.size >= AUTO_BYPASS_QUEUE_HIGH
+                ) {
+                    enterBypass(System.currentTimeMillis(), "队列水位过高(${queue.size}/$QUEUE_CAPACITY)")
+                }
 
                 val now = System.currentTimeMillis()
                 val elapsed = now - windowStart
@@ -125,17 +177,43 @@ class ParseEcg12Data {
                         "12导消费吞吐: ${"%.1f".format(fps)}帧/秒 每帧${"%.1f".format(usPerFrame)}μs " +
                             "处理占用${"%.1f".format(busyPct)}% (窗口${elapsed}ms内处理${framesInWindow}帧) " +
                             "队列=${queue.size} 累计丢帧=$droppedFrames " +
-                            "本线程CPU=${cpuMs}ms(占墙钟${"%.1f".format(cpuOfWallPct)}%) GC次数=$gcDelta",
-                        "EcgStat"
+                            "本线程CPU=${cpuMs}ms(占墙钟${"%.1f".format(cpuOfWallPct)}%) GC次数=$gcDelta"
                     )
 
                     // 3) 窗口异常拉长(明显超过应有的10秒)时，点名本窗口内 CPU 增量最大的几个线程，抓"谁抢了CPU"的现场。
                     val newSnapshot = snapshotAllThreadCpu()
                     if (elapsed >= WINDOW_LONG_THRESHOLD_MS) {
-                        LogUtil.v(
-                            "12导窗口异常拉长(${elapsed}ms)，本窗口CPU占用TOP线程: ${topCpuThreads(threadCpuSnapshot, newSnapshot)}",
-                            "EcgStat"
-                        )
+                        LogUtil.v("12导窗口异常拉长(${elapsed}ms)，本窗口CPU占用TOP线程: ${topCpuThreads(threadCpuSnapshot, newSnapshot)}")
+                    }
+
+                    // 4) 过载自动旁路滤波：高温/杂乱波形下每帧处理>1000μs 时，消费追不上 1000Hz 生产，
+                    //    会持续丢帧(实测每帧~1150μs、占用~100%、队列顶死4096、丢帧不断上涨)。此时自动关闭
+                    //    滤波(每帧回落~185μs)保住实时性与最新波形；负载缓解后再探测性地恢复滤波。
+                    //    仅在"用户希望开启滤波(isFilterEnabled)"且"功能未被禁用"时接管，不覆盖用户的手动关闭。
+                    if (autoFilterFallbackEnabled && isFilterEnabled) {
+                        val dropsInWindow = droppedFrames - droppedAtWindowStart
+                        val queueNow = queue.size
+                        if (!autoFilterBypass) {
+                            // 过载判据：本窗口已丢帧，或(占用逼近满载 且 队列积压达阈值)——后者可在真正大量丢帧前提前旁路。
+                            val overloaded = dropsInWindow > AUTO_BYPASS_DROP_TRIGGER ||
+                                (busyPct >= AUTO_BYPASS_BUSY_PCT && queueNow >= AUTO_BYPASS_QUEUE)
+                            if (overloaded) {
+                                enterBypass(
+                                    now,
+                                    "检测到持续过载(本窗口丢帧=$dropsInWindow 占用=${"%.1f".format(busyPct)}% 队列=$queueNow)"
+                                )
+                            }
+                        } else if (now >= bypassProbeAtMs) {
+                            // 冷却结束，探测性恢复滤波；若随即再次过载，上面的退避逻辑会自动延长下次旁路时长。
+                            autoFilterBypass = false
+                            lastRecoverMs = now
+                            notifyBypassChanged(false)
+                            LogUtil.e("负载已缓解，尝试恢复滤波(若随即再次过载将自动延长旁路时长)", "EcgLife")
+                        }
+                    } else if (autoFilterBypass) {
+                        // 用户已手动关闭滤波或功能被禁用：清除旁路状态，避免残留。
+                        autoFilterBypass = false
+                        notifyBypassChanged(false)
                     }
 
                     framesInWindow = 0
@@ -144,6 +222,7 @@ class ParseEcg12Data {
                     cpuJiffiesAtWindowStart = cpuJiffiesNow
                     gcCountAtWindowStart = gcCountNow
                     threadCpuSnapshot = newSnapshot
+                    droppedAtWindowStart = droppedFrames
                 }
             } catch (e: InterruptedException) {
                 // 收到取消信号：恢复中断标志并退出循环
@@ -425,7 +504,7 @@ class ParseEcg12Data {
 
         // 滤波总开关：开启则走整套 JNI 滤波；关闭则直接用滤波前的原始值 filterWave(省算力，波形未滤波)。
         // 关闭滤波不影响心率——心率取的是上面 hrWave 里的滤波前原始导联值。
-        val filtered = if (isFilterEnabled) {
+        val filtered = if (isFilterEnabled && !autoFilterBypass) {
             WaveFilter.instance?.filterControl(configBean, filterWave, leadOffArr) ?: filterWave
         } else {
             filterWave
@@ -435,12 +514,12 @@ class ParseEcg12Data {
             count = 2
         }
 
-        if (isAddPacemaker && count > 0) {
-            for (i in 0 until 8) {
-                filtered[i][0] = if (!fallFlags[i]) PACE_MAKER_VALUE else filtered[i][0]
-            }
-            count--
-        }
+        // 本采样点是否需要叠加起搏标记。
+        // 注意：起搏标记不能在推算之前写进 filtered[0](I)/filtered[1](II)——因为 III=II-I，
+        // 给 I、II 写入相等的 PACE_MAKER_VALUE 会让 III 相减为 0，导致三导(III)看不到起搏标识(测试报的 bug)。
+        // 正确做法：推算仍用真实(已清起搏)波形，标记在推算之后统一叠加到 12 个导联上。
+        val paceMark = isAddPacemaker && count > 0
+        if (paceMark) count--
 
         // III/AVR/AVL/AVF 由 I、II 共同计算得出，只要 I 或 II 任意一个脱落，
         // 这几个导联的计算结果就不可信，需要展示为直线（置零）
@@ -467,6 +546,26 @@ class ParseEcg12Data {
             ecgData[9] = filtered[5][k].toInt()
             ecgData[10] = filtered[6][k].toInt()
             ecgData[11] = filtered[7][k].toInt()
+
+            // 起搏标记：在推算完成后统一叠加，避免 III=II-I 把相等标记值抵消。
+            // 仅打在有效(未脱落)导联上；肢导(I/II/III/aVR/aVL/aVF)在 I 或 II 脱落时整体不可信，不打。
+            if (paceMark) {
+                val v = PACE_MAKER_VALUE.toInt()
+                if (!iFall) ecgData[0] = v
+                if (!iiFall) ecgData[1] = v
+                if (!limbDerivedFall) {
+                    ecgData[2] = v // III：关键修复，不再被 II-I 抵消
+                    ecgData[3] = v // AVR
+                    ecgData[4] = v // AVL
+                    ecgData[5] = v // AVF
+                }
+                if (!v1Fall) ecgData[6] = v // V1
+                if (!v2Fall) ecgData[7] = v // V2
+                if (!v3Fall) ecgData[8] = v // V3
+                if (!v4Fall) ecgData[9] = v // V4
+                if (!v5Fall) ecgData[10] = v // V5
+                if (!v6Fall) ecgData[11] = v // V6
+            }
         }
 
         return true
@@ -583,6 +682,26 @@ class ParseEcg12Data {
         // 窗口墙钟时长超过此阈值即视为"异常拉长"(正常应≈10000ms)，触发 TOP CPU 线程取证。
         private const val WINDOW_LONG_THRESHOLD_MS = 11_000L
 
+        // ---- 过载自动旁路滤波的阈值 ----
+        // 本窗口新增丢帧超过此数即判定过载(留一点余量，避开页面切换等一次性瞬时丢帧)。
+        private const val AUTO_BYPASS_DROP_TRIGGER = 100L
+        // 处理占用达到此比例视为逼近满载。
+        private const val AUTO_BYPASS_BUSY_PCT = 95.0
+        // 且队列积压达到此值时(配合占用率，窗口级早触发)，可在大量丢帧前提前旁路。
+        private const val AUTO_BYPASS_QUEUE = 1024
+        // 实时水位阈值：主循环每处理完一批就检查，队列积压达到此值(接近满)立刻旁路，
+        // 不等 10s 统计窗口，尽量赶在大量丢帧之前反应。
+        private const val AUTO_BYPASS_QUEUE_HIGH = 3072
+        // 旁路基准时长：进入旁路后至少维持这么久再探测恢复。
+        private const val AUTO_BYPASS_BASE_MS = 20_000L
+        // 旁路退避上限：反复过载时旁路时长翻倍，但不超过此值。
+        private const val AUTO_BYPASS_MAX_MS = 160_000L
+
+        // take() 单次阻塞等待超过此阈值即判定为“空闲无数据”(而非消费拉长)，
+        // 用于重置统计窗口基线，避免把启动/停测等空闲期误报为“窗口异常拉长”。
+        // 稳态 1000Hz 下每次 take() 阻塞约 1ms，2 秒阈值不会误伤正常消费。
+        private const val IDLE_GAP_MS = 2_000L
+
         // 累计丢帧数，用于观测过载程度
         private var droppedFrames = 0L
         // 是否已打过“首次丢帧”告警。队列首次被打满(开始丢帧)是消费追不上生产的决定性信号，
@@ -675,6 +794,25 @@ class ParseEcg12Data {
             isFilterEnabled = enabled
             LogUtil.v("滤波开关设置为: ${if (enabled) "开启" else "关闭"}", "EcgLife")
         }
+
+        // ---- 过载自动旁路滤波(对外开关) ----
+        // true(默认)：当消费端持续过载(高温+杂乱波形导致每帧>1000μs、持续丢帧)时，自动临时旁路滤波
+        //             以保住实时性与最新波形，负载缓解后自动探测恢复。不改变 isFilterEnabled 的用户意图。
+        // false：完全遵从 isFilterEnabled，不做任何自动降级(过载时将持续丢帧)。
+        @Volatile
+        var autoFilterFallbackEnabled = true
+            private set
+
+        fun setAutoFilterFallbackEnabled(enabled: Boolean) {
+            autoFilterFallbackEnabled = enabled
+            if (!enabled) autoFilterBypass = false
+            LogUtil.v("滤波过载自动旁路: ${if (enabled) "开启" else "关闭"}", "EcgLife")
+        }
+
+        // 运行时旁路标志：由消费线程在过载时置位、恢复时清除；processFrame 据此临时跳过滤波。
+        // 与 isFilterEnabled 正交——实际是否滤波 = isFilterEnabled && !autoFilterBypass。
+        @Volatile
+        private var autoFilterBypass = false
     }
 }
 
