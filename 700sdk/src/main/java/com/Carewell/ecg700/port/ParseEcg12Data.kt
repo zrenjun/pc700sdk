@@ -1,5 +1,6 @@
 package com.Carewell.ecg700.port
 
+import android.os.Debug
 import android.os.Process
 import com.Carewell.OmniEcg.jni.ConfigBean
 import com.Carewell.OmniEcg.jni.PaceClearArr.feed
@@ -77,6 +78,15 @@ class ParseEcg12Data {
         // 高温降频时每帧 μs 会上升，正好量化降频吃掉了多少余量、以及优化补回了多少。
         var processNanosInWindow = 0L
         var windowStart = System.currentTimeMillis()
+        // ---- 窗口拉长现场取证：诊断"消费线程为何被延迟" ----
+        // 本线程 tid，用于读取 /proc/self/task/<tid>/stat 里本线程累计 CPU 时间(jiffies)。
+        val myTid = Process.myTid()
+        // 窗口开始时本线程已用 CPU 时间(jiffies)，与墙钟对比可判断"是被抢CPU"还是"自己算得慢"。
+        var cpuJiffiesAtWindowStart = readThreadCpuJiffies(myTid)
+        // 窗口开始时的 GC 次数，差值反映本窗口内是否频繁 GC(GC 可能抢占/暂停线程)。
+        var gcCountAtWindowStart = readGcCount()
+        // 各线程在窗口开始时的 CPU 时间快照，用于窗口异常拉长时点名"谁抢了 CPU"。
+        var threadCpuSnapshot = snapshotAllThreadCpu()
         while (!Thread.currentThread().isInterrupted) {
             try {
                 val first = queue.take() // 阻塞直到有帧；被 interrupt() 时抛 InterruptedException 退出
@@ -98,15 +108,42 @@ class ParseEcg12Data {
                     val usPerFrame = if (framesInWindow > 0) processNanosInWindow / 1000.0 / framesInWindow else 0.0
                     // 处理占用率：本窗口花在处理上的时间 / 窗口总时长。越低说明消费端越空闲、余量越大。
                     val busyPct = processNanosInWindow / 1_000_000.0 / elapsed * 100.0
+
+                    // ---- 诊断项 ----
+                    // 1) 本线程实际拿到的 CPU 时间(ms) vs 窗口墙钟(ms)。
+                    //    若 cpuMs 远小于 elapsed(如窗口13000ms但只拿到8000ms CPU)，说明有~5秒被抢走 → 被延迟调度，不是自己慢。
+                    val cpuJiffiesNow = readThreadCpuJiffies(myTid)
+                    val cpuMs = if (cpuJiffiesAtWindowStart >= 0 && cpuJiffiesNow >= 0)
+                        (cpuJiffiesNow - cpuJiffiesAtWindowStart) * MS_PER_JIFFY else -1
+                    // 本线程 CPU 占墙钟的比例：接近100%=一直在跑(自己慢)；明显偏低=被抢/被挂起。
+                    val cpuOfWallPct = if (cpuMs >= 0) cpuMs * 100.0 / elapsed else -1.0
+                    // 2) 本窗口 GC 次数增量
+                    val gcCountNow = readGcCount()
+                    val gcDelta = if (gcCountAtWindowStart >= 0 && gcCountNow >= 0) gcCountNow - gcCountAtWindowStart else -1L
+
                     LogUtil.v(
                         "12导消费吞吐: ${"%.1f".format(fps)}帧/秒 每帧${"%.1f".format(usPerFrame)}μs " +
                             "处理占用${"%.1f".format(busyPct)}% (窗口${elapsed}ms内处理${framesInWindow}帧) " +
-                            "队列=${queue.size} 累计丢帧=$droppedFrames",
+                            "队列=${queue.size} 累计丢帧=$droppedFrames " +
+                            "本线程CPU=${cpuMs}ms(占墙钟${"%.1f".format(cpuOfWallPct)}%) GC次数=$gcDelta",
                         "EcgStat"
                     )
+
+                    // 3) 窗口异常拉长(明显超过应有的10秒)时，点名本窗口内 CPU 增量最大的几个线程，抓"谁抢了CPU"的现场。
+                    val newSnapshot = snapshotAllThreadCpu()
+                    if (elapsed >= WINDOW_LONG_THRESHOLD_MS) {
+                        LogUtil.v(
+                            "12导窗口异常拉长(${elapsed}ms)，本窗口CPU占用TOP线程: ${topCpuThreads(threadCpuSnapshot, newSnapshot)}",
+                            "EcgStat"
+                        )
+                    }
+
                     framesInWindow = 0
                     processNanosInWindow = 0
                     windowStart = now
+                    cpuJiffiesAtWindowStart = cpuJiffiesNow
+                    gcCountAtWindowStart = gcCountNow
+                    threadCpuSnapshot = newSnapshot
                 }
             } catch (e: InterruptedException) {
                 // 收到取消信号：恢复中断标志并退出循环
@@ -118,6 +155,87 @@ class ParseEcg12Data {
                 e.printStackTrace()
                 batch.clear()
             }
+        }
+    }
+
+    // ---- 以下为"窗口拉长取证"诊断辅助，全部只读 /proc 或系统计数，开销小且仅每10秒调用 ----
+
+    /**
+     * 读取指定线程累计使用的 CPU 时间(jiffies = utime + stime)。
+     * 数据源 /proc/self/task/<tid>/stat 的第 14、15 字段。失败返回 -1。
+     * 注意：stat 第 2 字段(comm，线程名)可能含空格/括号，故从最后一个 ')' 之后开始按空格切分。
+     */
+    private fun readThreadCpuJiffies(tid: Int): Long {
+        return try {
+            val stat = java.io.File("/proc/self/task/$tid/stat").readText()
+            val rp = stat.lastIndexOf(')')
+            if (rp < 0) return -1
+            // ')' 之后的字段：state(1) ppid(2) ... utime 是整体第14字段，即 ')' 后的第12个 token。
+            val rest = stat.substring(rp + 1).trim().split(Regex("\\s+"))
+            // rest[0]=state(第3字段)，故 utime(第14)=rest[11]，stime(第15)=rest[12]
+            val utime = rest[11].toLong()
+            val stime = rest[12].toLong()
+            utime + stime
+        } catch (t: Throwable) {
+            -1
+        }
+    }
+
+    /** 读取 ART 累计 GC 次数，失败返回 -1。 */
+    private fun readGcCount(): Long {
+        return try {
+            Debug.getRuntimeStat("art.gc.gc-count")?.toLong() ?: -1
+        } catch (t: Throwable) {
+            -1
+        }
+    }
+
+    /** 对进程内所有线程做一次 <tid -> CPU jiffies> 快照，用于计算窗口内各线程 CPU 增量。 */
+    private fun snapshotAllThreadCpu(): HashMap<Int, Long> {
+        val map = HashMap<Int, Long>()
+        try {
+            val tasks = java.io.File("/proc/self/task").list() ?: return map
+            for (t in tasks) {
+                val tid = t.toIntOrNull() ?: continue
+                val j = readThreadCpuJiffies(tid)
+                if (j >= 0) map[tid] = j
+            }
+        } catch (t: Throwable) {
+            // 忽略
+        }
+        return map
+    }
+
+    /** 读取线程名(/proc/self/task/<tid>/comm)，失败返回 tid 字符串。 */
+    private fun readThreadName(tid: Int): String {
+        return try {
+            java.io.File("/proc/self/task/$tid/comm").readText().trim()
+        } catch (t: Throwable) {
+            "tid$tid"
+        }
+    }
+
+    /**
+     * 对比两次线程 CPU 快照，输出本窗口内 CPU 增量最大的前几个线程(名字x耗时ms)。
+     * 这能直接点名"窗口拉长期间到底是谁在占 CPU"，把"被谁抢"从猜测变为证据。
+     */
+    private fun topCpuThreads(before: HashMap<Int, Long>, after: HashMap<Int, Long>): String {
+        return try {
+            val deltas = ArrayList<Pair<Int, Long>>()
+            for ((tid, jAfter) in after) {
+                val jBefore = before[tid] ?: continue
+                val d = jAfter - jBefore
+                if (d > 0) deltas.add(tid to d)
+            }
+            deltas.sortByDescending { it.second }
+            val sb = StringBuilder("[")
+            for ((tid, d) in deltas.take(6)) {
+                sb.append(readThreadName(tid)).append('=').append(d * MS_PER_JIFFY).append("ms ")
+            }
+            sb.append(']')
+            sb.toString()
+        } catch (t: Throwable) {
+            "[取证失败:${t.message}]"
         }
     }
 
@@ -305,7 +423,13 @@ class ParseEcg12Data {
             leadOffArr[i] = if (fallFlags[i]) 1 else 0
         }
 
-        val filtered =  WaveFilter.instance?.filterControl(configBean, filterWave, leadOffArr) ?: filterWave
+        // 滤波总开关：开启则走整套 JNI 滤波；关闭则直接用滤波前的原始值 filterWave(省算力，波形未滤波)。
+        // 关闭滤波不影响心率——心率取的是上面 hrWave 里的滤波前原始导联值。
+        val filtered = if (isFilterEnabled) {
+            WaveFilter.instance?.filterControl(configBean, filterWave, leadOffArr) ?: filterWave
+        } else {
+            filterWave
+        }
 
         if (pace == 1 && count == 0) {
             count = 2
@@ -452,6 +576,13 @@ class ParseEcg12Data {
         // 消费吞吐统计打印间隔：每 10 秒一次。仅一条日志，开销可忽略。
         private const val STAT_INTERVAL_MS = 10_000L
 
+        // 每个 jiffy 对应的毫秒数。Android 内核 HZ 基本恒为 100，即 1 jiffy = 10ms。
+        // 用于把 /proc stat 里的 CPU 时间(jiffies)换算成毫秒。
+        private const val MS_PER_JIFFY = 10L
+
+        // 窗口墙钟时长超过此阈值即视为"异常拉长"(正常应≈10000ms)，触发 TOP CPU 线程取证。
+        private const val WINDOW_LONG_THRESHOLD_MS = 11_000L
+
         // 累计丢帧数，用于观测过载程度
         private var droppedFrames = 0L
         // 是否已打过“首次丢帧”告警。队列首次被打满(开始丢帧)是消费追不上生产的决定性信号，
@@ -523,6 +654,26 @@ class ParseEcg12Data {
         var isAddPacemaker = false
         fun setIsAddPacemaker(isAddPaceMaker: Boolean) {
             isAddPacemaker = isAddPaceMaker
+        }
+
+        // ---- 滤波总开关(对外) ----
+        // true(默认)：正常走整套 JNI 滤波(DC恢复/高通/肌电/低通/工频)，波形为滤波后可用于诊断的波形。
+        // false：跳过整套滤波，波形直接输出滤波前的原始导联值。
+        // 用途：低端设备(如MT6735)高温降频时，滤波占每帧约70%的处理耗时；若确认卡顿源于算力不足，
+        //       可由 APP 临时关闭滤波以大幅降低消费端负载(实测每帧从~770μs降到~215μs)。
+        // 重要：关闭后波形含基线漂移/工频干扰，通常不适合临床诊断，仅供性能取证或特殊场景使用，
+        //       由调用方(APP)自行决定何时关闭。心率不受影响——心率取的是滤波前的原始导联值。
+        @Volatile
+        var isFilterEnabled = true
+            private set
+
+        /**
+         * 设置是否启用滤波。默认启用。
+         * @param enabled true=启用滤波(诊断级波形)；false=关闭滤波(原始波形，仅省算力，不建议用于诊断)。
+         */
+        fun setFilterEnabled(enabled: Boolean) {
+            isFilterEnabled = enabled
+            LogUtil.v("滤波开关设置为: ${if (enabled) "开启" else "关闭"}", "EcgLife")
         }
     }
 }

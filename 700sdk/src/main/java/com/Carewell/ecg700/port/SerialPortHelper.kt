@@ -23,7 +23,11 @@ import java.util.concurrent.PriorityBlockingQueue
  */
 class SerialPortHelper : OnSerialPortDataListener {
     //命令队列
-    private val pendingQueue = PriorityBlockingQueue(20, compareBy<WriteData> { it.priority })
+    // 按优先级降序出队：IMMEDIATELY(3) > HIGH(2) > DEFAULT(1) > LOW(0)。
+    // PriorityBlockingQueue.poll() 取的是比较器下的“最小”元素，若用 compareBy 升序，
+    // 反而会先发 LOW，导致 IMMEDIATELY 的唤醒、HIGH 的握手排在一堆默认(LOW)命令后面，
+    // 表现为“握手没有紧跟在唤醒之后”。这里改为降序，让高优先级命令先出队。
+    private val pendingQueue = PriorityBlockingQueue(20, compareByDescending<WriteData> { it.priority })
 
     // 发送串口命令的协程
     private var sendScope = CoroutineScope(Dispatchers.IO)
