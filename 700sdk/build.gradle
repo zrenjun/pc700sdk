@@ -30,6 +30,11 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    // JitPack 的 latest 镜像用 JDK 17 跑 Kotlin/kapt, 必须显式把 jvmTarget
+    // 对齐到 Java 的 1.8, 否则 Gradle 8.x 会报 Inconsistent JVM-target 错误。
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
     namespace 'com.creative.sdkpack'
 }
 
