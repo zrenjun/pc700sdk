@@ -34,6 +34,9 @@ class App : Application() {
         context = this
         //初始化日志
         LogUtil.isSaveLog(applicationContext)
+        // 让日志重新带上(类名/文件名:行号).方法名。注意：会对每条日志抓一次调用栈，有性能开销，
+        // 仅建议调试/测试期开启；发布版如需极致性能，改为 false 或用 BuildConfig.DEBUG 包裹。
+        LogUtil.setTraceLocation(true)
         //初始化bus
         CommonApp.init(this)
         //初始化串口

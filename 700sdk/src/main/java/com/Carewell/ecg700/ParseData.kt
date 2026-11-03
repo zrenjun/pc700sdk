@@ -294,7 +294,7 @@ object ParseData {
                 val plus = bytes[9].toInt() and 0xFF //脉率
                 postEvent(NIBPGetMeasureResultEvent(sys, map, dia, plus, bHr, getGrade(sys, dia)))
             } else if (type == 0x02) { //错误结果
-                postEvent(NIBPGetMeasureErrorEvent(bytes[5].toInt() and 0x0F))
+                postEvent(NIBPGetMeasureErrorEvent(bytes[5].toInt() and 0xFF))  //旧协议取bit0-bit3 新取全部
             }
             // 血压
             (0x41).toByte() -> when (type) {

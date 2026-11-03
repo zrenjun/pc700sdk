@@ -32,6 +32,20 @@ object LogUtil {
     @Volatile
     private var traceLocation = false
 
+    // 高频/周期性日志的 tag 白名单：即便开启了 traceLocation，这些 tag 也跳过抓栈，
+    // 只打 tag+msg，避免给热路径/高频日志额外加抓栈开销。其余日志正常带(类:行).方法。
+    // 这些 tag 本身自带足够上下文(如 EcgStat/ResSampler 有固定含义)，不依赖行号定位。
+    private val traceSkipTags = hashSetOf("EcgStat", "ResSampler", "Serial")
+
+    /** 增删"跳过抓栈"的高频 tag(可选，供调用方按需调整)。 */
+    fun addTraceSkipTag(tag: String) {
+        traceSkipTags.add(tag)
+    }
+
+    fun removeTraceSkipTag(tag: String) {
+        traceSkipTags.remove(tag)
+    }
+
     // ---- 日志文件滚动检查降频 ----
     // 原实现每写一条日志都 File.listFiles() 扫描目录并判断是否需要删除旧文件，
     // 这是每条日志一次文件系统元数据 I/O，在热路径上是主要卡顿源。
@@ -295,7 +309,9 @@ object LogUtil {
     private fun log(customTag: String, msg: String) {
         if (!logEnabled) return
         // 默认路径：不抓调用栈，直接使用调用方传入的 tag 与消息，避免每条日志一次昂贵的 stackTrace。
-        if (!traceLocation) {
+        // 另外：即便开启了 traceLocation，高频/周期性 tag(traceSkipTags)也走此快速路径跳过抓栈，
+        // 保护热路径不被逐条抓栈拖慢。
+        if (!traceLocation || (customTag.isNotBlank() && customTag in traceSkipTags)) {
             val tag = if (customTag.isNotBlank()) customTag else this.tag
             point(tag, msg)
             return

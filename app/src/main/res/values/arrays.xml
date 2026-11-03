@@ -54,22 +54,28 @@
     </string-array>
 
 
+    <!-- 血压错误码 1~20，下标 = 错误码 - 1（0 为无错误，不在数组内） -->
     <string-array name="nibp_errors">
-        <item>血压自检测失败</item>
-        <item>袖带错误</item>
-        <item>漏气</item>
-        <item>压力错误</item>
-        <item>血压信号微弱</item>
-        <item>血压超出范围</item>
-        <item>过度运动</item>
-        <item>检测到过压</item>
-        <item>血压信号饱和</item>
-        <item>血压测试漏气</item>
-        <item>血压模块错误</item>
+        <item>血压模块故障</item>
+        <item>血压袖带太松或未接</item>
+        <item>血压气路漏气</item>
+        <item>血压气路堵塞</item>
+        <item>血压信号太弱</item>
+        <item>血压超出测量范围</item>
+        <item>手臂运动</item>
+        <item>过压保护</item>
+        <item>信号饱和</item>
+        <item>血压气路漏气</item>
+        <item>--</item>
         <item>血压测量超时</item>
-        <item>预留</item>
-        <item>电量过低，血压暂停使用</item>
-        <item>袖带类型错误</item>
+        <item>--</item>
+        <item>电量过低，暂停使用</item>
+        <item>--</item>
+        <item>血压测量失败，请检查袖带是否绑好</item>
+        <item>血压过压保护</item>
+        <item>血压信号太弱</item>
+        <item>手臂运动或说话</item>
+        <item>测量结果异常</item>
     </string-array>
 
     <string-array name="nibp_result">
