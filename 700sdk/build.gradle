@@ -33,6 +33,26 @@ android {
     namespace 'com.creative.sdkpack'
 }
 
+// 锁定 androidx.lifecycle 到最后一个非 KMP 版本 2.7.0。
+// androidx.bluetooth:1.0.0-alpha02 会把 lifecycle 传递拉到 2.10.0(KMP 多变体),
+// 导致 AGP 无法在 androidRuntimeElements / desktopRuntimeElements 间消歧而构建失败。
+configurations.all {
+    resolutionStrategy {
+        def lifecycleForced = '2.7.0'
+        force "androidx.lifecycle:lifecycle-common:${lifecycleForced}"
+        force "androidx.lifecycle:lifecycle-runtime:${lifecycleForced}"
+        force "androidx.lifecycle:lifecycle-runtime-ktx:${lifecycleForced}"
+        force "androidx.lifecycle:lifecycle-livedata:${lifecycleForced}"
+        force "androidx.lifecycle:lifecycle-livedata-core:${lifecycleForced}"
+        force "androidx.lifecycle:lifecycle-livedata-core-ktx:${lifecycleForced}"
+        force "androidx.lifecycle:lifecycle-livedata-ktx:${lifecycleForced}"
+        force "androidx.lifecycle:lifecycle-viewmodel:${lifecycleForced}"
+        force "androidx.lifecycle:lifecycle-viewmodel-ktx:${lifecycleForced}"
+        force "androidx.lifecycle:lifecycle-viewmodel-savedstate:${lifecycleForced}"
+        force "androidx.lifecycle:lifecycle-process:${lifecycleForced}"
+    }
+}
+
 dependencies {
     api fileTree(dir: 'libs', include: ['*.jar'])
     api 'androidx.core:core-ktx:1.12.0'
