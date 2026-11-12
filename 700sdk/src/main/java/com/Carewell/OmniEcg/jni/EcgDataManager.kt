@@ -131,6 +131,7 @@ class EcgDataManager private constructor() {
         sb.append(String.format("工频滤波: %s", "$acHz Hz")).append(space)
         sb.append(String.format("高通滤波: %s", "$hpHz Hz")).append(space)
         sb.append(String.format("低通滤波: %s", "$lowPassHz Hz")).append(space)
+        sb.append("CWECG-SLA  V1.0.0.0").append(space)
         //检查时间
         if (checkTimeStamp > 0) {
             sb.append(
